@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mmb"
+version = "0.1.0"
+description = "Multi-modal boundary testing of vision-language models"
+requires-python = ">=3.11"
+dependencies = [
+  "torch", "torchvision", "transformers", "accelerate", "pymoo==0.6.1.6", "numba", "dacite", "pyyaml",
+  "datasets", "numpy", "pandas", "pillow", "tqdm", "scipy", "pyarrow", "rich", "spacy", "gensim",
+]
+
+[project.optional-dependencies]
+stylegan = ["smoo", "timm"]
+diffusion = ["diffusers", "smoo"]
+cache = ["redis"]
+dev = ["pytest", "ruff", "vulture"]
+
+[project.scripts]
+mmb-evolve = "mmb.runners.run_boundary_test:main"
+mmb-pdq = "mmb.runners.run_pdq_test:main"
+mmb-pair = "mmb.runners.run_boundary_pair_test:main"
+
+[tool.setuptools.packages.find]
+include = ["mmb*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100

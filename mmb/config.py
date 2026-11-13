@@ -1,0 +1,913 @@
+"""Unified experiment configuration — single source of truth.
+
+Every tuneable parameter lives here (or is re-exported from here).
+Components receive the top-level :class:`ExperimentConfig` (or a nested
+sub-config) so that shared values like *device* and *categories* are
+never duplicated.
+
+The YAML template (``configs/templates/evolutionary_template.yaml``) maps 1:1 to this
+structure: any omitted key falls back to the dataclass default defined
+below.
+
+**Import convention**: always import config types from ``mmb.config``,
+even though ``ImageConfig`` and ``TextConfig`` are technically defined
+in their respective component modules (to avoid circular imports).
+"""
+
+from __future__ import annotations
+
+import dataclasses
+import logging
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import TYPE_CHECKING, Any
+
+# Component sub-configs: defined in their modules (no circular import),
+# re-exported here as the canonical import path.
+from mmb.manipulator.image.manipulator import ImageConfig
+from mmb.manipulator.text.config import TextConfig
+
+if TYPE_CHECKING:
+    from PIL import Image
+
+logger = logging.getLogger(__name__)
+
+# ---------------------------------------------------------------------------
+# Shared constants (ONE copy — never duplicated)
+# ---------------------------------------------------------------------------
+
+DEFAULT_PROMPT_TEMPLATE: str = "What is the main subject in this image?"
+
+DEFAULT_ANSWER_FORMAT: str = (
+    " Answer with exactly one of these options: {categories}."
+)
+
+
+# ---------------------------------------------------------------------------
+# Sub-configs (component-specific knobs)
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class SUTConfig:
+    """VLM scorer / model-loading settings.
+
+    Two execution backends are supported:
+
+    * ``backend="torch"`` (default) — HuggingFace transformers on CUDA/MPS/CPU.
+      ``model_id`` is the HF repo, ``device`` (top-level) selects the torch
+      device, and ``load_in_{4,8}bit`` enable bitsandbytes weight compression.
+    * ``backend="openvino"`` — OpenVINO IR on Intel Arc/Xe via optimum-intel.
+      ``model_id`` is normally a pre-converted IR repo (e.g.
+      ``OpenVINO/Qwen2.5-VL-7B-Instruct-int4-ov``), ``processor_id`` points at
+      the original FP16 repo for tokenizer/image-processor, and ``ov_device``
+      selects the OpenVINO device (``"GPU"`` for Arc, ``"CPU"`` as fallback).
+      The top-level torch ``device`` is irrelevant in this mode.
+    """
+
+    model_id: str = "Qwen/Qwen3.5-9B"
+    backend: str = "torch"          # "torch" | "openvino"
+    processor_id: str | None = None  # OV: original repo for AutoProcessor
+    ov_device: str = "GPU"           # OV-only: "GPU" | "CPU"
+    enable_thinking: bool = False
+    max_thinking_tokens: int = 2000
+    max_pixels: int | None = None
+    load_in_8bit: bool = False        # torch-only (bitsandbytes)
+    load_in_4bit: bool = False        # torch-only (bitsandbytes)
+    redis_url: str = "redis://localhost:6379"
+
+
+@dataclass(frozen=True)
+class PMIConfig:
+    """PMI (pointwise-mutual-information) calibration of the boundary distance.
+
+    When ``enabled``, the SUT subtracts a per-class *surface-form prior*
+    baseline from every returned log-prob vector::
+
+        pmi(c) = ℓ(c | m) − ℓ(c | ∅)
+
+    where ``∅`` is a content-neutral image scored under the *canonical*
+    prompt (``prompt_template`` + ``answer_format`` over the scored
+    categories — never the per-individual mutated text). The baseline is
+    constant per category-tuple, computed once and cached, so the cost is
+    two forward passes per class pair regardless of search length.
+
+    Because every score in the system flows through
+    :meth:`~mmb.sut.vlm_sut.VLMSUT.process_input`, enabling this makes the
+    entire pipeline — ``TargetedBalance``, PDQ flip detection, seed
+    selection, early-stop, and the logged ``argmax``/``probs`` — operate on
+    the prior-corrected quantity. The raw log-probs stay recoverable from
+    the trace because the baseline is persisted (``raw = corrected +
+    baseline``). See Exp-104 for the motivation.
+
+    :param enabled: Master switch. ``False`` (default) → the SUT returns
+        raw log-probs, byte-identical to the pre-PMI pipeline.
+    :param null_image: Content-neutral baseline image — ``"gray"``
+        (default), ``"black"``, ``"white"``, or ``"noise"``.
+    :param null_image_size: Side length in px of the square null image.
+    :param null_image_seed: RNG seed for ``null_image="noise"`` (fixed so
+        the baseline is deterministic).
+    :param apply_to_seedgen: When ``True`` (default), PMI correction also
+        governs roster/gap-filter anchor acceptance (argmax GT-check +
+        ``min_anchor_confidence``) — the whole-system behaviour. Set
+        ``False`` to force *raw* scoring during seed generation while the
+        search still runs under PMI: this makes seed selection (which
+        concrete anchor photo binds to each cell) identical to a raw run,
+        so a raw-vs-PMI A/B differs only in the search objective. See
+        Exp-104 Phase B.
+    """
+
+    enabled: bool = False
+    null_image: str = "gray"
+    null_image_size: int = 448
+    null_image_seed: int = 0
+    apply_to_seedgen: bool = True
+
+    def __post_init__(self) -> None:
+        if self.null_image not in ("gray", "black", "white", "noise"):
+            raise ValueError(
+                f"pmi.null_image must be 'gray' | 'black' | 'white' | "
+                f"'noise'; got {self.null_image!r}"
+            )
+
+
+@dataclass(frozen=True)
+class GapFilterConfig:
+    """Parameters for the ``gap_filter`` seed-selection mode.
+
+    Scans an ImageNet-validation subset per configured category and keeps
+    ``(image, class_a, class_b)`` triples where the VLM classifies the
+    ground-truth correctly AND the log-prob gap between GT and some other
+    category is below the threshold (i.e. the image is close to an
+    A-vs-B decision boundary).
+
+    :param n_per_class: ImageNet images sampled per category.
+    :param max_logprob_gap: Max log-prob gap ``gt - other`` for a pair
+        to be kept (smaller → closer to boundary).
+    """
+
+    n_per_class: int = 5
+    max_logprob_gap: float = 2.0
+
+
+@dataclass(frozen=True)
+class AbstractionConfig:
+    """Abstraction-level configuration for the ``roster`` seed-selection mode.
+
+    Controls the combinatorial expansion over taxonomy levels for each
+    class pair. Levels are 0-indexed per :mod:`mmb.data.taxonomy`:
+    ``-1`` = concrete (the raw ImageNet label, e.g. "hammerhead shark"),
+    ``0`` = fine (L0 cluster, e.g. "shark"),
+    ``1`` = mid (e.g. "cartilaginous fish"),
+    ``2`` = super (e.g. "fish"). The generator enumerates the Cartesian
+    product ``levels_anchor × levels_target`` and, when *apply_disjointness*
+    is ``True``, retains only cells (L_a, L_b) satisfying
+    ``max(L_a, L_b) < common_ancestor_level(x_anchor, x_target)``
+    (with cancestor ``None`` treated as ``+inf`` — concretely-disjoint pairs
+    keep every cell).
+
+    Use ``-1`` (concrete) to pair-lock at the ImageNet label, bypassing
+    the taxonomy substitution — e.g. when reproducing a gap_filter-style
+    pair across SUTs.
+
+    :param levels_anchor: Levels at which the anchor label is expressed
+        in the prompt. Any subset of ``(-1, 0, 1, 2)``.
+    :param levels_target: Levels at which the target label is expressed
+        in the prompt. Any subset of ``(-1, 0, 1, 2)``.
+    :param apply_disjointness: Filter cells where the abstracted anchor
+        and target labels are not semantically disjoint (prevents
+        "Is this a Junco or a bird?" style prompts).
+    :param directions: Which ordered pair directions to emit:
+        ``"both"`` for anchor→target and target→anchor (default);
+        ``"forward"`` for class_list position ``i < j`` only;
+        ``"reverse"`` for ``i > j`` only.
+    """
+
+    levels_anchor: tuple[int, ...] = (0, 1, 2)
+    levels_target: tuple[int, ...] = (0, 1, 2)
+    apply_disjointness: bool = True
+    directions: str = "both"
+
+    def __post_init__(self) -> None:
+        for lvl in self.levels_anchor:
+            if lvl not in (-1, 0, 1, 2):
+                raise ValueError(
+                    f"levels_anchor entries must be in (-1, 0, 1, 2); got {lvl}"
+                )
+        for lvl in self.levels_target:
+            if lvl not in (-1, 0, 1, 2):
+                raise ValueError(
+                    f"levels_target entries must be in (-1, 0, 1, 2); got {lvl}"
+                )
+        if self.directions not in ("both", "forward", "reverse"):
+            raise ValueError(
+                f"directions must be 'both' | 'forward' | 'reverse'; "
+                f"got {self.directions!r}"
+            )
+
+
+@dataclass(frozen=True)
+class RosterConfig:
+    """Parameters for the ``roster`` seed-selection mode.
+
+    Takes an explicit list of concrete (L0) class names and a target
+    seeds-per-class count, then collects anchor images where the VLM
+    correctly classifies the class and meets a minimum confidence. The
+    resulting :class:`SeedImage` pool is then expanded combinatorially
+    into :class:`SeedTriple` instances by the pair generator, respecting
+    the :class:`AbstractionConfig`.
+
+    :param class_list: Concrete ImageNet class names (L0). Each class
+        must have a complete L0/L1/L2 taxonomy path, otherwise the
+        generator fails fast during validation.
+    :param seeds_per_class: Exact number of anchor images to collect per
+        class. Pool-exhaustion without reaching this count is a hard
+        error — no partial counts tolerated.
+    :param min_anchor_confidence: Strictness of the GT-logprob acceptance
+        check, expressed as the *maximum acceptable distance from 0* in
+        the SUT's length-normalized log-prob space (so positive values
+        with smaller = stricter). An image is accepted iff
+        ``logprob_norm(GT) >= -min_anchor_confidence``. SUT logprobs for
+        top-1 classes are typically in ``[-3, 0]``, so values 1.5–3.0
+        cover the practical range; ``2.0`` (default) admits any sample
+        where the model puts ≥ ~13.5 % mass on the GT label among the
+        contrast set (default: the roster ``class_list``).
+    :param abstraction: Combinatorial expansion over taxonomy levels.
+    :param scoring_categories: Override for the contrast-set used in the
+        anchor GT-classification check. Empty tuple (default) selects
+        the roster ``class_list`` itself — the operationally-aligned
+        choice, since the boundary test only ever pits roster pairs.
+        A tuple of explicit ImageNet labels opts into a custom contrast
+        set (e.g. broader sibling pool). Avoid ``data_source.labels()``
+        unless you specifically need a 1000-class strict-top-1 filter:
+        VLM "stuck" classes (junco, newt, …) routinely lose against
+        unrelated distractors there even though they dominate within
+        a focused roster.
+    """
+
+    class_list: tuple[str, ...] = ()
+    seeds_per_class: int = 3
+    min_anchor_confidence: float = 2.0
+    abstraction: AbstractionConfig = field(default_factory=AbstractionConfig)
+    scoring_categories: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
+class RefCocoPlusConfig:
+    """RefCOCO+ two-referent seed source for grounding-modality runs."""
+
+    data_root: Path                       # COCO images + refcoco+ annotations (refer-API layout)
+    split: str = "testA"                  # testA = multi-person; testB = multi-object
+    splitBy: str = "unc"
+    n_items: int = 40
+    same_category: bool = True            # keep items whose two referents share a category
+
+
+# Placeholder that a slot-item carrier template must contain. Substitution
+# is a literal string replace (never ``str.format``) so templates may hold
+# other braces without escaping.
+SLOT_PLACEHOLDER: str = "{slot}"
+
+
+@dataclass(frozen=True)
+class SlotItem:
+    """One explicit ``(image, carrier sentence, candidate fillers)`` item.
+
+    The sentence-slot mode (Exp-105) drops the ImageNet label-pair
+    machinery: the contrast set is written out by hand. *template* carries
+    a single ``{slot}`` placeholder; every filler instantiates it into a
+    FULL candidate sentence, and those sentences — not the bare filler
+    words — are what the SUT scores. That is deliberate: the shared prefix
+    cancels exactly in the contrast, so only the suffix residue is signal.
+
+    :param image: Seed image path. Absolute, ``~``-prefixed, or relative
+        to the repo root. Existence is checked at *seed-generation* time
+        (see :func:`mmb.common.slot_items_seed_generator.resolve_item_image`)
+        so config load stays IO-free.
+    :param template: Carrier sentence; must contain ``{slot}``.
+    :param fillers: Words/phrases substituted into the slot. Each yields
+        one candidate sentence; together they are the scored contrast set.
+    :param pair: The two fillers whose instantiated sentences form the
+        search pair scored by ``TargetedBalance`` (``|P(A) − P(B)|``).
+        Entries name fillers, not sentences; both must be in *fillers*.
+    """
+
+    image: Path
+    template: str
+    fillers: tuple[str, ...]
+    pair: tuple[str, ...]
+
+    def __post_init__(self) -> None:
+        if SLOT_PLACEHOLDER not in self.template:
+            raise ValueError(
+                f"slot_items item template must contain {SLOT_PLACEHOLDER!r}; "
+                f"got {self.template!r}"
+            )
+        if not self.fillers:
+            raise ValueError(
+                f"slot_items item {self.template!r} has an empty `fillers` "
+                "list; at least the two `pair` entries are required."
+            )
+        dupes = sorted({f for f in self.fillers if self.fillers.count(f) > 1})
+        if dupes:
+            raise ValueError(
+                f"slot_items item {self.template!r} has duplicate fillers "
+                f"{dupes}; candidate sentences must be distinct."
+            )
+        if len(self.pair) != 2:
+            raise ValueError(
+                f"slot_items item {self.template!r} needs exactly 2 `pair` "
+                f"entries (the search contrast); got {len(self.pair)}: "
+                f"{list(self.pair)}"
+            )
+        if self.pair[0] == self.pair[1]:
+            raise ValueError(
+                f"slot_items item {self.template!r} has identical `pair` "
+                f"entries {self.pair[0]!r}; the two sides must differ."
+            )
+        missing = [p for p in self.pair if p not in self.fillers]
+        if missing:
+            raise ValueError(
+                f"slot_items item {self.template!r}: `pair` entries "
+                f"{missing} are not in `fillers` {list(self.fillers)}. "
+                "`pair` names fillers, which are then instantiated into "
+                "candidate sentences."
+            )
+
+
+@dataclass(frozen=True)
+class SlotItemsConfig:
+    """Parameters for the ``slot_items`` seed-selection mode (Exp-105).
+
+    Each :class:`SlotItem` yields exactly one seed for the normal seed
+    loop, in listed order — so ``seeds.filter_indices`` addresses items
+    by their 0-based position here.
+    """
+
+    items: tuple[SlotItem, ...] = ()
+
+    def __post_init__(self) -> None:
+        if not self.items:
+            raise ValueError(
+                "seeds.slot_items.items must list at least one item."
+            )
+
+
+# Seed-selection modes, each backed by a same-named sub-block on SeedConfig.
+_SEED_MODES: tuple[str, ...] = (
+    "gap_filter", "roster", "refcocoplus", "slot_items",
+)
+
+
+@dataclass(frozen=True)
+class SeedConfig:
+    """Seed-selection parameters — dispatches between the generation modes.
+
+    The :attr:`mode` flag selects between:
+
+    * ``"gap_filter"`` — the historical path (see :class:`GapFilterConfig`):
+      scans ImageNet-validation via the confidence-gap heuristic and emits
+      a seed pool sized by ``n_per_class`` × ``n_categories``.
+    * ``"roster"`` — the Exp-100 path (see :class:`RosterConfig`):
+      explicit class roster with fixed seeds-per-class and combinatorial
+      abstraction-level expansion.
+    * ``"refcocoplus"`` — the Exp-103 grounding path
+      (see :class:`RefCocoPlusConfig`): two-referent box-string candidates.
+    * ``"slot_items"`` — the Exp-105 sentence-slot path
+      (see :class:`SlotItemsConfig`): explicit ``(image, carrier, fillers)``
+      items, candidates are instantiated carrier sentences.
+
+    Exactly the matching sub-block must be populated; mismatches (e.g.
+    ``mode="roster"`` with a ``gap_filter`` block set) are rejected in
+    :meth:`__post_init__`.
+
+    :attr:`filter_indices` is mode-independent: after generation (whichever
+    path), the pool is narrowed to the listed 0-based positions. Original
+    indices are preserved in output naming (seed_0032 stays seed_0032
+    even if it is the only seed that runs). An empty tuple disables
+    filtering.
+
+    :param mode: ``"gap_filter"`` | ``"roster"`` | ``"refcocoplus"``
+        | ``"slot_items"``.
+    :param filter_indices: Post-generation index filter. Empty = keep all.
+    :param gap_filter: Parameters when ``mode == "gap_filter"``.
+    :param roster: Parameters when ``mode == "roster"``.
+    :param refcocoplus: Parameters when ``mode == "refcocoplus"``.
+    :param slot_items: Parameters when ``mode == "slot_items"``.
+    """
+
+    mode: str = "gap_filter"
+    filter_indices: tuple[int, ...] = ()
+    gap_filter: GapFilterConfig | None = None
+    roster: RosterConfig | None = None
+    refcocoplus: "RefCocoPlusConfig | None" = None
+    slot_items: "SlotItemsConfig | None" = None
+
+    def __post_init__(self) -> None:
+        if self.mode not in _SEED_MODES:
+            raise ValueError(
+                "seeds.mode must be "
+                + " | ".join(repr(m) for m in _SEED_MODES)
+                + f"; got {self.mode!r}"
+            )
+        foreign = [
+            m for m in _SEED_MODES
+            if m != self.mode and getattr(self, m) is not None
+        ]
+        if foreign:
+            raise ValueError(
+                f"seeds.mode={self.mode!r} but seeds."
+                f"{' / seeds.'.join(foreign)} is set; drop one or the other."
+            )
+        if getattr(self, self.mode) is None:
+            if self.mode == "gap_filter":
+                # Historical convenience: gap_filter defaults are usable
+                # as-is. Frozen dataclass requires setattr.
+                object.__setattr__(self, "gap_filter", GapFilterConfig())
+            else:
+                raise ValueError(
+                    f"seeds.mode={self.mode!r} requires a seeds.{self.mode} "
+                    "config block."
+                )
+
+
+@dataclass(frozen=True)
+class EarlyStopCfg:
+    """Early-stopping knobs for the screening runner.
+
+    Maps 1:1 to ``mmb.optimizer.early_stop.EarlyStopConfig``; kept here
+    so the whole experiment is YAML-addressable.
+
+    :param enable: Master switch. ``False`` disables all early-stop
+        triggers — the runner falls back to a fixed ``evolution_generations``
+        hard cap.
+    :param epsilon_margin: Added to ``np.finfo(dtype).tiny`` to form the
+        flip-detection threshold. Do NOT set to a literal 1e-3-style
+        magic number — tying to dtype keeps the threshold numerically
+        meaningful across FP16/FP32/FP64 runs.
+    :param plateau_patience: Generations of no Pareto-hypervolume
+        improvement before the plateau trigger fires. ``30`` is the
+        EXP-08 default.
+    :param no_improvement_warmup: Warmup generations before the
+        "no-improvement-since-seed" trigger activates. Prevents stops
+        during the first few generations when the evolution has not
+        yet had time to beat the seed matrix.
+    """
+
+    enable: bool = True
+    epsilon_margin: float = 1e-30
+    plateau_patience: int = 30
+    no_improvement_warmup: int = 20
+    hypervolume_reference: tuple[float, ...] | None = None
+
+
+@dataclass(frozen=True)
+class SamplingTier:
+    """One tier in :class:`SamplingConfig` ``mode="sparse_multitier"``.
+
+    Each tier defines a Bernoulli ``p_active`` over the image-gene block
+    and a population ``fraction`` allocated to it. Active genes draw
+    codeword uniformly in ``[1, bound]``.
+
+    :param p_active: Bernoulli activation probability per image gene.
+    :param fraction: Share of the (non-zero-anchor) population allocated
+        to this tier.
+    """
+
+    p_active: float
+    fraction: float
+
+
+# Documented Exp-22b 5-tier setup (spike / sparse / medium / heavy / very heavy).
+# Population allocation: 5 % zero-anchor (handled by SamplingConfig) +
+# 20 / 20 / 25 / 20 / 10 % across these tiers. Used when SamplingConfig is
+# loaded with mode="sparse_multitier" (the default) and no explicit
+# ``tiers`` field — also serves as the documented baseline that
+# configs/templates/evolutionary_template.yaml exposes.
+DEFAULT_MULTITIER_TIERS: tuple[SamplingTier, ...] = (
+    SamplingTier(p_active=0.005, fraction=0.20),
+    SamplingTier(p_active=0.030, fraction=0.20),
+    SamplingTier(p_active=0.100, fraction=0.25),
+    SamplingTier(p_active=0.300, fraction=0.20),
+    SamplingTier(p_active=0.500, fraction=0.10),
+)
+
+
+@dataclass(frozen=True)
+class SamplingConfig:
+    """Init-population sampling distribution.
+
+    ``mode="uniform"`` preserves the historical ``IntegerRandomSampling``
+    behaviour (every gene drawn uniform in ``[0, bound]``). ``mode="sparse"``
+    swaps in :class:`SparseSampling` — a three-way mixture of zero anchors,
+    uniform-sparse (Bernoulli mask × uniform depth), and geometric-sparse
+    (Bernoulli mask × truncated geometric depth), designed to seed the
+    image-gene block near identity while retaining full-codebook reach.
+    ``mode="sparse_multitier"`` swaps in :class:`MultiTierSparseSampling`
+    — explicit multi-tier coverage of the image-activation regime via
+    user-specified ``(p_active, fraction)`` tuples; addresses the
+    Exp-22-diagnosed sparse-init lock-in by guaranteeing spike +
+    medium + heavy individuals coexist from gen 0.
+
+    :param mode: One of ``"uniform"``, ``"sparse"``, ``"sparse_multitier"``.
+    :param p_active: For sparse mode, Bernoulli probability each image
+        gene is active in an individual. ``E[n_active] ≈ image_dim × p_active``.
+    :param geometric_rate: Rate parameter of the truncated geometric depth
+        distribution for active genes. Higher → shallower.
+    :param zero_anchor_fraction: Fraction of the initial population that
+        is exact zero in the image block (text block stays uniform).
+    :param uniform_fallback_fraction: Fraction of the initial population
+        that uses uniform (not geometric) depth for active genes. Insurance
+        against over-aggressive geometric bias.
+    :param tiers: For ``sparse_multitier`` mode, the per-tier
+        ``(p_active, fraction)`` allocation. Fractions + zero_anchor
+        must sum to ≤ 1.0; the last tier absorbs any rounding residual.
+    :param score_path: For ``sparse_score_guided`` mode, path to a
+        ``.npy`` file containing the per-image-position importance
+        score (1-D float64, length = image-block dim, lower = more
+        important). Produced by
+        ``experiments/runners/compute_position_score.py``.
+    """
+
+    mode: str = "sparse_multitier"
+    p_active: float = 0.03
+    geometric_rate: float = 0.5
+    zero_anchor_fraction: float = 0.05
+    uniform_fallback_fraction: float = 0.10
+    tiers: tuple[SamplingTier, ...] = DEFAULT_MULTITIER_TIERS
+    score_path: str | None = None
+    fps_subset_size: int | None = 512
+    fps_metric: str = "cosine"
+
+
+@dataclass(frozen=True)
+class MutationConfig:
+    """Polynomial-mutation (PM) operator parameters.
+
+    Maps onto PyMoo's :class:`~pymoo.operators.mutation.pm.PM` operator
+    inside :class:`~mmb.optimizer.discrete_pymoo_optimizer.DiscretePymooOptimizer`.
+    The defaults reproduce the historical hardcoded operator
+    (``PM(eta=3.0)``) exactly — configs without a ``mutation`` block
+    behave identically to runs predating this knob.
+
+    :param prob: Per-gene mutation probability (PyMoo's ``prob_var``).
+        ``None`` (default) keeps PyMoo's adaptive default
+        ``min(0.5, 1/n_var)`` — roughly one mutated gene per offspring.
+        Raise (e.g. ``0.1``) for "heavy mutation" runs. The per-offspring
+        application probability stays at PyMoo's ``0.9`` regardless.
+    :param eta: PM distribution index. Smaller → larger jumps away from
+        the parent value; larger → tighter local perturbation.
+    """
+
+    prob: float | None = None
+    eta: float = 3.0
+
+    def __post_init__(self) -> None:
+        if self.prob is not None and not 0.0 <= self.prob <= 1.0:
+            raise ValueError(
+                f"mutation.prob must be in [0, 1] or null; got {self.prob!r}"
+            )
+        if self.eta < 0.0:
+            raise ValueError(
+                f"mutation.eta must be >= 0; got {self.eta!r}"
+            )
+
+
+@dataclass(frozen=True)
+class CrossoverConfig:
+    """SBX crossover operator parameters.
+
+    Maps onto PyMoo's :class:`~pymoo.operators.crossover.sbx.SBX`
+    operator inside
+    :class:`~mmb.optimizer.discrete_pymoo_optimizer.DiscretePymooOptimizer`.
+    The defaults reproduce the historical hardcoded operator
+    (``SBX(prob=0.9, eta=3.0)``) exactly.
+
+    :param prob: Probability that crossover is applied to a mating pair
+        at all (PyMoo's ``prob``; unmated pairs are copied unchanged).
+    :param eta: SBX distribution index. Smaller → offspring further from
+        the parents; larger → near-parent offspring.
+    """
+
+    prob: float = 0.9
+    eta: float = 3.0
+
+    def __post_init__(self) -> None:
+        if not 0.0 <= self.prob <= 1.0:
+            raise ValueError(
+                f"crossover.prob must be in [0, 1]; got {self.prob!r}"
+            )
+        if self.eta < 0.0:
+            raise ValueError(
+                f"crossover.eta must be >= 0; got {self.eta!r}"
+            )
+
+
+@dataclass(frozen=True)
+class OptimizerConfig:
+    """Optimizer sampling strategy, variation operators, and early stop.
+
+    Consumed by :class:`~mmb.evolutionary.VLMBoundaryTester`. Controls
+    the initial-population sampler (uniform random vs sparse init), the
+    PM/SBX variation-operator parameters, and the early-stop triggers
+    that may terminate a seed before the generation budget is exhausted.
+
+    :param early_stop: Early-stop configuration.
+    :param sampling: Initial population sampling strategy.
+    :param mutation: Polynomial-mutation operator parameters.
+    :param crossover: SBX crossover operator parameters.
+    """
+
+    early_stop: EarlyStopCfg = field(default_factory=EarlyStopCfg)
+    sampling: SamplingConfig = field(default_factory=SamplingConfig)
+    mutation: MutationConfig = field(default_factory=MutationConfig)
+    crossover: CrossoverConfig = field(default_factory=CrossoverConfig)
+
+
+# ---------------------------------------------------------------------------
+# Data types
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class SeedTriple:
+    """A single seed for boundary testing.
+
+    :param image: Seed PIL image.
+    :param class_a: Primary class label verbatim as shown in the prompt
+        (may be a taxonomy-abstracted form when emitted by the roster
+        pipeline; always an L0 concrete name when emitted by gap_filter).
+    :param class_b: Secondary class label verbatim as shown in the prompt.
+    :param metadata: Optional per-seed metadata dict. The roster pipeline
+        populates this with taxonomy/abstraction bookkeeping
+        (``level_anchor``, ``level_target``, ``anchor_class_concrete``,
+        ``target_class_concrete``, ``common_ancestor_level``,
+        ``seed_idx_in_class``, ``anchor_label_in_prompt``,
+        ``target_label_in_prompt``). The tester merges this dict into
+        ``stats.json`` when present, enabling post-hoc aggregation along
+        these axes without a trace-schema bump. ``None`` for the
+        ``gap_filter`` path.
+
+        Two keys are read by the evolutionary tester rather than just
+        logged:
+
+        * ``prompt_template`` — per-seed override of
+          ``config.prompt_template`` (refcocoplus grounding).
+        * ``candidates`` — per-seed scored candidate list (slot_items).
+          When present, the SUT scores against exactly these strings and
+          the answer suffix lists them; ``class_a`` / ``class_b`` must be
+          two of them (the search pair).
+    """
+
+    image: Image.Image
+    class_a: str
+    class_b: str
+    metadata: dict[str, Any] | None = None
+
+
+# ---------------------------------------------------------------------------
+# Parallel-seed config
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class ParallelConfig:
+    """Multi-thread seed parallelism settings.
+
+    With ``workers > 1``, the seed loop fans out across N worker threads
+    in a single process. Models (VQGAN, VLM scorer, text embedder) are
+    loaded once and shared by reference; each thread owns thin per-seed
+    state (VLMSUT counters, manipulator contexts, optimizer, objectives,
+    tester). GPU access is serialised by a process-local
+    :class:`threading.Lock` per device string (see :mod:`mmb.distlock`).
+
+    With ``workers == 1`` (default) the lock layer is bypassed entirely
+    — zero overhead vs. the legacy sequential path.
+
+    :param workers: Number of worker threads. ``1`` (default) = legacy
+        sequential path. ``2`` is the typical setting for OV-CPU+GPU
+        splits where the lock keys differ and threads truly run in
+        parallel.
+    """
+
+    workers: int = 1
+
+
+# ---------------------------------------------------------------------------
+# Grounding config
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class GroundingConfig:
+    """Coordinate-output (visual grounding) settings. Active when
+    ``ExperimentConfig.modality == 'grounding'``. The boundary objective is
+    ``TargetedBalance`` over two candidate *box strings* (the referents)."""
+
+    coordinate_space: str = "norm_1000"   # norm_1000 (Qwen3-VL/3.5) | abs_pixels (Qwen2.5-VL)
+    bbox_format: str = "bare_array"       # "[x1, y1, x2, y2]" candidate-string format
+    referent_prompt: str = "Locate the {referent}."
+    answer_format: str = " Report the bounding box as a JSON array [x1, y1, x2, y2]."
+
+    def __post_init__(self) -> None:
+        if self.coordinate_space not in ("norm_1000", "abs_pixels"):
+            raise ValueError(
+                f"grounding.coordinate_space must be 'norm_1000' | 'abs_pixels'; "
+                f"got {self.coordinate_space!r}"
+            )
+
+
+# ---------------------------------------------------------------------------
+# Top-level experiment config
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class ExperimentConfig:
+    """Complete experiment definition.
+
+    Shared fields (``device``, ``categories``, prompt settings) live at
+    the top level — never duplicated in sub-configs.  Components that
+    need them receive the full :class:`ExperimentConfig`.
+
+    :param device: Torch device string (``"cpu"``, ``"cuda"``, ``"mps"``).
+    :param categories: Labels the VLM chooses from.
+    :param prompt_template: The question prompt (mutable part).
+        Must NOT contain category names — those are appended via
+        *answer_format* after text mutation.
+    :param answer_format: Template for attaching answer options after
+        mutation.  Must contain a ``{categories}`` placeholder.
+    :param generations: Number of optimizer generations per seed.
+    :param pop_size: Population size for the optimizer.
+    :param seed: Master RNG seed for the search. ``None`` (default)
+        preserves the historical nondeterministic behaviour (pymoo and the
+        sparse init sampler draw from unseeded global RNGs). Set an int to
+        make the initial population and the GA operator stream reproducible
+        — required for a paired A/B where the only intended difference
+        between two runs is the scoring (e.g. Exp-104 raw-vs-PMI). Note
+        this does not remove residual nondeterminism from re-selected
+        anchor photos or MPS-kernel float noise.
+    :param save_dir: Root directory for saving results.
+    :param name: Experiment name (used in directory naming).
+    :param sut: VLM scorer settings.
+    :param image: Image manipulator settings.
+    :param text: Text manipulator settings.
+    :param seeds: Seed generation parameters.
+    """
+
+    # Shared
+    device: str = "mps"
+    categories: tuple[str, ...] = ()
+    n_categories: int | None = None
+    prompt_template: str = DEFAULT_PROMPT_TEMPLATE
+    answer_format: str = DEFAULT_ANSWER_FORMAT
+
+    # Experiment
+    generations: int = 100
+    pop_size: int = 50
+    seed: int | None = None
+    save_dir: Path = field(default_factory=lambda: Path("runs"))
+    name: str = "vlm_boundary"
+
+    # SMOO-specific scoring scope — decouples *what* the SUT scores
+    # against from *what* the prompt suffix says. When False (default),
+    # the SMOO tester scores each individual against only the seed's
+    # target pair (2 classes). When True, it scores against the full
+    # ``categories`` list (N classes), enabling post-hoc tree / entropy
+    # / cross-class analyses from the trace alone, at a per-call cost of
+    # roughly ``(2 + 0.2*N) / (2 + 0.2*2)`` times the pair-only cost —
+    # on N=50 this is ~5× slower per call and ~25× slower in practice
+    # once image encoder overhead is dominant.
+    #
+    # This flag has NO effect on PDQ, which structurally needs the full
+    # category list for argmax-based flip detection (see flip_policy).
+    #
+    # The prompt suffix (``answer_format``) stays pair-constrained
+    # regardless of this flag: the VLM always sees "Answer with A or B",
+    # the flag only controls how many categories the SUT scores against
+    # after the prompt.
+    score_full_categories: bool = False
+
+    # Modality switch — controls genome layout and Pareto dimensionality.
+    #
+    # * ``"joint"`` (default): both image + text genome blocks active,
+    #   3-objective Pareto (MatrixDistance + TextEmbeddingDistance + TargetedBalance).
+    # * ``"image_only"``: text profile forced to ``noop`` (text_dim=0),
+    #   2-objective Pareto (MatrixDistance + TargetedBalance).
+    # * ``"text_only"``: ``image.patch_ratio`` forced to 0 (image_dim=0),
+    #   2-objective Pareto (TextEmbeddingDistance + TargetedBalance).
+    #
+    # The runner postprocesses the config so user-facing YAML only needs
+    # to set this flag. Modality-induced overrides are logged.
+    modality: str = "joint"
+
+    # Cache — first entry is primary (writable), rest are read-only fallbacks.
+    # Empty → auto-creates .cache/imagenet relative to CWD.
+    cache_dirs: tuple[Path, ...] = ()
+
+    # Components
+    sut: SUTConfig = field(default_factory=SUTConfig)
+    pmi: PMIConfig = field(default_factory=PMIConfig)
+    image: ImageConfig = field(default_factory=ImageConfig)
+    text: TextConfig = field(default_factory=TextConfig)
+    seeds: SeedConfig = field(default_factory=SeedConfig)
+    optimizer: OptimizerConfig = field(default_factory=OptimizerConfig)
+    parallel: "ParallelConfig" = field(default_factory=lambda: ParallelConfig())
+    grounding: GroundingConfig = field(default_factory=GroundingConfig)
+
+    def __post_init__(self) -> None:
+        if self.modality not in ("joint", "image_only", "text_only", "grounding"):
+            raise ValueError(
+                f"modality must be one of 'joint' | 'image_only' | "
+                f"'text_only' | 'grounding'; got {self.modality!r}"
+            )
+
+
+def resolve_categories(
+    config: ExperimentConfig,
+    all_labels: list[str] | tuple[str, ...],
+) -> ExperimentConfig:
+    """Resolve categories against a data source's label set.
+
+    When ``categories`` is empty, fills from *all_labels*.  When
+    ``n_categories`` is set, truncates the resolved list to that length.
+
+    :param config: Experiment config (possibly with empty categories).
+    :param all_labels: Complete label set from the data source.
+    :returns: Config with categories guaranteed non-empty.
+    """
+    if config.n_categories is not None:
+        cats = tuple(all_labels)[: config.n_categories]
+    elif config.categories:
+        cats = config.categories
+    else:
+        cats = tuple(all_labels)
+    if cats == config.categories:
+        return config
+    return dataclasses.replace(config, categories=cats)
+
+
+def apply_modality(exp: ExperimentConfig) -> ExperimentConfig:
+    """Force genome-block sizes consistent with the modality flag.
+
+    * ``image_only`` → text profile becomes ``noop`` (text_dim=0).
+    * ``text_only``  → ``image.patch_ratio`` becomes 0 (image_dim=0).
+    * ``joint``      → unchanged.
+
+    User-facing YAML only needs ``modality:`` — this avoids inconsistent
+    states where genome sizes and Pareto dimensionality drift apart.
+    Every runner that materialises an :class:`ExperimentConfig` must
+    call this before initialising manipulators / shared components.
+    """
+    if exp.modality == "image_only":
+        new_composite = dataclasses.replace(
+            exp.text.composite,
+            profile="noop",
+            operators=(),
+            overrides={},
+        )
+        logger.info("modality=image_only → forcing text profile to 'noop'")
+        return dataclasses.replace(
+            exp,
+            text=dataclasses.replace(exp.text, composite=new_composite),
+        )
+    if exp.modality == "text_only":
+        logger.info("modality=text_only → forcing image.patch_ratio to 0.0")
+        return dataclasses.replace(
+            exp,
+            image=dataclasses.replace(exp.image, patch_ratio=0.0),
+        )
+    if exp.modality == "grounding":
+        logger.info("modality=grounding → joint genome; grounding answer_format; boundary over box-string candidates")
+        return dataclasses.replace(exp, answer_format=exp.grounding.answer_format)
+    return exp
+
+
+__all__ = [
+    "AbstractionConfig",
+    "CrossoverConfig",
+    "DEFAULT_ANSWER_FORMAT",
+    "DEFAULT_MULTITIER_TIERS",
+    "DEFAULT_PROMPT_TEMPLATE",
+    "EarlyStopCfg",
+    "ExperimentConfig",
+    "GapFilterConfig",
+    "GroundingConfig",
+    "ImageConfig",
+    "MutationConfig",
+    "OptimizerConfig",
+    "ParallelConfig",
+    "RefCocoPlusConfig",
+    "RosterConfig",
+    "SLOT_PLACEHOLDER",
+    "SamplingConfig",
+    "SamplingTier",
+    "SeedConfig",
+    "SeedTriple",
+    "SlotItem",
+    "SlotItemsConfig",
+    "SUTConfig",
+    "TextConfig",
+    "apply_modality",
+    "resolve_categories",
+]

@@ -1,0 +1,59 @@
+device: mps                             # cpu | cuda | mps
+
+# categories:                           # Labels the VLM chooses from
+#   - macaw
+#   - flamingo
+n_categories: 200                       # Use first N ImageNet labels
+
+# prompt_template: "What is the main subject in this image?"
+# answer_format: " Answer with exactly one of these options: {categories}."
+
+# ===========================================================================
+# Experiment
+# ===========================================================================
+
+name: seed_qwen4B_default
+save_dir: runs/seeds/
+
+# ===========================================================================
+# Cache (ImageNet images)
+# ===========================================================================
+
+cache_dirs:
+  - ~/.cache/imagenet
+
+# ===========================================================================
+# SUT
+# ===========================================================================
+
+sut:
+  model_id: Qwen/Qwen3.5-4B
+
+# ===========================================================================
+# Image manipulator (VQGAN codebook swaps)
+# ===========================================================================
+
+# image:
+#   preset: f8-16384                    # f16-1024 | f16-16384 | f8-16384
+#   patch_ratio: 0.1
+#   n_candidates: 25                    # VQGAN-codebook candidates per patch
+
+# ===========================================================================
+# Text manipulator (composite stack — required when text mutation is wanted)
+# ===========================================================================
+
+# text:
+#   spacy_model: en_core_web_sm
+#   composite:
+#     profile: full_stack
+
+# ===========================================================================
+# Seed generation
+# ===========================================================================
+
+# seeds:
+#   mode: gap_filter
+#   filter_indices: []
+#   gap_filter:
+#     n_per_class: 5
+#     max_logprob_gap: 2.0

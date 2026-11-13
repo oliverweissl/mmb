@@ -1,0 +1,252 @@
+"""Tests for VLMBoundaryTester.
+
+Uses synthetic sub-manipulators and a fake SUT — no real VLM or VQGAN
+models are loaded.  The full optimisation loop runs with tiny parameters
+(pop_size=5, generations=3) to verify wiring and data flow.
+"""
+
+import json
+
+import numpy as np
+import pytest
+import torch
+from PIL import Image
+
+from mmb.manipulator.vlm_manipulator import VLMManipulator
+from mmb.objectives import (
+    CriterionCollection,
+    MatrixDistance,
+    TargetedBalance,
+    TextEmbeddingDistance,
+)
+from mmb.optimizer.discrete_pymoo_optimizer import DiscretePymooOptimizer
+from mmb.config import ExperimentConfig, SeedTriple
+from mmb.evolutionary.vlm_boundary_tester import (
+    VLMBoundaryTester,
+    pil_to_tensor,
+)
+
+from conftest import FakeCompositeTextManipulator, FakeImageManipulator
+
+
+# ---------------------------------------------------------------------------
+# Test-local constants and fakes
+# ---------------------------------------------------------------------------
+
+CATEGORIES = ("cat_a", "cat_b", "cat_c")
+PROMPT_TEMPLATE = "Classify this"
+ANSWER_FORMAT = " from: {categories}."
+
+
+class FakeSUT:
+    """Returns deterministic logprobs favouring cat_a."""
+
+    text_embedder = None
+    device_str = "cpu"
+    last_call_cached = False
+    cache_stats = {"hits": 0, "misses": 0}
+
+    def process_input(self, image, text=None, categories=None):
+        return torch.tensor([-0.1, -2.0, -5.0])
+
+
+# ---------------------------------------------------------------------------
+# Fixtures
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture()
+def manipulator():
+    return VLMManipulator(
+        image_manipulator=FakeImageManipulator(),
+        text_manipulator=FakeCompositeTextManipulator(),
+    )
+
+
+@pytest.fixture()
+def objectives():
+    """3 live batched objectives (MatrixDistance, TextEmbeddingDistance, TargetedBalance)."""
+    return CriterionCollection(
+        MatrixDistance(),
+        TextEmbeddingDistance(),
+        TargetedBalance(),
+    )
+
+
+@pytest.fixture()
+def config(tmp_path):
+    return ExperimentConfig(
+        categories=CATEGORIES,
+        prompt_template=PROMPT_TEMPLATE,
+        answer_format=ANSWER_FORMAT,
+        generations=3,
+        pop_size=5,
+        save_dir=tmp_path / "runs",
+        name="test_exp",
+    )
+
+
+@pytest.fixture()
+def seed():
+    return SeedTriple(
+        image=Image.new("RGB", (8, 8), (128, 64, 32)),
+        class_a="cat_a",
+        class_b="cat_b",
+    )
+
+
+# ---------------------------------------------------------------------------
+# TestUtilities
+# ---------------------------------------------------------------------------
+
+
+class TestUtilities:
+    def testpil_to_tensor_shape(self):
+        img = Image.new("RGB", (16, 8))
+        t = pil_to_tensor(img)
+        assert t.shape == (3, 8, 16)  # C, H, W
+
+    def testpil_to_tensor_range(self):
+        img = Image.new("RGB", (4, 4), (255, 128, 0))
+        t = pil_to_tensor(img)
+        assert t.min() >= 0.0
+        assert t.max() <= 1.0
+
+    def testpil_to_tensor_grayscale(self):
+        img = Image.new("L", (4, 4))
+        t = pil_to_tensor(img)
+        assert t.shape == (1, 4, 4)
+
+
+# ---------------------------------------------------------------------------
+# TestVLMBoundaryTester
+# ---------------------------------------------------------------------------
+
+
+class TestVLMBoundaryTester:
+    def _make_tester(self, config, manipulator, objectives):
+        optimizer = DiscretePymooOptimizer(
+            gene_bounds=np.ones(1, dtype=np.int64) * 2,
+            num_objectives=3,
+            pop_size=config.pop_size,
+        )
+        return VLMBoundaryTester(
+            sut=FakeSUT(),
+            manipulator=manipulator,
+            optimizer=optimizer,
+            objectives=objectives,
+            config=config,
+        )
+
+    def test_full_loop_runs(self, config, manipulator, objectives, seed):
+        tester = self._make_tester(config, manipulator, objectives)
+        tester.test([seed])
+
+    def test_trace_parquet_exists(self, config, manipulator, objectives, seed):
+        tester = self._make_tester(config, manipulator, objectives)
+        tester.test([seed])
+
+        run_dirs = list(config.save_dir.iterdir())
+        assert len(run_dirs) == 1
+        assert (run_dirs[0] / "trace.parquet").exists()
+
+    def test_trace_row_count(self, config, manipulator, objectives, seed):
+        tester = self._make_tester(config, manipulator, objectives)
+        tester.test([seed])
+
+        import pandas as pd
+
+        run_dir = next(config.save_dir.iterdir())
+        df = pd.read_parquet(run_dir / "trace.parquet")
+        expected = config.generations * config.pop_size
+        assert len(df) == expected
+
+    def test_trace_has_all_fitness_columns(
+        self, config, manipulator, objectives, seed,
+    ):
+        tester = self._make_tester(config, manipulator, objectives)
+        tester.test([seed])
+
+        import pandas as pd
+
+        run_dir = next(config.save_dir.iterdir())
+        df = pd.read_parquet(run_dir / "trace.parquet")
+
+        fitness_cols = [c for c in df.columns if c.startswith("fitness_")]
+        assert len(fitness_cols) == 3
+
+    def test_trace_has_required_columns(
+        self, config, manipulator, objectives, seed,
+    ):
+        tester = self._make_tester(config, manipulator, objectives)
+        tester.test([seed])
+
+        import pandas as pd
+
+        run_dir = next(config.save_dir.iterdir())
+        df = pd.read_parquet(run_dir / "trace.parquet")
+
+        required = {
+            "seed_id", "generation", "individual",
+            "genotype", "logprobs", "decoded_text",
+            "predicted_class", "p_class_a", "p_class_b",
+        }
+        assert required.issubset(set(df.columns))
+
+    def test_stats_json(self, config, manipulator, objectives, seed):
+        tester = self._make_tester(config, manipulator, objectives)
+        tester.test([seed])
+
+        run_dir = next(config.save_dir.iterdir())
+        with open(run_dir / "stats.json") as f:
+            stats = json.load(f)
+
+        assert stats["class_a"] == "cat_a"
+        assert stats["class_b"] == "cat_b"
+        assert stats["generations"] == config.generations
+        assert stats["pop_size"] == config.pop_size
+
+    def test_context_json(self, config, manipulator, objectives, seed):
+        tester = self._make_tester(config, manipulator, objectives)
+        tester.test([seed])
+
+        run_dir = next(config.save_dir.iterdir())
+        with open(run_dir / "context.json") as f:
+            ctx = json.load(f)
+
+        assert "image_patch_positions" in ctx
+        assert "text_original_tokens" in ctx
+        assert "text_op_order" in ctx
+
+    def test_origin_image_saved(self, config, manipulator, objectives, seed):
+        tester = self._make_tester(config, manipulator, objectives)
+        tester.test([seed])
+
+        run_dir = next(config.save_dir.iterdir())
+        assert (run_dir / "origin.png").exists()
+
+    def test_pareto_candidates_saved(
+        self, config, manipulator, objectives, seed,
+    ):
+        tester = self._make_tester(config, manipulator, objectives)
+        tester.test([seed])
+
+        run_dir = next(config.save_dir.iterdir())
+        pareto_pngs = list(run_dir.glob("pareto_*.png"))
+        pareto_jsons = list(run_dir.glob("pareto_*.json"))
+        assert len(pareto_pngs) > 0
+        assert len(pareto_pngs) == len(pareto_jsons)
+
+    def test_two_seeds_produce_two_dirs(
+        self, config, manipulator, objectives, seed,
+    ):
+        seed2 = SeedTriple(
+            image=Image.new("RGB", (8, 8), (0, 0, 0)),
+            class_a="cat_a",
+            class_b="cat_c",
+        )
+        tester = self._make_tester(config, manipulator, objectives)
+        tester.test([seed, seed2])
+
+        run_dirs = list(config.save_dir.iterdir())
+        assert len(run_dirs) == 2

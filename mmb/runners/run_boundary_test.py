@@ -1,0 +1,386 @@
+#!/usr/bin/env python3
+"""Run a VLM boundary test from a single YAML config.
+
+The YAML only needs to contain overrides — any omitted field falls back
+to the dataclass default in ``mmb/config.py``.  Nested dataclasses,
+enums, and Path fields are handled automatically by dacite.
+
+Usage:
+    python experiments/runners/run_boundary_test.py configs/templates/evolutionary_template.yaml
+    python experiments/runners/run_boundary_test.py configs/templates/evolutionary_template.yaml --device cuda
+"""
+
+from __future__ import annotations
+
+import argparse
+import logging
+import os
+import sys
+from concurrent.futures import ThreadPoolExecutor
+from dataclasses import replace
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+
+import dacite
+import numpy as np
+import yaml
+
+from mmb import distlock
+from mmb.common import (
+    apply_seed_filter,
+    compute_resume_filter,
+    default_seed_probe,
+    init_shared_components,
+    precompute_image_backend,
+    prepare_pipeline_seeds,
+)
+from mmb.config import ExperimentConfig, apply_modality, resolve_categories
+from mmb.data import ImageNetCache
+from mmb.evolutionary import VLMBoundaryTester
+from mmb.evolutionary.vlm_boundary_tester import effective_candidates
+from mmb.manipulator.image.types import CandidateStrategy, PatchStrategy
+from mmb.manipulator.image_backend import ImageBackend
+from mmb.manipulator.text.composite import CompositeTextManipulator
+from mmb.manipulator.vlm_manipulator import VLMManipulator
+from mmb.objectives import (
+    CriterionCollection,
+    MatrixDistance,
+    TargetedBalance,
+    TextEmbeddingDistance,
+)
+from mmb.optimizer.discrete_pymoo_optimizer import DiscretePymooOptimizer
+from mmb.sut import VLMSUT, preflight_cost_check
+
+logging.basicConfig(
+    level=logging.WARNING,
+    format="%(asctime)s %(name)s %(levelname)s  %(message)s",
+    datefmt="%H:%M:%S",
+)
+logging.getLogger("mmb").setLevel(logging.INFO)
+logging.getLogger(__name__).setLevel(logging.INFO)
+logger = logging.getLogger(__name__)
+
+_DACITE_CONFIG = dacite.Config(
+    cast=[tuple, frozenset],
+    type_hooks={
+        Path: lambda v: Path(v).expanduser() if isinstance(v, str) else v,
+        PatchStrategy: lambda v: PatchStrategy[v] if isinstance(v, str) else v,
+        CandidateStrategy: lambda v: CandidateStrategy[v] if isinstance(v, str) else v,
+    },
+)
+
+
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
+
+
+def load_config(cfg: dict) -> ExperimentConfig:
+    """Build an :class:`ExperimentConfig` from a raw YAML dict."""
+    return dacite.from_dict(ExperimentConfig, cfg, config=_DACITE_CONFIG)
+
+
+def _configure_distlock(workers: int) -> None:
+    """Enable the process-local device mutex iff parallelism is active.
+
+    Single-worker mode leaves locks disabled so every GPU-call site is a
+    no-op around the lock. Multi-worker mode flips them on; threads then
+    serialise on per-device ``threading.Lock`` instances.
+    """
+    distlock.configure(workers > 1)
+    if workers > 1:
+        logger.info("Device locks enabled (workers=%d)", workers)
+
+
+def run_experiment(
+    cfg: dict,
+    preflight: bool = False,
+    *,
+    resume: bool = False,
+    clean_partials: bool = False,
+    plan_only: bool = False,
+) -> None:
+    """Build all components from *cfg* dict and run the boundary test.
+
+    With ``parallel.workers > 1`` the per-seed loop runs across N worker
+    threads sharing one model set: VQGAN, VLM scorer and text embedder
+    are loaded once; each thread owns thin wrappers (VLMSUT, optimizer,
+    objectives, tester) that hold per-seed state. Device-bound GPU
+    sections are serialised via the in-process device mutex
+    (:mod:`mmb.distlock`).
+
+    :param cfg: Raw YAML config dict.
+    :param preflight: If True, run a SUT cost-check measurement on the
+        first seed before the main loop starts.
+    :param resume: Skip seeds whose ``<save_dir>/<name>_seed_<idx>_<ts>/
+        stats.json`` already exists; run only the unfinished complement,
+        sanity-checked against the regenerated pool.
+    :param clean_partials: With *resume*, remove seed dirs lacking
+        ``stats.json`` (interrupted mid-run) before launch. Destructive.
+    :param plan_only: Log the resume skip/run counts and return before any
+        backend precompute or model work.
+    """
+    exp = load_config(cfg)
+    exp = apply_modality(exp)
+    _configure_distlock(exp.parallel.workers)
+
+    # -- Resolve categories from data source (before any component sees them)
+    data_source = ImageNetCache(dirs=exp.cache_dirs)
+    exp = resolve_categories(exp, data_source.labels())
+
+    # -- Shared component init + seed gen + backend precompute ---------------
+    components = init_shared_components(exp, data_source)
+    seeds = prepare_pipeline_seeds(components, exp)
+    if not seeds:
+        logger.warning("No seeds passed filters — nothing to test.")
+        return
+
+    # -- Resume bookkeeping (before precompute, so finished-seed targets are
+    # not re-precomputed) ----------------------------------------------------
+    if resume:
+        remaining = compute_resume_filter(
+            default_seed_probe(exp.name),
+            exp.save_dir,
+            exp.name,
+            seeds,
+            exp.seeds.filter_indices,
+            clean_partials=clean_partials,
+        )
+        # An empty filter is NOT "keep all": apply_seed_filter reads () as
+        # keep-all, which would re-run every finished seed. Bail instead.
+        if not remaining:
+            logger.info(
+                "Resume: every requested seed is already complete — nothing "
+                "to do."
+            )
+            return
+        exp = replace(exp, seeds=replace(exp.seeds, filter_indices=remaining))
+
+    if plan_only:
+        n_run = len(exp.seeds.filter_indices) or len(seeds)
+        logger.info(
+            "--plan-only: would run %d seed(s); skipping precompute, "
+            "objectives, and the evolutionary loop.",
+            n_run,
+        )
+        return
+
+    precompute_image_backend(components, seeds, exp)
+
+    # -- Objectives spec (per-worker collection built below) ---------------
+    crit_types: list = []
+    if exp.modality != "text_only":
+        crit_types.append(MatrixDistance)
+    if exp.modality != "image_only":
+        crit_types.append(TextEmbeddingDistance)
+    crit_types.append(TargetedBalance)
+    logger.info(
+        "modality=%s → %d objectives: %s",
+        exp.modality,
+        len(crit_types),
+        ", ".join(c.__name__ for c in crit_types),
+    )
+
+    workers = max(1, exp.parallel.workers)
+    logger.info(
+        f"{len(seeds)} seed(s), "
+        f"{exp.generations} gen x {exp.pop_size} pop, "
+        f"workers={workers}"
+    )
+
+    if preflight:
+        _run_preflight(
+            exp, components.sut, components.image_manip,
+            components.text_manip, seeds,
+        )
+
+    # -- Worker fanout (tester.test() handles its own round-robin slicing
+    # via worker_id/worker_stride args, so dispatch_workers' slicing
+    # would be redundant — we keep this small block instead).
+    if workers == 1:
+        tester = _build_tester(
+            exp, components.sut, components.image_manip, components.text_manip,
+            CriterionCollection(*[c() for c in crit_types]),
+        )
+        tester.test(seeds)
+        return
+
+    bundles = [
+        _build_tester(
+            exp,
+            VLMSUT(
+                exp,
+                scorer=components.sut.scorer,
+                text_embedder=components.sut.text_embedder,
+                redis_client=components.sut.redis_client,
+            ),
+            components.image_manip,
+            components.text_manip,
+            CriterionCollection(*[c() for c in crit_types]),
+        )
+        for _ in range(workers)
+    ]
+
+    with ThreadPoolExecutor(max_workers=workers, thread_name_prefix="seedw") as ex:
+        futs = [
+            ex.submit(t.test, seeds, i, workers)
+            for i, t in enumerate(bundles)
+        ]
+        for f in futs:
+            f.result()
+
+
+def _build_tester(
+    exp: ExperimentConfig,
+    sut: VLMSUT,
+    image_manip: ImageBackend,
+    text_manip: CompositeTextManipulator,
+    objectives: CriterionCollection,
+) -> VLMBoundaryTester:
+    """Wire one tester bundle. Caller owns the shared models."""
+    optimizer = DiscretePymooOptimizer(
+        gene_bounds=np.zeros(1, dtype=np.int64),  # updated per-seed
+        num_objectives=objectives.num_objectives,
+        pop_size=exp.pop_size,
+        mutation_prob=exp.optimizer.mutation.prob,
+        mutation_eta=exp.optimizer.mutation.eta,
+        crossover_prob=exp.optimizer.crossover.prob,
+        crossover_eta=exp.optimizer.crossover.eta,
+        seed=exp.seed,
+    )
+    manipulator = VLMManipulator(image_manip, text_manip)
+    return VLMBoundaryTester(
+        sut=sut,
+        manipulator=manipulator,
+        optimizer=optimizer,
+        objectives=objectives,
+        config=exp,
+    )
+
+
+def _run_preflight(
+    exp: ExperimentConfig,
+    sut: VLMSUT,
+    image_manip: ImageBackend,
+    text_manip: CompositeTextManipulator,
+    seeds,
+) -> None:
+    """Run preflight cost check using a temporary single-thread bundle."""
+    indexed = apply_seed_filter(list(seeds), exp.seeds.filter_indices)
+    if not indexed:
+        logger.warning("Preflight: no seeds after filter — skipping.")
+        return
+    n_seeds_run = len(indexed)
+    first_seed = indexed[0][1]
+    pair = (first_seed.class_a, first_seed.class_b)
+    # Mirror the tester's scoring scope so the measured per-call cost
+    # matches the real loop (slot_items scores its per-seed candidate list).
+    seed_candidates = effective_candidates(first_seed)
+    if seed_candidates is not None:
+        scored_categories: tuple[str, ...] = seed_candidates
+        answer_categories: tuple[str, ...] = seed_candidates
+    else:
+        scored_categories = exp.categories if exp.score_full_categories else pair
+        answer_categories = pair
+    answer_suffix = exp.answer_format.format(
+        categories=", ".join(answer_categories),
+    )
+    total_calls = exp.generations * exp.pop_size * n_seeds_run
+    preflight_cost_check(
+        sut=sut,
+        manipulator=VLMManipulator(image_manip, text_manip),
+        seed=first_seed,
+        prompt_template=exp.prompt_template,
+        answer_suffix=answer_suffix,
+        categories=scored_categories,
+        total_calls_projected=total_calls,
+        n_samples=20,
+    )
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="Run a VLM boundary test from a YAML config.",
+    )
+    parser.add_argument(
+        "config", type=Path,
+        help="Path to experiment YAML config",
+    )
+    parser.add_argument(
+        "--device",
+        help="Override device (e.g. cuda, mps, cpu)",
+    )
+    parser.add_argument(
+        "--save-dir", type=str,
+        help="Override output directory for results",
+    )
+    parser.add_argument(
+        "--seed", type=int, default=None,
+        help=(
+            "Override the master RNG seed (config `seed`). Makes the "
+            "initial population and GA operator stream reproducible — pass "
+            "the SAME seed to two runs (e.g. raw vs PMI) so scoring is the "
+            "only difference. Omit to keep the config value / unseeded."
+        ),
+    )
+    parser.add_argument(
+        "--preflight", action="store_true",
+        help=(
+            "Measure per-SUT-call wall time on 20 representative calls "
+            "before the main loop, and print a total-runtime projection. "
+            "Use on new hardware or after config changes that alter "
+            "scoring cost (e.g. score_full_categories). Does NOT abort "
+            "— Ctrl-C the run if the projection is unacceptable."
+        ),
+    )
+    parser.add_argument(
+        "--resume", action="store_true",
+        help=(
+            "Skip seeds whose <save_dir>/<name>_seed_<idx>_<ts>/stats.json "
+            "already exists and run only the unfinished complement. Each "
+            "kept seed is matched against the regenerated pool by concrete "
+            "metadata (anchor/target class, levels, in-class index); a "
+            "mismatch aborts to prevent silent index drift."
+        ),
+    )
+    parser.add_argument(
+        "--clean-partials", action="store_true",
+        help=(
+            "With --resume, rm -rf seed dirs lacking stats.json (interrupted "
+            "mid-run) before launch. Destructive — opt-in only."
+        ),
+    )
+    parser.add_argument(
+        "--plan-only", action="store_true",
+        help=(
+            "Compute the resume filter, log the skip/run counts, then exit "
+            "before any backend precompute or model work."
+        ),
+    )
+    args = parser.parse_args()
+
+    with open(args.config) as f:
+        cfg = yaml.safe_load(f)
+
+    if args.device:
+        cfg["device"] = args.device
+    if args.save_dir:
+        cfg["save_dir"] = args.save_dir
+    if args.seed is not None:
+        cfg["seed"] = args.seed
+
+    run_experiment(
+        cfg,
+        preflight=args.preflight,
+        resume=args.resume,
+        clean_partials=args.clean_partials,
+        plan_only=args.plan_only,
+    )
+
+    # HF streaming leaves daemon threads — force exit.
+    os._exit(0)
+
+
+if __name__ == "__main__":
+    main()

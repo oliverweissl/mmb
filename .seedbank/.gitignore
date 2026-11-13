@@ -1,0 +1,8 @@
+# seedbank local profiler state (warm/*.md is meant to be committed)
+observations.jsonl
+keystats.json
+facts.json
+config.json
+.lock
+nudged.json
+*.tmp
