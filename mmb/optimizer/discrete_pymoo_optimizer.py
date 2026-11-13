@@ -26,6 +26,7 @@ from pymoo.operators.repair.rounding import RoundingRepair
 from pymoo.operators.sampling.rnd import IntegerRandomSampling
 from pymoo.problems.static import StaticProblem
 from mmb.core import Optimizer, OptimizerCandidate
+from .algorithms import resolve_algorithm
 
 logger = logging.getLogger(__name__)
 
@@ -124,7 +125,7 @@ class DiscretePymooOptimizer(Optimizer):
         gene_bounds: NDArray,
         num_objectives: int,
         pop_size: int = 50,
-        algorithm: Type[GeneticAlgorithm] = AGEMOEA2,
+        algorithm: Type[GeneticAlgorithm] | str = AGEMOEA2,
         algo_params: dict[str, Any] | None = None,
         mutation_prob: float | None = None,
         mutation_eta: float = DEFAULT_MUTATION_ETA,
@@ -136,7 +137,9 @@ class DiscretePymooOptimizer(Optimizer):
 
         self._gene_bounds = np.asarray(gene_bounds, dtype=np.int64)
         self._pop_size = pop_size
-        self._algorithm_cls = algorithm
+        self._algorithm_cls = resolve_algorithm(algorithm) if isinstance(algorithm, str) else algorithm
+        if self._algorithm_cls.__name__ == "GA" and num_objectives != 1:
+            raise ValueError("algorithm 'ga' is single-objective; configure exactly one objective")
         self._algo_params = dict(algo_params) if algo_params else {}
         self._seed = seed
         self._mutation_op = build_mutation(prob=mutation_prob, eta=mutation_eta)

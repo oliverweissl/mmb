@@ -9,6 +9,13 @@
 - [ ] Split >700-line modules (config.py, scorer.py, pdq/runner.py, boundary_pair/runner.py, vlm_boundary_tester.py)
 - [ ] README + docs/ (short), ruff clean, CI-less `make test`
 
+## Phase 1.5 — Reviewer-driven (from GAPS.md / EXPERIMENTS-WANTED.md, read 2026-11-13)
+- [x] E1 search baselines: `optimizer.algorithm` = agemoea2|nsga2|ga|random (mmb/optimizer/algorithms.py, tested). Mapping-only = `mmb-pdq`; image-only/text-only via existing `modality`. TODO: config files per arm in configs/paper/e1_*.yaml
+- [ ] E2 ablation switches (objectives subset, init, text-operator subsets, calibration)
+- [ ] E7 automatic validity scorer (DINOv3/CLIP sim, LPIPS, text-embedding sim) on stored stimuli
+- [ ] Seed/replicate plumbing: distinct seed_image_id per rng seed, common CSV columns `C`
+- [ ] API (label-only) SUT adapter with cache/rate-limit (G8)
+
 ## Phase 2 — Backends
 - [ ] Diffusion image backend (wrap smoo diffusion manipulators / diffusers) + stub test
 - [ ] Generative text backend `LLMParaphrase` with gene-k = k-th candidate contract + stub test

@@ -616,8 +616,11 @@ class OptimizerConfig:
     :param sampling: Initial population sampling strategy.
     :param mutation: Polynomial-mutation operator parameters.
     :param crossover: SBX crossover operator parameters.
+    :param algorithm: ``agemoea2`` (default), ``nsga2``, ``ga`` (1 objective) or
+        ``random`` (selection-free baseline); see :mod:`mmb.optimizer.algorithms`.
     """
 
+    algorithm: str = "agemoea2"
     early_stop: EarlyStopCfg = field(default_factory=EarlyStopCfg)
     sampling: SamplingConfig = field(default_factory=SamplingConfig)
     mutation: MutationConfig = field(default_factory=MutationConfig)
