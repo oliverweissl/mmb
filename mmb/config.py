@@ -616,11 +616,15 @@ class OptimizerConfig:
     :param sampling: Initial population sampling strategy.
     :param mutation: Polynomial-mutation operator parameters.
     :param crossover: SBX crossover operator parameters.
+    :param boundary_objective: ``logprob_gap`` (paper) or ``softmax_balance``.
+    :param proximity_only: drop the image/text magnitude objectives.
     :param algorithm: ``agemoea2`` (default), ``nsga2``, ``ga`` (1 objective) or
         ``random`` (selection-free baseline); see :mod:`mmb.optimizer.algorithms`.
     """
 
     algorithm: str = "agemoea2"
+    boundary_objective: str = "logprob_gap"  # or "softmax_balance" (MIMICRY-style ablation)
+    proximity_only: bool = False  # single-objective run for algorithm "ga"
     early_stop: EarlyStopCfg = field(default_factory=EarlyStopCfg)
     sampling: SamplingConfig = field(default_factory=SamplingConfig)
     mutation: MutationConfig = field(default_factory=MutationConfig)

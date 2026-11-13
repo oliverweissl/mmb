@@ -250,3 +250,33 @@ class TestVLMBoundaryTester:
 
         run_dirs = list(config.save_dir.iterdir())
         assert len(run_dirs) == 2
+
+
+class TestBaselineArms:
+    """E1/E2 arms run end-to-end through the tester."""
+
+    @pytest.mark.parametrize(
+        "algorithm,objective,proximity_only",
+        [
+            ("ga", "logprob_gap", True),
+            ("agemoea2", "softmax_balance", False),
+            ("random", "logprob_gap", False),
+            ("nsga2", "logprob_gap", False),
+        ],
+    )
+    def test_arm_runs(self, config, manipulator, seed, algorithm, objective, proximity_only):
+        from mmb.objectives import build_criteria
+
+        crit = build_criteria("joint", objective, proximity_only)
+        objs = CriterionCollection(*[c() for c in crit])
+        optimizer = DiscretePymooOptimizer(
+            gene_bounds=np.ones(1, dtype=np.int64) * 2,
+            num_objectives=objs.num_objectives,
+            pop_size=config.pop_size,
+            algorithm=algorithm,
+        )
+        VLMBoundaryTester(
+            sut=FakeSUT(), manipulator=manipulator, optimizer=optimizer,
+            objectives=objs, config=config,
+        ).test([seed])
+        assert len(list(config.save_dir.rglob("trace.parquet"))) == 1

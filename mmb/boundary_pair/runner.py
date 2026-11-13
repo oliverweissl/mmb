@@ -57,9 +57,7 @@ from mmb.manipulator.text.composite import CompositeTextManipulator
 from mmb.manipulator.vlm_manipulator import VLMManipulator
 from mmb.objectives import (
     CriterionCollection,
-    MatrixDistance,
-    TargetedBalance,
-    TextEmbeddingDistance,
+    build_criteria,
 )
 from mmb.optimizer.discrete_pymoo_optimizer import DiscretePymooOptimizer
 from mmb.pdq.artifacts import PDQ_SCHEMA_VERSION, SeedLogger
@@ -267,12 +265,9 @@ class BoundaryPairRunner:
         # ``crit_types`` is the ordered list of criterion classes; each
         # worker instantiates its own collection because
         # ``CriterionCollection.results`` is mutated per call.
-        crit_types: list = []
-        if evo_cfg.modality != "text_only":
-            crit_types.append(MatrixDistance)
-        if evo_cfg.modality != "image_only":
-            crit_types.append(TextEmbeddingDistance)
-        crit_types.append(TargetedBalance)
+        crit_types = build_criteria(
+            evo_cfg.modality, evo_cfg.optimizer.boundary_objective, evo_cfg.optimizer.proximity_only
+        )
         logger.info(
             "modality=%s → %d objectives: %s",
             evo_cfg.modality,

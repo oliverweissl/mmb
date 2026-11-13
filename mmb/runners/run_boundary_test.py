@@ -6,8 +6,8 @@ to the dataclass default in ``mmb/config.py``.  Nested dataclasses,
 enums, and Path fields are handled automatically by dacite.
 
 Usage:
-    python experiments/runners/run_boundary_test.py configs/templates/evolutionary_template.yaml
-    python experiments/runners/run_boundary_test.py configs/templates/evolutionary_template.yaml --device cuda
+    mmb-evolve configs/templates/evolutionary_template.yaml
+    mmb-evolve configs/templates/evolutionary_template.yaml --device cuda
 """
 
 from __future__ import annotations
@@ -15,12 +15,10 @@ from __future__ import annotations
 import argparse
 import logging
 import os
-import sys
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import replace
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 import dacite
 import numpy as np
@@ -45,9 +43,7 @@ from mmb.manipulator.text.composite import CompositeTextManipulator
 from mmb.manipulator.vlm_manipulator import VLMManipulator
 from mmb.objectives import (
     CriterionCollection,
-    MatrixDistance,
-    TargetedBalance,
-    TextEmbeddingDistance,
+    build_criteria,
 )
 from mmb.optimizer.discrete_pymoo_optimizer import DiscretePymooOptimizer
 from mmb.sut import VLMSUT, preflight_cost_check
@@ -169,12 +165,9 @@ def run_experiment(
     precompute_image_backend(components, seeds, exp)
 
     # -- Objectives spec (per-worker collection built below) ---------------
-    crit_types: list = []
-    if exp.modality != "text_only":
-        crit_types.append(MatrixDistance)
-    if exp.modality != "image_only":
-        crit_types.append(TextEmbeddingDistance)
-    crit_types.append(TargetedBalance)
+    crit_types = build_criteria(
+        exp.modality, exp.optimizer.boundary_objective, exp.optimizer.proximity_only
+    )
     logger.info(
         "modality=%s → %d objectives: %s",
         exp.modality,

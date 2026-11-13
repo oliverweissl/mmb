@@ -10,7 +10,7 @@
 - [ ] README + docs/ (short), ruff clean, CI-less `make test`
 
 ## Phase 1.5 — Reviewer-driven (from GAPS.md / EXPERIMENTS-WANTED.md, read 2026-11-13)
-- [x] E1 search baselines: `optimizer.algorithm` = agemoea2|nsga2|ga|random (mmb/optimizer/algorithms.py, tested). Mapping-only = `mmb-pdq`; image-only/text-only via existing `modality`. TODO: config files per arm in configs/paper/e1_*.yaml
+- [x] E1 arms: `optimizer.algorithm` (agemoea2|nsga2|ga|random), `optimizer.boundary_objective` (logprob_gap|softmax_balance = MIMICRY-style), `optimizer.proximity_only`; `scripts/make_arm_configs.py` -> configs/paper/arms (8 arms load + tested end-to-end through the tester). Still wanted: MAP-Elites arm, HopSkipJump+TextFooler channel-attack arm (BASELINES.md SHOULD tier)
 - [ ] E2 ablation switches (objectives subset, init, text-operator subsets, calibration)
 - [ ] E7 automatic validity scorer (DINOv3/CLIP sim, LPIPS, text-embedding sim) on stored stimuli
 - [ ] Seed/replicate plumbing: distinct seed_image_id per rng seed, common CSV columns `C`

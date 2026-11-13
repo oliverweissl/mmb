@@ -84,3 +84,21 @@ class TargetedBalance(Criterion):
         a, b = target_classes
         gap = (logits[:, a] - logits[:, b]).abs()
         return gap.tolist()
+
+
+class SoftmaxBalance(TargetedBalance):
+    """MIMICRY-style confidence balance ``|P(A) - P(B)|`` (ablation baseline).
+
+    Softmax over *all* supplied candidate scores, then the probability gap of the
+    pair. Saturates away from the boundary and vanishes when a third option
+    absorbs the mass -- the failure modes the log-prob gap avoids. Keeps the
+    name ``TgtBal`` so traces and downstream tooling are unchanged.
+    """
+
+    def evaluate(self, *, logits: Tensor, target_classes: tuple[int, int],
+                 batch_dim: int | None = None, **_: Any) -> list[float]:
+        if batch_dim is None:
+            logits = logits.unsqueeze(0)
+        p = logits.float().softmax(dim=-1)
+        a, b = target_classes
+        return (p[:, a] - p[:, b]).abs().tolist()
