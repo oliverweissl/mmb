@@ -39,6 +39,7 @@ All definitions are implemented in `mmb/analysis/collect.py` and covered by test
 | a5 MIMICRY-style objective | softmax-balance objective in place of the log-likelihood contrast | isolates the contribution of the teacher-forced signal (threat G3) |
 | a6 text-only | `modality: text_only` (image genes off) | channel attribution (C2) |
 | a7 image-only | `modality: image_only` (text genes off) | channel attribution (C2) |
+| a8 hill climber | (1+lambda) hill climber on the proximity abs(g) (lambda = population size 30): each mutant of the incumbent re-samples k ~ Geom(0.5), k >= 1, genes uniformly within bounds; the incumbent is replaced only on improvement; generation 0 uses the same sampler as the other arms (`optimizer.algorithm: hillclimb`, `proximity_only`) | the classic local-search baseline of search-based testing (Harman and McMinn 2010): does population-based search beat local search at equal proposals? |
 
 Not run in this campaign (stated as limitations): MAP-Elites, HopSkipJump + TextFooler channel-attack arm, gradient-based white-box references (BASELINES.md SHOULD/NICE tier); mapping-stage-only arm.
 Hyperparameters of every arm are the library defaults or the shared base config; no arm is tuned on the evaluation cells.
@@ -105,5 +106,6 @@ Reason: at least three SUT families (G2). Precision and serving stack differ fro
 | unequal budgets | equal proposals, caching counted (D6) | duplicates reduce fresh model calls differently per arm (`first_cross_eval_nocache` is the secondary column) |
 
 ## 9. Change log
+- 2026-11-20 (arm a8): added the (1+lambda) hill climber to the arm list (section 3); the paper cites Harman and McMinn (IEEE TSE 36(2), 2010) for local search in search-based testing.
 - 2026-11-20 (later): D3 now names the reference evaluation as the primary anchor source; section 5b added (shared cell lists, pools, POPE ground-truth anchor, KNN operator without cone filter) with two new threats.
 - 2026-11-20: first draft (C2). Decisions D6 (cache hits counted), anchor_g, cell_id with photograph, run_meta tags, balanced-design rule recorded from the code owner / user.
