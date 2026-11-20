@@ -1,6 +1,6 @@
 # EXP_SETUP — how every number in the paper is produced
 
-Status: 2026-11-20, draft. Design decisions and their reasons live in METHODOLOGY.md; this file is
+Status: 2026-11-20 18:18, FROZEN for the MAIN campaign (queue started 18:17). Design decisions and their reasons live in METHODOLOGY.md; this file is
 the operational recipe (hardware, software, data, cells, matrix, commands, outputs). Anything marked
 TBD is fixed after the speed benchmark (step 3) and then frozen before the first counted run.
 
@@ -16,9 +16,10 @@ TBD is fixed after the speed benchmark (step 3) and then frozen before the first
 | ImageNet-1k validation (50k) | HF `Tsomaros/Imagenet-1k_validation` (ungated mirror of ILSVRC-2012 val, same label indices) | local parquet snapshot; `MMB_IMAGENET_DIR` |
 | POPE | HF `lmms-lab/POPE` (test, adversarial split; COCO val2014 images) | 200-item pool, balanced yes/no |
 | VQGAN f8-16384 | latent-diffusion `vq-f8` checkpoint | image operator (codebook patch swaps) |
-| SUT llava | `llava-hf/llava-v1.6-mistral-7b-hf`, bitsandbytes INT8 | thesis main SUT (thesis: OpenVINO INT8) |
+| SUT llava | `llava-hf/llava-v1.6-mistral-7b-hf`, bitsandbytes NF4 weight-only, bf16 compute | thesis main SUT; continuity block only (thesis: OpenVINO INT8) |
 | SUT qwen | `Qwen/Qwen3.5-4B`, bf16 | thesis replication SUT |
 | SUT internvl | `OpenGVLab/InternVL3_5-4B-HF`, bf16 | new family |
+| SUT ministral | `mistralai/Ministral-3-3B-Instruct-2512`, FP8 checkpoint dequantised to bf16 | new family (Mistral) |
 
 ## 3. Speed benchmark (before freezing K and S)
 `mmb-evolve <cfg> --device cuda --preflight` on one cell per SUT; record s/eval in
@@ -57,3 +58,28 @@ scripts/run_queue.sh configs/generated/E1
 
 ## 7. Campaign log
 (date, what ran, GPU hours, failures and re-runs)
+
+## 8. Frozen MAIN design (2026-11-20)
+- Cells: K = 18 per task (cells/imagenet_cells.yaml: 3 per anchor class; cells/pope_cells.yaml: 9 yes / 9 no),
+  tau = 1.0 nats, eligible iff all 4 SUTs (llava, qwen, internvl, ministral) answer the anchor on the VQGAN
+  reconstruction with g >= tau (ImageNet 858/960, POPE 97/200 eligible). Selection seed 20261120.
+- rng seeds S = 2 (0, 1). Budget 30 x 50 = 1,500 proposals, early stop off. Image operator: VQGAN f8-16384
+  KNN codebook swaps, cone filter OFF for both tasks (same operator everywhere).
+- Grid (balanced): tasks {imagenet, pope} x SUTs {qwen, internvl, ministral} x arms {a0, a1, a3, a4, a5, a8}
+  x K x S = 2 x 3 x 6 x 36 = 1,296 runs. Continuity block: imagenet x llava x {a0, a1} x 36 = 72 runs.
+- Scoring: batched full-sequence teacher forcing (sut.batched_scoring, chunk 15). Numerical tolerance of
+  batched vs single-item scoring (scripts/check_batched_scoring.py, n=30): max |dg| qwen 0.021, internvl 0.11,
+  ministral 0.10, llava-nf4 0.06; sign agreement 100% for all. Consequence: the |g| <= 1e-2 band is below the
+  bf16 batch noise; crossings are re-verified by single-item re-scoring (agreement_replay.py).
+- Queue: scripts/make_main_queue.py -> configs/generated/MAIN (76 configs, 8 layers; each layer is a complete
+  balanced block: L1 a0+a1 s0, L2 a8+a5 s0, L3 a3+a4 s0, L4-L6 same for s1, L7-L8 llava a0+a1 s0/s1).
+  `PY=.venv/bin/python scripts/run_queue.sh configs/generated/MAIN runs/logs/MAIN`
+- Measured speed (s per generation of 30, batched): qwen ~2.8, internvl ~3.7, ministral ~5.5, llava-nf4 ~16.
+  Expected GPU time: grid ~73 h, llava block ~16 h.
+
+## 9. Scoring defect found and fixed (2026-11-20)
+The inherited KV-cache scorer reused ONE mutable cache across candidates: every candidate after the
+first was scored with the earlier candidates' tokens in context (order-dependent; up to ~3 nats on
+multi-token labels, e.g. 'reptile' -5.49 vs -2.23 nats on Qwen3.5-4B). Fixed in e3c86f6. All MAIN numbers
+use the fixed scorer. The thesis' OpenVINO path issues the same calls and is very likely affected; this
+could not be verified here (no OpenVINO stack). Thesis-era numbers are therefore not re-used as evidence.
