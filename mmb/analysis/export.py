@@ -477,6 +477,27 @@ def add_transfer_numbers(num: Numbers, rows: list[dict]) -> None:
             num.add(["ETransfer", "MeanOffDiagonalN", camel(task)], str(n), f"crossing-destination pairs behind the pooled share, {task}")
 
 
+def human_tex(s: pd.DataFrame) -> str:
+    rows = []
+    for _, r in s.iterrows():
+        rows.append([st.tex_escape(r["stratum"]), st.tex_escape(TASK_NAMES.get(r["task"], r["task"])),
+                     st.tex_escape(r["arm"] if isinstance(r["arm"], str) and r["arm"] else "unedited anchor"),
+                     str(int(r["items"])), f"{r['valid_share']:.2f} [{r['lo']:.2f}, {r['hi']:.2f}]",
+                     f"{r['mean_comprehensibility']:.1f}", f"{100 * r['cant_share']:.0f}"])
+    return st._booktabs("lllrrrr", ["Stratum", "Task", "Arm", "Items", "Valid share [95\\% CI]", "Comprehens.", "Can't tell (\\%)"], rows)
+
+
+def add_human_numbers(num: Numbers, s: pd.DataFrame) -> None:
+    for _, r in s.iterrows():
+        arm = r["arm"] if isinstance(r["arm"], str) and r["arm"] else "control"
+        tail = [camel(r["stratum"]), camel(r["task"]), arm_short(arm) if arm != "control" else "Control"]
+        d = f"human validity, {r['stratum']}, {r['task']}, {arm}, {int(r['items'])} items, {int(r['raters'])} raters"
+        num.add(["EHuman", "Share"] + tail, f_pct(r["valid_share"]), "valid share (%); " + d)
+        num.add(["EHuman", "Ci"] + tail, f"[{100 * r['lo']:.0f}--{100 * r['hi']:.0f}]", "95% bootstrap CI over items (%); " + d)
+        num.add(["EHuman", "Items"] + tail, str(int(r["items"])), "items; " + d)
+        num.add(["EHuman", "Comprehensibility"] + tail, f_num(r["mean_comprehensibility"], 1), "mean 5-point comprehensibility; " + d)
+
+
 def add_validity_numbers(num: Numbers, vdf: pd.DataFrame) -> None:
     cols = [c for c in ("img_clip_cos", "img_dino_cos", "img_lpips", "img_ssim", "txt_minilm_cos",
                         "txt_word_edit") if c in vdf]
@@ -509,7 +530,7 @@ def validity_table(vdf: pd.DataFrame) -> str:
 def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid_suts=GRID_SUTS,
            validity: Path | None = None, runs_root: Path | None = None, n_boot: int = st.N_BOOT,
            figures: bool = True, agree: list[Path] | None = None,
-           transfer: list[Path] | None = None) -> Numbers:
+           transfer: list[Path] | None = None, human: Path | None = None) -> Numbers:
     from mmb.analysis import gallery, plots
 
     gen = Path(paper) / "generated"
@@ -613,6 +634,12 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
                 write_tex(tabs / f"transfer_{task}.tex", tr.matrix_tex(trows, task, SUT_NAMES))
             add_transfer_numbers(num, trows)
 
+    if human is not None and Path(human).exists():
+        hdf = pd.read_csv(human, keep_default_na=False)
+        if len(hdf):
+            write_tex(tabs / "human_validity.tex", human_tex(hdf))
+            add_human_numbers(num, hdf)
+
     if figures:
         grid_df = sc.get(("All", "All"))
         if grid_df is not None:
@@ -650,13 +677,14 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--runs-root", type=Path, default=None)
     ap.add_argument("--agree", type=Path, nargs="*", default=[], help="agreement_replay CSVs (one per SUT)")
     ap.add_argument("--transfer", type=Path, nargs="*", default=[], help="cross-SUT replay CSVs")
+    ap.add_argument("--human-validity", type=Path, default=None, help="analyze_ratings.py output CSV")
     ap.add_argument("--n-boot", type=int, default=st.N_BOOT)
     ap.add_argument("--no-figures", action="store_true")
     args = ap.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(message)s")
     num = export(args.csv, args.paper, ref=args.ref, grid_suts=args.grid_suts.split(","),
                  validity=args.validity, runs_root=args.runs_root, n_boot=args.n_boot,
-                 figures=not args.no_figures, agree=args.agree or None, transfer=args.transfer or None)
+                 figures=not args.no_figures, agree=args.agree or None, transfer=args.transfer or None, human=args.human_validity)
     logger.info("wrote %d macros to %s", len(num.rows), args.paper / "generated")
     return 0
 
