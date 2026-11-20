@@ -12,9 +12,10 @@ Definitions
 -----------
 * ``g = logprobs[class_a] - logprobs[class_b]`` per evaluation, with the pair positions
   taken from ``stats["target_classes"]`` (default ``(0, 1)``); class_a is the anchor answer.
-* Anchor sign: sign of g on the unmodified seed, i.e. the first evaluation whose genotype is all
-  zeros. If the trace has no such row, ``stats["anchor_g"]`` is used when present; otherwise the
-  anchor is *assumed* to be class_a (sign +1, argmax = class_a). ``anchor_source`` records which.
+* Anchor sign: sign of g on the unmodified seed. Preferred source: the explicit anchor reference
+  evaluation the tester stores as ``stats["anchor_g"]`` (outside the budget; ``anchor_source =
+  "reference_eval"``). Fallbacks: the first evaluation whose genotype is all zeros
+  (``"zero_genotype"``), then an assumed class_a anchor (``"assumed_class_a"``, sign +1).
 * A run *crosses* if some evaluation has ``sign(g) * anchor_sign < 0`` (strict: g == 0 is not a
   crossing). ``first_cross_eval`` is the 1-based position in evaluation order (generation-major,
   then individual) counting cache hits; a run that never crosses is censored at its budget
@@ -76,6 +77,7 @@ def evaluate_trace(
     target_classes: tuple[int, int] = (0, 1),
     anchor_row: int | None = None,
     anchor_g: float | None = None,
+    anchor_argmax: int | None = None,
     cache_hit: np.ndarray | None = None,
     epsilon: float = EPSILON,
 ) -> dict[str, Any]:
@@ -86,7 +88,9 @@ def evaluate_trace(
     :param generation: ``(n_evals,)`` generation of every row.
     :param target_classes: positions of (class_a, class_b) inside the scored candidates.
     :param anchor_row: index of the unmodified-seed evaluation, if the trace has one.
-    :param anchor_g: anchor pair contrast when the anchor is not a row of the trace.
+    :param anchor_g: pair contrast of the explicit anchor reference evaluation (``stats["anchor_g"]``);
+        preferred over ``anchor_row`` when both exist.
+    :param anchor_argmax: position of the anchor's argmax among the scored candidates (reference eval).
     :param cache_hit: optional boolean array, used for ``first_cross_eval_nocache``.
     """
     lp = np.asarray(logprobs, dtype=float)
@@ -94,23 +98,23 @@ def evaluate_trace(
     ia, ib = target_classes
     g = lp[:, ia] - lp[:, ib]
 
-    if anchor_row is not None:
-        anchor_g_val = float(g[anchor_row])
-        anchor_argmax = int(np.argmax(lp[anchor_row]))
-        source = "zero_genotype"
-    elif anchor_g is not None:
+    if anchor_g is not None:
         anchor_g_val = float(anchor_g)
-        anchor_argmax = ia if anchor_g_val >= 0 else ib
-        source = "stats"
+        anchor_arg = anchor_argmax if anchor_argmax is not None else (ia if anchor_g_val >= 0 else ib)
+        source = "reference_eval"
+    elif anchor_row is not None:
+        anchor_g_val = float(g[anchor_row])
+        anchor_arg = int(np.argmax(lp[anchor_row]))
+        source = "zero_genotype"
     else:
         anchor_g_val = 1.0
-        anchor_argmax = ia
+        anchor_arg = ia
         source = "assumed_class_a"
     anchor_sign = 1.0 if anchor_g_val >= 0 else -1.0
 
     with np.errstate(invalid="ignore"):
         crossing = (np.sign(g) * anchor_sign) < 0          # NaN -> False
-    flips = np.argmax(lp, axis=1) != anchor_argmax
+    flips = np.argmax(lp, axis=1) != anchor_arg
 
     out: dict[str, Any] = {
         "crossed": bool(crossing.any()),
@@ -166,6 +170,22 @@ def derive_arm(cfg: dict[str, Any]) -> str | None:
             return "a5_mimicry_objective"
         return "a0_directed"
     return str(algo)
+
+
+def cfg_from_run_meta(rm: dict[str, Any]) -> dict[str, Any]:
+    """Config-shaped dict from the arm-defining keys the tester stamps into ``stats["run_meta"]``."""
+    if not rm or "algorithm" not in rm:
+        return {}
+    return {
+        "modality": rm.get("modality"),
+        "optimizer": {
+            "algorithm": rm.get("algorithm"),
+            "boundary_objective": rm.get("boundary_objective"),
+            "proximity_only": rm.get("proximity_only"),
+            "sampling": {"mode": rm.get("sampling_mode")},
+        },
+        "sut": {"model_id": rm.get("sut_model_id")},
+    }
 
 
 def _dig(d: Any, *keys: str) -> Any:
@@ -231,6 +251,10 @@ def resolve_meta(
     """
     defaults = defaults or {}
     explicit = dict(stats.get("run_meta") or {})
+    rm_cfg = cfg_from_run_meta(explicit)
+    if rm_cfg:  # run_meta is what the tester actually ran; the config snapshot only fills gaps
+        cfg = {**cfg, **{k: v for k, v in rm_cfg.items() if v is not None}}
+        cfg["optimizer"] = {**(_dig(cfg, "optimizer") or {}), **rm_cfg["optimizer"]}
     out: dict[str, Any] = {}
     for key in META_KEYS:
         if key in stats and stats[key] is not None:
@@ -324,14 +348,21 @@ def load_run(
                 anchor_row = i
                 break
     cache_hit = df["cache_hit"].to_numpy() if "cache_hit" in df else None
+    anchor_argmax = None
+    if stats.get("anchor_argmax") is not None:
+        cats = stats.get("categories") or []
+        a = stats["anchor_argmax"]
+        anchor_argmax = cats.index(a) if isinstance(a, str) and a in cats else (a if isinstance(a, int) else None)
     res = evaluate_trace(
         lp, gen, target_classes=(int(tc[0]), int(tc[1])), anchor_row=anchor_row,
-        anchor_g=stats.get("anchor_g"), cache_hit=cache_hit, epsilon=epsilon,
+        anchor_g=stats.get("anchor_g"), anchor_argmax=anchor_argmax,
+        cache_hit=cache_hit, epsilon=epsilon,
     )
 
     n_evals = len(df)
     gens, pop = stats.get("generations"), stats.get("pop_size")
-    budget = int(gens) * int(pop) if gens and pop else n_evals
+    rm_budget = (stats.get("run_meta") or {}).get("eval_budget")
+    budget = int(rm_budget) if rm_budget else (int(gens) * int(pop) if gens and pop else n_evals)
     meta = resolve_meta(stats, cfg, defaults)
 
     def mag(prefix: str) -> float:

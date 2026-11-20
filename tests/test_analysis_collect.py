@@ -78,7 +78,18 @@ class TestEvaluateTrace:
 
     def test_anchor_from_stats(self):
         r = col.evaluate_trace(np.array([lp2(x) for x in [-1.0, -2.0, 0.5]]), np.zeros(3, int), anchor_g=-0.3)
-        assert r["anchor_source"] == "stats" and r["first_cross_eval"] == 3
+        assert r["anchor_source"] == "reference_eval" and r["first_cross_eval"] == 3
+
+    def test_reference_eval_beats_zero_genotype_row(self):
+        # zero-genotype row says anchor +, reference eval says anchor -: the reference wins
+        g = [0.5, 1.0, -0.2]
+        r = col.evaluate_trace(np.array([lp2(x) for x in g]), np.zeros(3, int), anchor_row=0, anchor_g=-0.3)
+        assert r["anchor_source"] == "reference_eval" and r["first_cross_eval"] == 1
+
+    def test_reference_argmax_used_for_label_flip(self):
+        lp = np.array([[-0.2, -1.0, -3.0], [-1.0, -2.0, -0.1]])
+        r = col.evaluate_trace(lp, np.zeros(2, int), anchor_g=0.8, anchor_argmax=2)   # anchor answer = candidate 2
+        assert r["label_flip"] is True and r["crossed"] is False     # row 0 differs from candidate 2
 
 
 # ---------------------------------------------------------------------------
@@ -163,6 +174,22 @@ class TestMetadata:
         assert col.load_run(run, tmp_path)["arm"] is None
         assert col.load_run(run, tmp_path, defaults={"arm": "a1"})["arm"] == "a1"
 
+    def test_run_meta_and_reference_anchor_from_stats(self, tmp_path):
+        rm = {"algorithm": "random", "sampling_mode": "uniform", "modality": "joint", "rng_seed": 5,
+              "boundary_objective": "logprob_gap", "proximity_only": False, "eval_budget": 8,
+              "sut_model_id": "x/internvl", "exp_id": "E3", "task": "pope"}
+        snap = {"optimizer": {"algorithm": "nsga2"}, "seed": 99}          # must lose against run_meta
+        run = write_run(tmp_path, "r", [1.0, 2.0, 3.0, 4.0], pop=2,
+                        stats_extra={"run_meta": rm, "config_snapshot": snap, "anchor_g": -0.5,
+                                     "anchor_argmax": "sparrow"})
+        row = col.load_run(run, tmp_path)
+        assert row["arm"] == "a2_random_uniform" and row["rng_seed"] == 5
+        assert row["exp_id"] == "E3" and row["task"] == "pope"
+        assert row["budget"] == 8                                       # run_meta eval_budget
+        assert row["anchor_source"] == "reference_eval"
+        assert row["crossed"] and row["first_cross_eval"] == 1          # anchor is negative, g > 0 crosses
+        assert row["label_flip"]                                        # argmax 'junco' != anchor 'sparrow'
+
     def test_cell_id_fallback_without_roster_metadata(self):
         assert col.derive_cell_id({"class_a": "a", "class_b": "b", "seed_idx": 4}) == "a|b|i4"
 
@@ -198,13 +225,15 @@ class TestWithRealTester:
         from mmb.optimizer.discrete_pymoo_optimizer import DiscretePymooOptimizer
         from conftest import FakeCompositeTextManipulator, FakeImageManipulator
 
-        # pop 5 x 3 generations = 15 evaluations; the only negative contrast is call 8 (0-based 7)
-        schedule = [1.0 + 0.1 * i for i in range(15)]
-        schedule[7] = -0.4
+        # call 0 is the anchor reference evaluation (outside the budget); then pop 5 x 3 generations =
+        # 15 evaluations, of which the 8th (schedule index 8) is the only negative contrast
+        schedule = [2.0] + [1.0 + 0.1 * i for i in range(15)]
+        schedule[8] = -0.4
         cfg = ExperimentConfig(
             categories=("cat_a", "cat_b", "cat_c"), prompt_template="Classify this",
             answer_format=" from: {categories}.", generations=3, pop_size=5,
             save_dir=tmp_path / "runs", name="e1_test",
+            tags={"exp_id": "E1", "arm": "a4_nsga2"},
         )
         tester = VLMBoundaryTester(
             sut=ScriptedSUT(schedule),
@@ -217,18 +246,15 @@ class TestWithRealTester:
         )
         tester.test([SeedTriple(image=Image.new("RGB", (8, 8)), class_a="cat_a", class_b="cat_b")])
 
-        df = col.collect(tmp_path / "runs", defaults={"arm": "a0_directed"})
+        df = col.collect(tmp_path / "runs", defaults={"arm": "ignored"})
         assert len(df) == 1
         row = df.iloc[0]
         tr = pd.read_parquet(next((tmp_path / "runs").iterdir()) / "trace.parquet")
-        zero = [i for i, gt in enumerate(tr["genotype"]) if not np.any(np.asarray(gt))]
-        # The only way call 8 is *not* a crossing is if the unmodified-seed row IS that call (anchor negative)
-        if zero and zero[0] == 7:
-            assert row["anchor_source"] == "zero_genotype"
-        else:
-            assert bool(row["crossed"]) and row["first_cross_eval"] == 8
-            assert row["first_cross_gen"] == 1 and not bool(row["crossed_at_gen0"])
-            assert row["floor_nats"] == pytest.approx(0.4)
+        assert row["anchor_source"] == "reference_eval"
+        assert row["arm"] == "a4_nsga2" and row["exp_id"] == "E1"      # run_meta tags beat defaults
+        assert bool(row["crossed"]) and row["first_cross_eval"] == 8
+        assert row["first_cross_gen"] == 1 and not bool(row["crossed_at_gen0"])
+        assert row["floor_nats"] == pytest.approx(0.4)
         # the optimizer may drop duplicates in this 1-gene space, so a generation can hold < 5 rows
         assert row["evals_total"] == len(tr) <= 15 and row["budget"] == 15
         assert bool(row["complete"]) is True
