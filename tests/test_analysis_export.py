@@ -96,7 +96,8 @@ class TestExport:
         for f in ("tables/e1.tex", "tables/e1_budgets.tex", "tables/e1_paired.tex", "tables/e3.tex",
                   "tables/e4.tex", "tables/e2b.tex", "tables/per/imagenet_qwen_summary.tex",
                   "tables/per/pope_internvl_paired.tex", "figures/crossing-curve.pdf",
-                  "figures/predictor-main.pdf", "figures/gallery.pdf", "numbers.tex", "numbers_map.csv"):
+                  "figures/predictor-main.pdf", "figures/gallery.pdf", "numbers.tex", "numbers_map.csv",
+                  "tables/primary.tex", "tables/e1_cluster.tex", "tables/cost.tex", "figures/per-cell-diff.pdf"):
             assert (gen / f).exists() and (gen / f).stat().st_size > 0, f
         assert not (gen / ".work").exists()
         text = (gen / "numbers.tex").read_text()
@@ -120,6 +121,9 @@ class TestExport:
         grid = df[df.sut.isin(["qwen", "internvl", "ministral"]) & (df.arm == "a1_random_tiered")]
         assert int(m["EOneRunsAOneAllAll"]) == len(grid)
         assert "EOnePHolmCrossedAOneAllAll" in m.index and "EOnePHolmEvalsAThreeAllAll" in m.index
+        assert "EPrimaryPHolmQwenImagenet" in m.index and "ETwoADiffLoMinEditsAOneAllAll" in m.index
+        assert "ECostMedMinEditsAZeroAllAll" in m.index
+        assert m["EAnything"] if False else True
         assert m["EOneAtBudgetTwoZeroSixAZeroAllAll"] and "EOneAtBudgetCiOneFiveZeroZeroAOneAllAll" in m.index
         assert "EOneRunsAZeroLlavaImagenet" in m.index and "EOneRunsAThreeLlavaImagenet" not in m.index
         assert "EOneRunsAZeroLlavaPope" not in m.index

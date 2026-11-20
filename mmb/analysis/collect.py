@@ -40,9 +40,28 @@ from typing import Any, Iterable
 import numpy as np
 import pandas as pd
 
+from mmb.analysis.cost import cost_of_crossing  # noqa: E402
+
 logger = logging.getLogger(__name__)
 
 EPSILON = 1e-2
+
+#: Per-row magnitude diagnostics logged for EVERY arm (not optimised): RMS pixel difference to the origin at
+#: codec resolution ([0, 1]) and the SUT text-embedding cosine distance to the original question. They are the
+#: primary magnitude columns; the optimised fitness_* columns of the multi-objective arms are the fallback.
+DIAG_COLUMNS = ("diag_img_rms", "diag_txt_cosdist")
+
+
+def _mag_name(kind: str, columns, fit_cols, diag_only: bool = False):
+    """Column holding the image ('img') or text ('txt') magnitude: diag_* first, else fitness_* (unless diag_only)."""
+    diag = "diag_img_rms" if kind == "img" else "diag_txt_cosdist"
+    if diag in columns:
+        return diag
+    if diag_only:
+        return None
+    prefix = "fitness_MatrixDistance" if kind == "img" else "fitness_TextDist"
+    hit = [c for c in fit_cols if c.startswith(prefix)]
+    return hit[0] if hit else None
 
 #: Columns requested by the paper's E1 table, in this order.
 CORE_COLUMNS = [
@@ -58,7 +77,12 @@ EXTRA_COLUMNS = [
     # predictors of E2b (see mmb.analysis.predictors)
     "anchor_g", "prior_g", "probe_gen0", "min_gen0", "answer_words_a", "answer_words_b",
 ]
-COLUMNS = CORE_COLUMNS + EXTRA_COLUMNS
+#: Cost-of-crossing columns (see mmb.analysis.cost).
+COST_COLUMNS = [
+    "min_edits_cross", "edits_img_at_min", "edits_txt_at_min", "hv_edits_cross", "min_txt_chardist_cross",
+    "best_img_mag_cross", "best_txt_mag_cross", "hv_mag_cross", "mag_source",
+]
+COLUMNS = CORE_COLUMNS + EXTRA_COLUMNS + COST_COLUMNS
 
 CONFIG_FILENAMES = (
     "config.json", "config.yaml", "config.yml",
@@ -131,6 +155,7 @@ def evaluate_trace(
         "anchor_source": source,
         "anchor_g": anchor_g_val if source != "assumed_class_a" else float("nan"),
         "cross_index": None,
+        "_crossing": crossing,
         "first_cross_eval": None,
         "first_cross_gen": None,
         "first_cross_eval_nocache": None,
@@ -337,9 +362,10 @@ def load_run(
     import pyarrow.parquet as pq
 
     names = set(pq.read_schema(run_dir / "trace.parquet").names)
-    want = [c for c in ("generation", "individual", "genotype", "logprobs", "cache_hit") if c in names]
+    want = [c for c in ("generation", "individual", "genotype", "logprobs", "cache_hit", "decoded_text") if c in names]
     fit_cols = sorted(c for c in names if c.startswith("fitness_"))
-    df = pd.read_parquet(run_dir / "trace.parquet", columns=want + fit_cols)
+    diag_cols = sorted(c for c in names if c in DIAG_COLUMNS)
+    df = pd.read_parquet(run_dir / "trace.parquet", columns=want + fit_cols + diag_cols)
     df = df.sort_values(["generation", "individual"], kind="stable")
     df = df.drop_duplicates(["generation", "individual"], keep="last").reset_index(drop=True)
 
@@ -372,13 +398,28 @@ def load_run(
     meta = resolve_meta(stats, cfg, defaults)
 
     def mag(prefix: str) -> float:
-        cols = [c for c in fit_cols if c.startswith(prefix)]
-        if res["cross_index"] is None or not cols:
+        c = _mag_name("img" if "Matrix" in prefix else "txt", df.columns, fit_cols)
+        if res["cross_index"] is None or c is None:
             return float("nan")
-        return float(df[cols[0]].iloc[res["cross_index"]])
+        return float(df[c].iloc[res["cross_index"]])
+
+    def mag_col(kind: str):
+        c = _mag_name(kind, df.columns, fit_cols)
+        return df[c].to_numpy(float) if c else None
+
+    seed_text = (stats.get("seed_metadata") or {}).get("prompt_template") or stats.get("prompt_template")
+    cost = cost_of_crossing(
+        res["_crossing"], list(df["genotype"]) if "genotype" in df else [],
+        int(stats.get("image_dim") or 0), int(stats.get("text_dim") or 0),
+        img_mag=mag_col("img"), txt_mag=mag_col("txt"),
+        texts=list(df["decoded_text"]) if "decoded_text" in df else None, seed_text=seed_text,
+    ) if "genotype" in df and len(df) else {}
 
     row = {
         **meta,
+        **cost,
+        "mag_source": "diag" if _mag_name("img", df.columns, fit_cols, True) else (
+            "fitness" if _mag_name("img", df.columns, fit_cols) else "none"),
         "crossed": res["crossed"],
         "crossed_at_gen0": res["crossed_at_gen0"],
         "first_cross_eval": res["first_cross_eval"] if res["crossed"] else budget,

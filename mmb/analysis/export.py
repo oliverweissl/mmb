@@ -16,6 +16,9 @@ Written under <paper>/generated/:
   tables/e3.tex                                a0 and a1 per SUT, ImageNet task, continuity SUT included
   tables/e4.tex                                a0 and a1 per task, grid SUTs pooled
   tables/e2b.tex                               cell-level predictor table per task and SUT (arm a0)
+  tables/primary.tex                           pre-committed primary comparison a1 vs a0 per (task, SUT), Holm across strata
+  tables/e1_cluster.tex cost.tex               paired differences with cell-cluster CIs; cost of crossing per arm
+  figures/per-cell-diff.pdf                    per-cell a0 minus a1 crossing share
   tables/validity.tex                          proxy medians per arm (only with --validity)
   tables/agree.tex, EAgree macros              greedy agreement and re-verification (only with --agree)
   tables/per/<task>_<sut>_{summary,paired,budgets}.tex
@@ -34,6 +37,7 @@ from typing import Iterable
 import numpy as np
 import pandas as pd
 
+from mmb.analysis import paired as pr
 from mmb.analysis import predictors as pred
 from mmb.analysis import stats as st
 
@@ -124,6 +128,7 @@ class Numbers:
 def with_scope_cells(df: pd.DataFrame) -> pd.DataFrame:
     """cell_id made unique across tasks and SUTs, so that pooled pairs (cell, seed) never collide."""
     d = df.copy()
+    d["cluster_id"] = d["task"].astype(str) + "/" + d["cell_id"].astype(str)     # a cell is shared by SUTs
     d["cell_id"] = d["task"].astype(str) + "/" + d["sut"].astype(str) + "/" + d["cell_id"].astype(str)
     return d
 
@@ -343,6 +348,118 @@ def agree_table(df: pd.DataFrame) -> str:
                                    r"Verified by re-scoring (\%)"], rows)
 
 
+PAIRED_METRIC_NAMES = {"crossed": "Crossed", "first_cross_eval": "Evals", "floor": "Floor", "min_edits": "MinEdits",
+                      "hv_edits": "HvEdits", "hv_mag": "HvMag", "img_mag": "ImgMag", "txt_mag": "TxtMag",
+                      "chardist": "CharDist"}
+METRIC_HEAD = {"crossed": "crossed (share)", "first_cross_eval": "evals to cross", "floor": r"$\log_{10}$ floor",
+               "min_edits": "fewest edits", "hv_edits": "edit hypervolume"}
+
+
+def _ci(v: float, lo: float, hi: float, d: int = 2) -> str:
+    return "--" if pd.isna(v) else f"{v:+.{d}f} [{lo:+.{d}f}, {hi:+.{d}f}]"
+
+
+def add_cluster_numbers(num: Numbers, sut: str, task: str, t: pd.DataFrame) -> None:
+    for _, r in t.iterrows():
+        tail = [PAIRED_METRIC_NAMES[r.metric], arm_short(r.arm), camel(sut), camel(task)]
+        d = f"{r.arm} vs {r.ref}, {r.metric}, {sut}, {task}, {int(r.n_pairs)} pairs in {int(r.n_cells)} cells"
+        for f, v, what in (("Pairs", str(int(r.n_pairs)), "matched pairs"),
+                           ("RefValue", f_num(r.ref_value, 3), "reference value (share or median)"),
+                           ("ArmValue", f_num(r.arm_value, 3), "arm value (share or median)"),
+                           ("Diff", f_num(r["diff"], 3, True), r.diff_name + " (arm - ref)"),
+                           ("DiffLo", f_num(r.diff_lo, 3, True), "cell-cluster bootstrap 95% CI lower"),
+                           ("DiffHi", f_num(r.diff_hi, 3, True), "cell-cluster bootstrap 95% CI upper"),
+                           ("P", f_p(r.p), "raw p (exact McNemar / Wilcoxon)"),
+                           ("PHolm", f_p(r.p_holm), "Holm-adjusted p across arms")):
+            num.add(["ETwoA", f] + tail, v, f"{what}; {d}")
+
+
+def cluster_table_tex(t: pd.DataFrame, metrics=pr.DEFAULT_METRICS) -> str:
+    rows = []
+    for arm in list(dict.fromkeys(t["arm"])):
+        row = [st.tex_escape(arm)]
+        for m in metrics:
+            r = t[(t.arm == arm) & (t.metric == m)]
+            row.append("--" if r.empty else f"{_ci(r.iloc[0]['diff'], r.iloc[0].diff_lo, r.iloc[0].diff_hi, 2 if m in ('crossed', 'floor', 'hv_edits') else 0)}; {f_p(r.iloc[0].p_holm)}")
+        rows.append(row)
+    return st._booktabs("l" + "l" * len(metrics), ["Arm vs a0"] + [METRIC_HEAD.get(m, m) for m in metrics], rows)
+
+
+def primary_tex(t: pd.DataFrame) -> str:
+    rows = []
+    for _, r in t.iterrows():
+        rows.append([st.tex_escape(TASK_NAMES.get(r.task, r.task)), st.tex_escape(SUT_NAMES.get(r.sut, r.sut)),
+                     str(int(r.n_pairs)), f_pct(r.ref_value), f_pct(r.arm_value),
+                     _ci(100 * r["diff"], 100 * r.diff_lo, 100 * r.diff_hi, 1), f_p(r.p), f_p(r.p_holm_strata)])
+    return st._booktabs("llrrrrrr", ["Task", "SUT", "Pairs", "a0 (\\%)", "a1 (\\%)", "a1 $-$ a0 (pp) [95\\% CI]", "$p$",
+                                     r"$p_{\text{Holm}}$"], rows)
+
+
+def add_primary_numbers(num: Numbers, t: pd.DataFrame) -> None:
+    for _, r in t.iterrows():
+        tail = [camel(r.sut), camel(r.task)]
+        d = f"primary comparison a1 vs a0 crossing share, {r.sut}, {r.task}"
+        for f, v, what in (("Pairs", str(int(r.n_pairs)), "matched pairs"),
+                           ("RefShare", f_pct(r.ref_value), "a0 crossing share (%)"),
+                           ("ArmShare", f_pct(r.arm_value), "a1 crossing share (%)"),
+                           ("Diff", f_num(100 * r["diff"], 1, True), "a1 minus a0 (percentage points)"),
+                           ("DiffLo", f_num(100 * r.diff_lo, 1, True), "cell-cluster bootstrap 95% CI lower (pp)"),
+                           ("DiffHi", f_num(100 * r.diff_hi, 1, True), "cell-cluster bootstrap 95% CI upper (pp)"),
+                           ("P", f_p(r.p), "exact McNemar p"),
+                           ("PHolm", f_p(r.p_holm_strata), "Holm-adjusted across strata")):
+            num.add(["EPrimary", f] + tail, v, f"{what}; {d}")
+
+
+def cost_summary(df: pd.DataFrame, n_boot: int) -> pd.DataFrame:
+    rows = []
+    for arm, g in df.groupby("arm", sort=True):
+        me, lo, hi = st.bootstrap_stat(g["min_edits_cross"].to_numpy(float), n_boot=n_boot) if "min_edits_cross" in g else (np.nan,) * 3
+        hv, hlo, hhi = st.bootstrap_stat(g["hv_edits_cross"].to_numpy(float), n_boot=n_boot) if "hv_edits_cross" in g else (np.nan,) * 3
+        c = g[g["crossed"].astype(bool)]
+        if "mag_source" in c and (c["mag_source"] == "diag").any():
+            c = c[c["mag_source"] == "diag"]            # never mix diagnostic and optimised-fitness magnitudes
+        rows.append(dict(arm=arm, n_runs=len(g), n_crossed=len(c), med_min_edits=me, me_lo=lo, me_hi=hi,
+                         med_hv=hv, hv_lo=hlo, hv_hi=hhi,
+                         med_img_mag=float(c["best_img_mag_cross"].median()) if "best_img_mag_cross" in c and c["best_img_mag_cross"].notna().any() else np.nan,
+                         med_txt_mag=float(c["best_txt_mag_cross"].median()) if "best_txt_mag_cross" in c and c["best_txt_mag_cross"].notna().any() else np.nan))
+    return pd.DataFrame(rows)
+
+
+def cost_tex(s: pd.DataFrame) -> str:
+    rows = []
+    for _, r in s.iterrows():
+        rows.append([st.tex_escape(r.arm), str(int(r.n_runs)), f"{r.med_min_edits:.0f} [{r.me_lo:.0f}--{r.me_hi:.0f}]",
+                     f"{r.med_hv:.3f} [{r.hv_lo:.3f}--{r.hv_hi:.3f}]",
+                     "--" if pd.isna(r.med_img_mag) else f"{r.med_img_mag:.3f}",
+                     "--" if pd.isna(r.med_txt_mag) else f"{r.med_txt_mag:.2f}"])
+    return st._booktabs("lrrrrr", ["Arm", "Runs", "Fewest edits at a crossing [95\\% CI]", "Edit hypervolume [95\\% CI]",
+                                   "Best image RMS", "Best text cosine"], rows)
+
+
+def add_cost_numbers(num: Numbers, sut: str, task: str, s: pd.DataFrame) -> None:
+    for _, r in s.iterrows():
+        tail = [arm_short(r.arm), camel(sut), camel(task)]
+        d = f"{r.arm}, {sut}, {task}"
+        num.add(["ECost", "MedMinEdits"] + tail, f_num(r.med_min_edits, 0), "median fewest active genes at a crossing (never-crossed runs censored at all genes); " + d)
+        num.add(["ECost", "MedMinEditsCi"] + tail, f"[{r.me_lo:.0f}--{r.me_hi:.0f}]", "bootstrap 95% CI; " + d)
+        num.add(["ECost", "MedHv"] + tail, f_num(r.med_hv, 3), "median edit hypervolume fraction (0 when never crossed); " + d)
+        num.add(["ECost", "MedHvCi"] + tail, f"[{r.hv_lo:.3f}--{r.hv_hi:.3f}]", "bootstrap 95% CI; " + d)
+        if not pd.isna(r.med_img_mag):
+            num.add(["ECost", "MedImgMag"] + tail, f_num(r.med_img_mag, 3), "median best image RMS among crossing runs; " + d)
+        if not pd.isna(r.med_txt_mag):
+            num.add(["ECost", "MedTxtMag"] + tail, f_num(r.med_txt_mag, 2), "median best text cosine among crossing runs; " + d)
+
+
+def add_mixed_numbers(num: Numbers, res: dict) -> None:
+    if pd.isna(res["log_or"]):
+        return
+    tail = [arm_short(res["arm"])]
+    d = f"mixed logit crossed ~ arm + (1|cell) + (1|sut:task), {res['arm']} vs {res['ref']}, {res['n_runs']} runs"
+    num.add(["EMixed", "LogOr"] + tail, f_num(res["log_or"], 2, True), "log odds ratio (posterior mean); " + d)
+    num.add(["EMixed", "LogOrCi"] + tail, f"[{res['lo']:+.2f}, {res['hi']:+.2f}]", "approximate 95% interval; " + d)
+    num.add(["EMixed", "OddsRatio"] + tail, f_num(res["odds_ratio"], 2), "odds ratio; " + d)
+
+
 def add_validity_numbers(num: Numbers, vdf: pd.DataFrame) -> None:
     cols = [c for c in ("img_clip_cos", "img_dino_cos", "img_lpips", "img_ssim", "txt_minilm_cos",
                         "txt_word_edit") if c in vdf]
@@ -397,6 +514,16 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
                          budgets, n_boot)
         add_summary_numbers(num, sut, task, res["summary"])
         add_curve_numbers(num, sut, task, res["curve"])
+        if ref in arms:
+            ct = pr.paired_table(d, ref, pr.DEFAULT_METRICS, n_boot=n_boot)
+            add_cluster_numbers(num, sut, task, ct)
+            cs_ = cost_summary(d, n_boot)
+            add_cost_numbers(num, sut, task, cs_)
+            if (sut, task) == ("All", "All"):
+                write_tex(tabs / "e1_cluster.tex", cluster_table_tex(ct))
+                write_tex(tabs / "cost.tex", cost_tex(cs_))
+                for a in sorted(arms - {ref}):
+                    add_mixed_numbers(num, pr.mixed_model(d.assign(cell_id=d["cluster_id"]), ref, a))
         if "paired" in res:
             add_paired_numbers(num, sut, task, res["paired"])
         if sut != "All" and task != "All":
@@ -411,6 +538,10 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
             if "paired" in res:
                 write_tex(tabs / "e1_paired.tex", st.paired_tex(res["paired"]))
     _cleanup_tmp(gen)
+    pt = pr.primary_table(df, ref, "a1_random_tiered", n_boot)
+    if len(pt):
+        write_tex(tabs / "primary.tex", primary_tex(pt))
+        add_primary_numbers(num, pt)
 
     prim = df[df["arm"].isin(PRIMARY_ARMS)]
     # E3: a0 and a1 per SUT on ImageNet (continuity SUT included)
@@ -459,6 +590,8 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
         grid_df = sc.get(("All", "All"))
         if grid_df is not None:
             plots.plot_crossing_curve(grid_df, figs / "crossing-curve.pdf", ref_arm=ref, vlines=[206], n_boot=n_boot)
+        if len(pt):
+            pr.plot_per_cell_diff(df, figs / "per-cell-diff.pdf", ref, "a1_random_tiered")
         if "probe_gen0" in df and df["probe_gen0"].notna().any():
             plots.plot_predictor_scatter(df[df["sut"].isin(set(grid_suts))], figs / "predictor-main.pdf", arm=ref)
         picks = gallery.select_runs(df[df["sut"].isin(set(grid_suts))], ref, 2)
