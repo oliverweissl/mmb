@@ -33,7 +33,7 @@ cd "$ROOT"
 
 # 1. files: tracked + untracked-but-not-ignored, minus exclusions (no history is copied)
 git ls-files --cached --others --exclude-standard -z \
-  | grep -zv -E '(^|/)(\.git|\.venv|__pycache__|\.seedbank|\.mycelium|\.claude|build-artifact|runs)(/|$)|^(AGENTS|CLAUDE)\.md$|^scripts/make_artifact\.sh$|^(PLAN|PROGRESS)\.md$|\.egg-info/' \
+  | grep -zv -E '(^|/)(\.git|\.venv|__pycache__|\.seedbank|\.mycelium|\.claude|build-artifact|runs)(/|$)|^(AGENTS|CLAUDE)\.md$|^scripts/make_artifact\.sh$|^(PLAN|PROGRESS)\.md$|\.egg-info/|^cells/old_' \
   | grep -zv -E '\.(png|jpg|jpeg|gif|webp|bmp|tif|tiff|pt|pth|ckpt|safetensors|bin|onnx|pkl|npy|npz)$' \
   | while IFS= read -r -d '' f; do
       [ -f "$f" ] || continue
@@ -77,6 +77,26 @@ FORBIDDEN = [r"(?i)ruben", r"(?i)kaiser", r"(?i)oliver", r"(?i)wei(?:ss|\xdf)l",
              r"/home/", r"/Users/", r"(?i)sharelatex", r"(?i)stocco", re.escape(host) if host else r"$^"]
 if user and user not in ("root",):
     FORBIDDEN.append(r"\b" + re.escape(user) + r"\b")
+# Internal design notes (METHODOLOGY.md, EXP_SETUP.md, ...) ship as the record of the frozen design, but the
+# internal narrative about the scorer history is not part of the anonymous artifact: markdown sections whose
+# heading matches NARRATIVE are dropped and other markdown lines that match it are removed (counted below).
+NARRATIVE = re.compile(r"(?i)defect|buggy|kv[- ]?cache|order-dependent|openvino|earlier (exploratory )?(study|scorer)")
+dropped = 0
+
+
+def drop_narrative(text: str) -> str:
+    global dropped
+    out, skipping = [], False
+    for line in text.split("\n"):
+        if line.startswith("## "):
+            skipping = bool(NARRATIVE.search(line))
+        if skipping or (NARRATIVE.search(line) and not line.startswith("#")):
+            dropped += 1
+            continue
+        out.append(line)
+    return "\n".join(out)
+
+
 changed, bad = 0, []
 for p in sorted(root.rglob("*")):
     if not p.is_file() or p.name in (".oversize",):
@@ -90,6 +110,8 @@ for p in sorted(root.rglob("*")):
                 bad.append((str(p.relative_to(root)), pat, "binary"))
         continue
     new = t
+    if p.suffix == ".md":
+        new = drop_narrative(new)
     for pat, rep in SUBS:
         new = re.sub(pat, rep, new)
     if new != t:
@@ -98,7 +120,7 @@ for p in sorted(root.rglob("*")):
         m = re.search(pat, new)
         if m:
             bad.append((str(p.relative_to(root)), pat, new[max(0, m.start() - 30): m.end() + 30].replace("\n", " ")))
-print(f"rewrote {changed} text files")
+print(f"rewrote {changed} text files; dropped {dropped} internal-narrative markdown lines")
 if bad:
     for b in bad[:60]:
         print("LEFTOVER", *b)
@@ -106,6 +128,19 @@ if bad:
     sys.exit(1)
 print("scan OK: no forbidden strings")
 PY
+
+# 4b. frozen record: dated commit hashes of the design files (hash and date only, no names), so a reader can
+#     check that the analysis plan and cell lists predate the results (the repository history is not shipped)
+{
+  echo "# FROZEN-RECORD: file, last commit (full hash), commit date (UTC), first commit date, sha256 of the shipped file"
+  for f in METHODOLOGY.md EXP_SETUP.md cells/*.yaml; do
+    [ -f "$ROOT/$f" ] || continue
+    last=$(TZ=UTC git -C "$ROOT" log -1 --format='%H %cd' --date=format-local:%Y-%m-%dT%H:%M:%SZ -- "$f" 2>/dev/null || true)
+    first=$(TZ=UTC git -C "$ROOT" log --reverse --format='%cd' --date=format-local:%Y-%m-%dT%H:%M:%SZ -- "$f" 2>/dev/null | head -1 || true)
+    sum=$( [ -f "$OUT/$f" ] && sha256sum "$OUT/$f" | cut -d' ' -f1 || echo "not-shipped" )
+    echo "$f  ${last:-untracked}  ${first:-untracked}  $sum"
+  done
+} > "$OUT/FROZEN-RECORD.txt"
 
 # 5. manifest and archive
 {

@@ -259,6 +259,20 @@ class TestGallery:
             assert not t.duplicated(["example", "sut"]).any()
             assert t.groupby("example").cell_id.nunique().max() == 1      # a row compares SUTs on one cell
 
+    def test_failure_row(self, tree, tmp_path):
+        import json as _json
+        _, csv = tree
+        df = export.st.load_results([csv])
+        df = df[df.sut.isin(export.GRID_SUTS)]
+        fails = gallery.select_failures(df, "a0_directed")
+        assert len(fails) and (~fails.crossed).all() and not fails.duplicated(["task", "sut"]).any()
+        for rd in fails.run_dir:                     # synthetic closest-input artefacts
+            Image.fromarray(np.zeros((32, 32, 3), "uint8")).save(Path(rd) / "pareto_0.png")
+            (Path(rd) / "pareto_0.json").write_text(_json.dumps({"fitness": [0.3, 0.1, 0.1], "text": "Is ther e a dog?"}))
+        picks = pd.concat([gallery.select_runs(df, "a0_directed", 2).assign(kind="cross"), fails], ignore_index=True)
+        out = gallery.plot_gallery(picks, tmp_path / "gf.pdf")
+        assert out.read_bytes()[:4] == b"%PDF"
+
     def test_plot_writes_pdf_and_survives_missing_image(self, tree, tmp_path):
         root, csv = tree
         df = export.st.load_results([csv])

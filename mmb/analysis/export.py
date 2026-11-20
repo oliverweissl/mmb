@@ -648,7 +648,11 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
             pr.plot_per_cell_diff(df, figs / "per-cell-diff.pdf", ref, "a1_random_tiered")
         if "probe_gen0" in df and df["probe_gen0"].notna().any():
             plots.plot_predictor_scatter(df[df["sut"].isin(set(grid_suts))], figs / "predictor-main.pdf", arm=ref)
-        picks = gallery.select_runs(df[df["sut"].isin(set(grid_suts))], ref, 2)
+        gdf = df[df["sut"].isin(set(grid_suts))]
+        picks = gallery.select_runs(gdf, ref, 2)
+        fails = gallery.select_failures(gdf, ref)
+        if len(fails):
+            picks = pd.concat([picks.assign(kind="cross"), fails], ignore_index=True)
         if len(picks):
             try:
                 gallery.plot_gallery(picks, figs / "gallery.pdf", runs_root=runs_root)

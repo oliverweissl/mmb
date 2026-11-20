@@ -10,6 +10,9 @@ first-crossing image (first_cross.png) side by side, with the original question,
 pair contrast g before (anchor reference) and after (at the crossing). Both images are shown at the codec
 resolution of first_cross.png (origin.png is resized to it, no cropping).
 
+With --failures an extra row per task shows a typical unsuccessful run: the run without a crossing whose floor
+is the median over such runs, the anchor beside the Pareto member closest to the boundary.
+
 Selection (default): among crossing runs of --arm, per task the per_task cells that most SUTs cross
 (so a row compares SUTs on the same cell), ties broken by the smallest mean image magnitude at the crossing;
 within a (cell, SUT) the run with the fewest evaluations to cross. --runs takes a CSV with columns
@@ -55,7 +58,36 @@ def select_runs(df: pd.DataFrame, arm: str = "a0_directed", per_task: int = 2,
     return pd.concat(picks, ignore_index=True) if picks else d.iloc[0:0].assign(example=[])
 
 
-def _load(run_dir: Path, runs_root: Path | None):
+def select_failures(df: pd.DataFrame, arm: str = "a0_directed", suts: list[str] | None = None) -> pd.DataFrame:
+    """One typical failure per (task, SUT): among runs of arm without a crossing, the run with the median floor
+    (not the best or the worst), so the row shows what a typical unsuccessful search looks like."""
+    d = df[(df["arm"] == arm) & ~df["crossed"].astype(bool)].copy()
+    if suts:
+        d = d[d["sut"].isin(suts)]
+    rows = []
+    for (task, sut), g in d.groupby(["task", "sut"], sort=True):
+        g = g.sort_values(["floor_nats", "run_dir"]).reset_index(drop=True)
+        rows.append(g.iloc[[len(g) // 2]].assign(kind="fail"))
+    return pd.concat(rows, ignore_index=True) if rows else d.iloc[0:0]
+
+
+def _closest_pareto(run_dir: Path):
+    """(png, json dict) of the Pareto member with the smallest |g| (first fitness value), or (None, {})."""
+    best = None
+    for jf in sorted(run_dir.glob("pareto_*.json")):
+        try:
+            j = json.loads(jf.read_text())
+        except ValueError:
+            continue
+        f = j.get("fitness") or [float("inf")]
+        if best is None or f[0] < best[0]:
+            best = (f[0], jf, j)
+    if best is None:
+        return None, {}
+    return best[1].with_suffix(".png"), best[2]
+
+
+def _load(run_dir: Path, runs_root: Path | None, fail: bool = False):
     p = Path(run_dir)
     if not p.is_absolute() and runs_root is not None and not p.exists():
         p = runs_root / p
@@ -63,6 +95,10 @@ def _load(run_dir: Path, runs_root: Path | None):
     fc = json.loads((p / "first_cross.json").read_text()) if (p / "first_cross.json").exists() else {}
     o = Image.open(p / "origin.png").convert("RGB") if (p / "origin.png").exists() else None
     c = Image.open(p / "first_cross.png").convert("RGB") if (p / "first_cross.png").exists() else None
+    if fail:
+        png, j = _closest_pareto(p)
+        fc = {"text": j.get("text"), "min_abs_g": (j.get("fitness") or [None])[0]}
+        c = Image.open(png).convert("RGB") if png is not None and png.exists() else None
     if o is not None and c is not None and o.size != c.size:
         o = o.resize(c.size, Image.BICUBIC)
     return stats, fc, o, c
@@ -85,8 +121,10 @@ def plot_gallery(picks: pd.DataFrame, out: Path | str, *, runs_root: Path | None
     plt.rcParams.update({"pdf.fonttype": 42, "ps.fonttype": 42, "font.size": 6})
     tasks = [t for t in ("imagenet", "pope") if t in set(picks["task"])] or sorted(set(picks["task"]))
     suts = [s for s in SUT_LABELS if s in set(picks["sut"])] or sorted(set(picks["sut"]))
-    n_ex = int(picks["example"].max()) + 1 if len(picks) else 1
-    rows = [(t, e) for t in tasks for e in range(n_ex)]
+    is_fail = picks["kind"].eq("fail") if "kind" in picks else pd.Series(False, index=picks.index)
+    n_ex = int(picks.loc[~is_fail, "example"].max()) + 1 if (~is_fail).any() else 1
+    has_fail = bool(is_fail.any())
+    rows = [(t, e) for t in tasks for e in range(n_ex + (1 if has_fail else 0))]
     lab_w, head_h, txt_h, gap, title_h = 0.35, 0.22, 0.62, 0.08, 0.14
     tile_w = (width_in - lab_w) / max(1, len(suts))
     tile_h = title_h + img_in + txt_h + gap
@@ -105,20 +143,24 @@ def plot_gallery(picks: pd.DataFrame, out: Path | str, *, runs_root: Path | None
     for i, (t, e) in enumerate(rows):
         y0 = head_h + i * tile_h
         if e == 0:
-            a = axes(0, y0, lab_w, tile_h * n_ex)
+            a = axes(0, y0, lab_w, tile_h * (n_ex + (1 if has_fail else 0)))
             a.text(0.5, 0.5, TASK_LABELS.get(t, t), rotation=90, ha="center", va="center", fontsize=7,
                    fontweight="bold", transform=a.transAxes)
         for j, s in enumerate(suts):
-            r = picks[(picks["task"] == t) & (picks["sut"] == s) & (picks["example"] == e)]
+            fail = has_fail and e == n_ex
+            if fail:
+                r = picks[(picks["task"] == t) & (picks["sut"] == s) & is_fail]
+            else:
+                r = picks[(picks["task"] == t) & (picks["sut"] == s) & (picks["example"] == e) & ~is_fail]
             x0 = lab_w + j * tile_w + (tile_w - 2 * img_in - 0.06) / 2
             if r.empty:
                 a = axes(x0, y0 + title_h, 2 * img_in + 0.06, img_in)
-                a.text(0.5, 0.5, "no crossing run", ha="center", va="center", fontsize=6, color="0.5",
+                a.text(0.5, 0.5, "no failure run" if fail else "no crossing run", ha="center", va="center", fontsize=6, color="0.5",
                        transform=a.transAxes)
                 continue
             r = r.iloc[0]
-            stats, fc, o, c = _load(Path(r["run_dir"]), runs_root)
-            for k, (img, cap) in enumerate(((o, "anchor"), (c, "first crossing"))):
+            stats, fc, o, c = _load(Path(r["run_dir"]), runs_root, fail)
+            for k, (img, cap) in enumerate(((o, "anchor"), (c, "closest input, no crossing" if fail else "first crossing"))):
                 a = axes(x0 + k * (img_in + 0.06), y0 + title_h, img_in, img_in)
                 if img is not None:
                     a.imshow(np.asarray(img))
@@ -136,7 +178,11 @@ def plot_gallery(picks: pd.DataFrame, out: Path | str, *, runs_root: Path | None
                 txt.append("Q': " + _wrap(q1, 46, 2))
             else:
                 txt.append("Q': unchanged")
-            txt.append(f"g: {_fmt_g(g0)} → {_fmt_g(fc.get('g'))}  (eval {fc.get('eval_idx', '?')})")
+            if fail:
+                m = fc.get("min_abs_g")
+                txt.append(f"g: {_fmt_g(g0)}; closest |g| = " + ("n/a" if m is None else f"{m:.2f}") + " (budget exhausted)")
+            else:
+                txt.append(f"g: {_fmt_g(g0)} \u2192 {_fmt_g(fc.get('g'))}  (eval {fc.get('eval_idx', '?')})")
             a = axes(x0, y0 + title_h + img_in + 0.04, 2 * img_in + 0.06, txt_h)
             a.text(0, 1, "\n".join(txt), va="top", ha="left", fontsize=5, linespacing=1.15,
                    transform=a.transAxes)
@@ -155,6 +201,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--per-task", type=int, default=2)
     ap.add_argument("--runs-root", type=Path, default=None, help="base for relative run_dir values")
     ap.add_argument("--runs", type=Path, default=None, help="CSV task,sut,run_dir overriding the selection")
+    ap.add_argument("--failures", action="store_true", help="add a typical no-crossing row (median floor) per task")
     ap.add_argument("--sut", action="append", default=[], help="restrict to these SUTs")
     args = ap.parse_args(argv)
     df = load_results(args.csv)
@@ -163,6 +210,8 @@ def main(argv: list[str] | None = None) -> int:
         picks["example"] = picks.groupby(["task", "sut"]).cumcount()
     else:
         picks = select_runs(df, args.arm, args.per_task, args.sut or None)
+    if args.failures and not args.runs:
+        picks = pd.concat([picks.assign(kind="cross"), select_failures(df, args.arm, args.sut or None)], ignore_index=True)
     if picks.empty:
         raise SystemExit("no crossing runs to show")
     print(f"wrote {plot_gallery(picks, args.out, runs_root=args.runs_root)}")
