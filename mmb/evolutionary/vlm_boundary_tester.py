@@ -165,6 +165,29 @@ def build_trace_rows(
     ]
 
 
+def config_snapshot(config: ExperimentConfig) -> dict[str, Any]:
+    """JSON-safe dump of the full experiment config (Paths/enums as str)."""
+    import dataclasses
+    return json.loads(json.dumps(dataclasses.asdict(config), default=str))
+
+
+def run_meta(config: ExperimentConfig) -> dict[str, Any]:
+    """Analysis keys for one run: user tags (exp_id, arm, task, sut) plus
+    the optimizer settings that define an arm."""
+    opt = config.optimizer
+    return {
+        **dict(config.tags),
+        "rng_seed": config.seed,
+        "algorithm": opt.algorithm,
+        "boundary_objective": opt.boundary_objective,
+        "proximity_only": opt.proximity_only,
+        "sampling_mode": opt.sampling.mode,
+        "modality": config.modality,
+        "sut_model_id": config.sut.model_id,
+        "eval_budget": config.generations * config.pop_size,
+    }
+
+
 def build_stats(
     seed_idx: int,
     seed: SeedTriple,
@@ -540,6 +563,29 @@ class VLMBoundaryTester(SMOO):
             origin_tensor = pil_to_tensor(self._manipulator.baseline_image())
         else:
             origin_tensor = None
+
+        # 4b. Anchor reference evaluation: the unmodified seed (all-zero
+        #     genotype) scored once, outside the search budget. Gives the
+        #     anchor sign of g = l(a) - l(b) for crossing detection even
+        #     when the zero individual is not in the initial population.
+        self._anchor_eval = None
+        try:
+            zero = np.zeros((2, len(self._manipulator.gene_bounds)), dtype=np.int64)
+            a_imgs, a_txts = self._manipulator.manipulate(candidates=None, weights=zero)
+            with distlock.lock(self._sut.device_str):
+                a_lp = self._sut.process_input(
+                    a_imgs[0], text=a_txts[0] + answer_suffix,
+                    categories=scored_categories,
+                )
+            a_lp = [float(v) for v in a_lp.flatten().tolist()]
+            ia, ib = target_classes
+            self._anchor_eval = {
+                "anchor_logprobs": a_lp,
+                "anchor_g": a_lp[ia] - a_lp[ib],
+                "anchor_argmax": scored_categories[int(np.argmax(a_lp))],
+            }
+        except Exception as exc:  # noqa: BLE001 -- reference eval must not kill a run
+            logger.warning("anchor reference evaluation failed: %s", exc)
 
         # 5. Output directory created up-front so incremental writers can
         #    target it. Previously created at end-of-seed by _save_seed_results.
@@ -918,6 +964,10 @@ class VLMBoundaryTester(SMOO):
         # PMI provenance (see PMIConfig / Exp-104). When enabled, the trace's
         # logprobs/probs/predicted_class are PMI-corrected; persisting the
         # baseline keeps the raw view recoverable (raw = corrected + baseline).
+        if getattr(self, "_anchor_eval", None):
+            stats.update(self._anchor_eval)
+        stats["run_meta"] = run_meta(self._config)
+        stats["config_snapshot"] = config_snapshot(self._config)
         stats["pmi_enabled"] = self._config.pmi.enabled
         if self._config.pmi.enabled:
             stats["pmi_null_image"] = self._config.pmi.null_image

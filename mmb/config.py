@@ -296,6 +296,7 @@ class SlotItem:
     template: str
     fillers: tuple[str, ...]
     pair: tuple[str, ...]
+    prompt: str | None = None  # per-item question (overrides config.prompt_template), e.g. VQA/POPE
 
     def __post_init__(self) -> None:
         if SLOT_PLACEHOLDER not in self.template:
@@ -821,6 +822,9 @@ class ExperimentConfig:
     optimizer: OptimizerConfig = field(default_factory=OptimizerConfig)
     parallel: "ParallelConfig" = field(default_factory=lambda: ParallelConfig())
     grounding: GroundingConfig = field(default_factory=GroundingConfig)
+    # Free-form analysis tags copied into stats.json["run_meta"]
+    # (exp_id, arm, task, sut, ...). No effect on the search.
+    tags: dict[str, str] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         if self.modality not in ("joint", "image_only", "text_only", "grounding"):

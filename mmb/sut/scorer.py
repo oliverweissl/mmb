@@ -755,6 +755,20 @@ class LlavaScorer(VLMScorer):
         return pooled.float().cpu().numpy()
 
 
+class ChatTemplateScorer(LlavaScorer):
+    """Generic scorer for HF image-text-to-text models whose processor takes
+    an image placeholder in the chat template and the PIL image via images=
+    (InternVL3/3.5-HF, SmolVLM2, Gemma-3, ...). Same teacher-forced scoring
+    path as every other family. bf16 by default (these models are trained
+    in bf16; fp16 can overflow in the vision tower).
+    """
+
+    def _create_model(self, model_id, dtype, load_in_8bit, load_in_4bit, ov_device):
+        return super()._create_model(
+            model_id, dtype or torch.bfloat16, load_in_8bit, load_in_4bit, ov_device,
+        )
+
+
 # -----------------------------------------------------------------------
 # OpenVINO backend
 # -----------------------------------------------------------------------
@@ -868,6 +882,9 @@ class OVLlavaScorer(_OpenVINOBackendMixin, LlavaScorer):
 _FAMILY_PATTERNS: tuple[tuple[str, str], ...] = (
     ("llava", "llava"),
     ("qwen",  "qwen-vl"),  # both Qwen-VL and text-only Qwen3.5 use QwenVLScorer
+    ("internvl", "chat"),
+    ("smolvlm", "chat"),
+    ("gemma-3", "chat"),
 )
 
 # Keyed by (family, backend).
@@ -876,6 +893,7 @@ SCORER_REGISTRY: dict[tuple[str, str], type[VLMScorer]] = {
     ("qwen-vl", "openvino"): OVQwenVLScorer,
     ("llava",   "torch"):    LlavaScorer,
     ("llava",   "openvino"): OVLlavaScorer,
+    ("chat",    "torch"):    ChatTemplateScorer,
 }
 
 

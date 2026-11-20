@@ -129,6 +129,8 @@ def build_seed_triples(
             "image_path": str(path),
             "item_idx": idx,
         }
+        if getattr(item, "prompt", None):
+            meta["prompt_template"] = item.prompt
         seeds.append(SeedTriple(
             image=image,
             class_a=cand_a,
