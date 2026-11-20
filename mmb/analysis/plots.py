@@ -83,6 +83,43 @@ def plot_crossing_curve(
     return out
 
 
+def plot_predictor_scatter(df: pd.DataFrame, out: Path | str, *, arm: str | None = "a0_directed",
+                           height_in: float = 2.3) -> Path:
+    """Generation-0 probe (median |g| of the initial population) against the run floor, log-log.
+
+    Colour = SUT, marker = task; one point per run of *arm* (all arms if None). Zero floors are drawn at
+    the smallest positive floor / 2 so they stay visible.
+    """
+    d = df if arm is None else df[df["arm"] == arm]
+    d = d[d["probe_gen0"].notna() & d["floor_nats"].notna() & (d["probe_gen0"] > 0)]
+    fl = d["floor_nats"].to_numpy(float)
+    pos = fl[fl > 0]
+    fl = np.where(fl > 0, fl, (pos.min() / 2) if len(pos) else 1e-6)
+    plt.rcParams.update({"pdf.fonttype": 42, "ps.fonttype": 42, "font.size": 7, "axes.linewidth": 0.6})
+    fig, ax = plt.subplots(figsize=(COLUMN_WIDTH_IN, height_in))
+    suts = sorted(set(d["sut"]))
+    tasks = sorted(set(d["task"]))
+    for i, s in enumerate(suts):
+        for k, t in enumerate(tasks):
+            m = ((d["sut"] == s) & (d["task"] == t)).to_numpy()
+            if m.any():
+                ax.scatter(d.loc[m, "probe_gen0"], fl[m], s=9, color=PALETTE[i % len(PALETTE)],
+                           marker=MARKERS[k % len(MARKERS)], linewidths=0.3, edgecolors="white", alpha=0.85,
+                           label=f"{s}, {t}")
+    ax.set_xscale("log")
+    ax.set_yscale("log")
+    ax.set_xlabel("generation-0 probe: median $|g|$ (nats)")
+    ax.set_ylabel("run floor: min $|g|$ (nats)")
+    ax.grid(True, which="major", color="0.9", linewidth=0.4)
+    ax.legend(fontsize=5, frameon=False, ncol=2, loc="lower right")
+    fig.tight_layout(pad=0.3)
+    out = Path(out)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(out)
+    plt.close(fig)
+    return out
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("csv", nargs="+", type=Path)
