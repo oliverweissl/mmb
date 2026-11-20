@@ -22,6 +22,9 @@ fi
 AGR=()
 for f in results/agree_${EXP}_*.csv; do [ -f "$f" ] && AGR+=("$f"); done
 [ ${#AGR[@]} -gt 0 ] && AGR=(--agree "${AGR[@]}")
+TRF=()
+for f in results/transfer_${EXP}*.csv; do [ -f "$f" ] && TRF+=("$f"); done
+[ ${#TRF[@]} -gt 0 ] && TRF=(--transfer "${TRF[@]}")
 "$PY" -m mmb.analysis.export "results/$EXP.csv" --paper "$PAPER" --runs-root "$ROOT" \
-  --grid-suts "${GRID_SUTS:-qwen,internvl,ministral}" --n-boot "${N_BOOT:-10000}" "${VAL[@]}" "${AGR[@]}"
+  --grid-suts "${GRID_SUTS:-qwen,internvl,ministral}" --n-boot "${N_BOOT:-10000}" "${VAL[@]}" "${AGR[@]}" "${TRF[@]}"
 echo "generated files: $PAPER/generated"

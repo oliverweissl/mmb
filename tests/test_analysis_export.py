@@ -206,6 +206,48 @@ class TestAgree:
         assert tags == {"Anchor"} and all(r["n"] == 2 for r in rows)
 
 
+class TestTransfer:
+    def _csv(self, tmp_path, csv):
+        main = pd.read_csv(csv)
+        a0 = main[main.arm == "a0_directed"].groupby(["sut", "task"]).head(4)
+        rows = []
+        for i, r in enumerate(a0.itertuples()):
+            for dst in ("qwen", "internvl", "ministral"):
+                rows.append(dict(run_dir=r.run_dir, src_sut=r.sut, dst_sut=dst, task=r.task, g_dst=-0.2,
+                                 flipped_on_dst=(i + len(dst)) % 3 == 0))
+        p = tmp_path / "transfer_T.csv"
+        pd.DataFrame(rows).to_csv(p, index=False)
+        return p, pd.DataFrame(rows)
+
+    def test_matrix_and_macros(self, tree, tmp_path):
+        root, csv = tree
+        p, raw = self._csv(tmp_path, csv)
+        paper = tmp_path / "pt"
+        paper.mkdir()
+        export.export([csv], paper, n_boot=50, figures=False, transfer=[p])
+        m = pd.read_csv(paper / "generated" / "numbers_map.csv", dtype=str).set_index("macro")["value"]
+        sub = raw[(raw.src_sut == "qwen") & (raw.dst_sut == "internvl")]
+        assert int(m["ETransferNQwenInternvlAll"]) == len(sub)
+        assert int(m["ETransferCountQwenInternvlAll"]) == int(sub.flipped_on_dst.sum())
+        assert "ETransferMeanOffDiagonalAll" in m.index and "ETransferShareQwenQwenImagenet" in m.index
+        t = (paper / "generated" / "tables" / "transfer.tex").read_text()
+        assert "Found on" in t and "Qwen3.5-4B" in t
+        assert (paper / "generated" / "tables" / "transfer_pope.tex").exists()
+
+    def test_missing_columns_rejected(self, tmp_path):
+        from mmb.analysis import transfer
+        p = tmp_path / "bad.csv"
+        pd.DataFrame({"run_dir": ["a"]}).to_csv(p, index=False)
+        with pytest.raises(ValueError):
+            transfer.load_transfer([p])
+
+    def test_off_diagonal_excludes_diagonal(self):
+        from mmb.analysis import transfer
+        rows = [dict(src="a", dst="a", task="All", k=10, n=10, share=1, lo=0, hi=1),
+                dict(src="a", dst="b", task="All", k=1, n=4, share=.25, lo=0, hi=1)]
+        assert transfer.mean_off_diagonal(rows) == (0.25, 4)
+
+
 class TestGallery:
     def test_selection_one_run_per_example_and_sut(self, tree):
         _, csv = tree

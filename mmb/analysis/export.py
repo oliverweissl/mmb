@@ -20,6 +20,7 @@ Written under <paper>/generated/:
   tables/e1_cluster.tex cost.tex               paired differences with cell-cluster CIs; cost of crossing per arm
   figures/per-cell-diff.pdf                    per-cell a0 minus a1 crossing share
   tables/validity.tex                          proxy medians per arm (only with --validity)
+  tables/transfer*.tex, ETransfer macros      cross-SUT transfer of crossings (only with --transfer)
   tables/agree.tex, EAgree macros              greedy agreement and re-verification (only with --agree)
   tables/per/<task>_<sut>_{summary,paired,budgets}.tex
   figures/crossing-curve.pdf predictor-main.pdf gallery.pdf
@@ -39,6 +40,7 @@ import pandas as pd
 
 from mmb.analysis import paired as pr
 from mmb.analysis import predictors as pred
+from mmb.analysis import transfer as tr
 from mmb.analysis import stats as st
 
 logger = logging.getLogger(__name__)
@@ -460,6 +462,21 @@ def add_mixed_numbers(num: Numbers, res: dict) -> None:
     num.add(["EMixed", "OddsRatio"] + tail, f_num(res["odds_ratio"], 2), "odds ratio; " + d)
 
 
+def add_transfer_numbers(num: Numbers, rows: list[dict]) -> None:
+    for r in rows:
+        tail = [camel(r["src"]), camel(r["dst"]), camel(r["task"])]
+        d = f"crossings found on {r['src']} replayed on {r['dst']}, {r['task']}"
+        num.add(["ETransfer", "Count"] + tail, str(r["k"]), "flipped on the destination; " + d)
+        num.add(["ETransfer", "N"] + tail, str(r["n"]), "crossings replayed; " + d)
+        num.add(["ETransfer", "Share"] + tail, f_pct(r["share"]), "share (%); " + d)
+        num.add(["ETransfer", "Ci"] + tail, f"[{100 * r['lo']:.0f}--{100 * r['hi']:.0f}]", "Wilson 95% CI (%); " + d)
+    for task in sorted({r["task"] for r in rows}):
+        m, n = tr.mean_off_diagonal(rows, task)
+        if n:
+            num.add(["ETransfer", "MeanOffDiagonal", camel(task)], f_pct(m), f"pooled share of crossings flipping another SUT (%), {task}")
+            num.add(["ETransfer", "MeanOffDiagonalN", camel(task)], str(n), f"crossing-destination pairs behind the pooled share, {task}")
+
+
 def add_validity_numbers(num: Numbers, vdf: pd.DataFrame) -> None:
     cols = [c for c in ("img_clip_cos", "img_dino_cos", "img_lpips", "img_ssim", "txt_minilm_cos",
                         "txt_word_edit") if c in vdf]
@@ -491,7 +508,8 @@ def validity_table(vdf: pd.DataFrame) -> str:
 
 def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid_suts=GRID_SUTS,
            validity: Path | None = None, runs_root: Path | None = None, n_boot: int = st.N_BOOT,
-           figures: bool = True, agree: list[Path] | None = None) -> Numbers:
+           figures: bool = True, agree: list[Path] | None = None,
+           transfer: list[Path] | None = None) -> Numbers:
     from mmb.analysis import gallery, plots
 
     gen = Path(paper) / "generated"
@@ -586,6 +604,15 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
             write_tex(tabs / "agree.tex", agree_table(adf))
             add_agree_numbers(num, adf)
 
+    if transfer:
+        tdf = tr.load_transfer(transfer, results=csv_paths[0])
+        trows = tr.matrix_rows(tdf)
+        if trows:
+            write_tex(tabs / "transfer.tex", tr.matrix_tex(trows, "All", SUT_NAMES))
+            for task in sorted(set(tdf["task"])):
+                write_tex(tabs / f"transfer_{task}.tex", tr.matrix_tex(trows, task, SUT_NAMES))
+            add_transfer_numbers(num, trows)
+
     if figures:
         grid_df = sc.get(("All", "All"))
         if grid_df is not None:
@@ -622,13 +649,14 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--validity", type=Path, default=None)
     ap.add_argument("--runs-root", type=Path, default=None)
     ap.add_argument("--agree", type=Path, nargs="*", default=[], help="agreement_replay CSVs (one per SUT)")
+    ap.add_argument("--transfer", type=Path, nargs="*", default=[], help="cross-SUT replay CSVs")
     ap.add_argument("--n-boot", type=int, default=st.N_BOOT)
     ap.add_argument("--no-figures", action="store_true")
     args = ap.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(message)s")
     num = export(args.csv, args.paper, ref=args.ref, grid_suts=args.grid_suts.split(","),
                  validity=args.validity, runs_root=args.runs_root, n_boot=args.n_boot,
-                 figures=not args.no_figures, agree=args.agree or None)
+                 figures=not args.no_figures, agree=args.agree or None, transfer=args.transfer or None)
     logger.info("wrote %d macros to %s", len(num.rows), args.paper / "generated")
     return 0
 
