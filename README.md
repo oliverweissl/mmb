@@ -83,7 +83,7 @@ K and the number of seeds are fixed after a speed benchmark (EXP_SETUP.md sectio
 | `stats.json` | seed metadata, runtime, `run_meta` (arm-defining settings and tags), `anchor_g` (the unmodified seed's pair contrast), `config_snapshot` |
 | `origin.png`, `first_cross.png`, `first_cross.json`, `pareto_*` | the unmodified seed, the first crossing input and the Pareto front |
 
-The analysis layer: `python -m mmb.analysis.collect <runs> --out results/<exp>.csv` (one row per run: crossing, first crossing evaluation, floor, label flip, magnitudes), `python -m mmb.analysis.stats <csv> --ref a0_directed` (Wilson intervals, paired tests with Holm correction, bootstrap bands, LaTeX tables), `python -m mmb.analysis.plots <csv>` (crossing share against budget), and `python -m mmb.validity.score <runs> --out <csv>` (image and text similarity of each crossing input to its seed).
+The analysis layer: `python -m mmb.analysis.collect <runs> --out results/<exp>.csv` (one row per run: crossing, first crossing evaluation, floor, label flip, magnitudes), `python -m mmb.analysis.stats <csv> --ref a0_directed` (Wilson intervals, paired tests with Holm correction, bootstrap bands, LaTeX tables), `python -m mmb.analysis.plots <csv>` (crossing share against budget), `python -m mmb.analysis.predictors <csv>` (E2b: how well the gen-0 probe, the content-free prior and the seed confidence gap predict crossing and floor), and `python -m mmb.validity.score <runs> --out <csv>` (image and text similarity of each crossing input to its seed).
 
 ## Layout
 

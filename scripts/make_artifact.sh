@@ -33,7 +33,7 @@ cd "$ROOT"
 
 # 1. files: tracked + untracked-but-not-ignored, minus exclusions (no history is copied)
 git ls-files --cached --others --exclude-standard -z \
-  | grep -zv -E '(^|/)(\.git|\.venv|__pycache__|\.seedbank|\.mycelium|\.claude|build-artifact|runs)(/|$)|^(AGENTS|CLAUDE)\.md$|^scripts/make_artifact\.sh$|\.egg-info/' \
+  | grep -zv -E '(^|/)(\.git|\.venv|__pycache__|\.seedbank|\.mycelium|\.claude|build-artifact|runs)(/|$)|^(AGENTS|CLAUDE)\.md$|^scripts/make_artifact\.sh$|^(PLAN|PROGRESS)\.md$|\.egg-info/' \
   | grep -zv -E '\.(png|jpg|jpeg|gif|webp|bmp|tif|tiff|pt|pth|ckpt|safetensors|bin|onnx|pkl|npy|npz)$' \
   | while IFS= read -r -d '' f; do
       [ -f "$f" ] || continue

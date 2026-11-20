@@ -19,6 +19,7 @@ Goal: a double-blind-safe copy of this repository that a reviewer can read, run 
 
 - **Images of any kind**: ImageNet and COCO photographs and everything derived from them (`origin.png`, `first_cross.png`, `pareto_*.png`) are not redistributable; genotypes in the traces regenerate the edited images from the seeds. The scripts that fetch the data need the item identifiers only.
 - **Model weights and caches** (`*.pt`, `*.pth`, `*.safetensors`, `*.ckpt`, Hugging Face and Redis caches). Weights are listed in EXP_SETUP.md with their identifiers; versions and licences go into the paper's artifact statement.
+- **Internal logs** (`PLAN.md`, `PROGRESS.md`): development notes, not part of the reviewed artifact.
 - **Git history**, `.git`, virtual environments, egg-info, `__pycache__`, agent and editor tooling directories, build output.
 - **Files above the size limit** (default 8 MB, an assumption about the host; confirm the current limit and set `--max-file-mb`). They are named in `MANIFEST.txt`.
 - **Human-study material**: the HS-01 ratings and stimuli are not part of this bundle. They are released, if at all, as aggregated ordinal data after the ethics question is settled (see the paper repository's checklist).

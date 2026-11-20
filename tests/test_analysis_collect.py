@@ -190,6 +190,21 @@ class TestMetadata:
         assert row["crossed"] and row["first_cross_eval"] == 1          # anchor is negative, g > 0 crosses
         assert row["label_flip"]                                        # argmax 'junco' != anchor 'sparrow'
 
+    def test_probe_and_prior_columns_hand_computed(self, tmp_path):
+        # generation 0 = first 3 evaluations: |g| = 0.6, 1.5, 0.9 -> median 0.9, min 0.6
+        run = write_run(tmp_path, "r", [0.6, -1.5, 0.9, 3.0, 2.0, 4.0], pop=3,
+                        stats_extra={"anchor_g": 1.2, "prior_g": -0.7, "class_a": "green iguana", "class_b": "boa"})
+        row = col.load_run(run, tmp_path)
+        assert row["probe_gen0"] == pytest.approx(0.9) and row["min_gen0"] == pytest.approx(0.6)
+        assert row["anchor_g"] == pytest.approx(1.2) and row["prior_g"] == pytest.approx(-0.7)
+        assert (row["answer_words_a"], row["answer_words_b"]) == (2, 1)
+        assert row["first_cross_eval"] == 2                      # -1.5 against a positive anchor
+
+    def test_prior_missing_is_nan_and_assumed_anchor_is_nan(self, tmp_path):
+        run = write_run(tmp_path, "r", [1.0, 2.0], pop=2)
+        row = col.load_run(run, tmp_path)
+        assert np.isnan(row["prior_g"]) and np.isnan(row["anchor_g"]) and row["anchor_source"] == "assumed_class_a"
+
     def test_cell_id_fallback_without_roster_metadata(self):
         assert col.derive_cell_id({"class_a": "a", "class_b": "b", "seed_idx": 4}) == "a|b|i4"
 
@@ -225,10 +240,11 @@ class TestWithRealTester:
         from mmb.optimizer.discrete_pymoo_optimizer import DiscretePymooOptimizer
         from conftest import FakeCompositeTextManipulator, FakeImageManipulator
 
-        # call 0 is the anchor reference evaluation (outside the budget); then pop 5 x 3 generations =
-        # 15 evaluations, of which the 8th (schedule index 8) is the only negative contrast
-        schedule = [2.0] + [1.0 + 0.1 * i for i in range(15)]
-        schedule[8] = -0.4
+        # calls 0 and 1 are the anchor and content-free prior reference evaluations (outside the budget);
+        # then pop 5 x 3 generations = 15 evaluations, of which the 8th (schedule index 9) is the only
+        # negative contrast
+        schedule = [2.0, 0.5] + [1.0 + 0.1 * i for i in range(15)]
+        schedule[9] = -0.4
         cfg = ExperimentConfig(
             categories=("cat_a", "cat_b", "cat_c"), prompt_template="Classify this",
             answer_format=" from: {categories}.", generations=3, pop_size=5,
@@ -255,6 +271,9 @@ class TestWithRealTester:
         assert bool(row["crossed"]) and row["first_cross_eval"] == 8
         assert row["first_cross_gen"] == 1 and not bool(row["crossed_at_gen0"])
         assert row["floor_nats"] == pytest.approx(0.4)
+        assert row["anchor_g"] == pytest.approx(2.0) and row["prior_g"] == pytest.approx(0.5)
+        g0 = np.abs(tr.loc[tr["generation"] == 0, "logprobs"].map(lambda v: v[0] - v[1]).to_numpy())
+        assert row["probe_gen0"] == pytest.approx(np.median(g0)) and row["min_gen0"] == pytest.approx(g0.min())
         # the optimizer may drop duplicates in this 1-gene space, so a generation can hold < 5 rows
         assert row["evals_total"] == len(tr) <= 15 and row["budget"] == 15
         assert bool(row["complete"]) is True

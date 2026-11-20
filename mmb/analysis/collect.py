@@ -55,6 +55,8 @@ CORE_COLUMNS = [
 EXTRA_COLUMNS = [
     "first_cross_gen", "first_cross_eval_nocache", "n_cross_evals",
     "budget", "complete", "anchor_source", "seed_idx",
+    # predictors of E2b (see mmb.analysis.predictors)
+    "anchor_g", "prior_g", "probe_gen0", "min_gen0", "answer_words_a", "answer_words_b",
 ]
 COLUMNS = CORE_COLUMNS + EXTRA_COLUMNS
 
@@ -116,14 +118,18 @@ def evaluate_trace(
         crossing = (np.sign(g) * anchor_sign) < 0          # NaN -> False
     flips = np.argmax(lp, axis=1) != anchor_arg
 
+    g0 = np.abs(g[gen == 0]) if len(gen) else np.zeros(0)
+    g0 = g0[~np.isnan(g0)]
     out: dict[str, Any] = {
+        "probe_gen0": float(np.median(g0)) if len(g0) else float("nan"),
+        "min_gen0": float(g0.min()) if len(g0) else float("nan"),
         "crossed": bool(crossing.any()),
         "crossed_at_gen0": bool(crossing[gen == 0].any()),
         "label_flip": bool(flips.any()),
         "floor_nats": float(np.nanmin(np.abs(g))) if len(g) and not np.all(np.isnan(g)) else float("nan"),
         "n_cross_evals": int(crossing.sum()),
         "anchor_source": source,
-        "anchor_g": anchor_g_val,
+        "anchor_g": anchor_g_val if source != "assumed_class_a" else float("nan"),
         "cross_index": None,
         "first_cross_eval": None,
         "first_cross_gen": None,
@@ -396,6 +402,12 @@ def load_run(
         ),
         "anchor_source": res["anchor_source"],
         "seed_idx": stats.get("seed_idx"),
+        "anchor_g": res["anchor_g"],
+        "prior_g": float(stats["prior_g"]) if stats.get("prior_g") is not None else float("nan"),
+        "probe_gen0": res["probe_gen0"],
+        "min_gen0": res["min_gen0"],
+        "answer_words_a": len(str(stats.get("class_a", "")).split()) or None,
+        "answer_words_b": len(str(stats.get("class_b", "")).split()) or None,
     }
     return {c: row.get(c) for c in COLUMNS}
 
