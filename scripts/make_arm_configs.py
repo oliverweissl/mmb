@@ -18,6 +18,7 @@ ARMS = {
     "a5_mimicry_objective": {"optimizer": {"boundary_objective": "softmax_balance"}},
     "a6_text_only": {"modality": "text_only"},
     "a7_image_only": {"modality": "image_only"},
+    "a8_hillclimb": {"optimizer": {"algorithm": "hillclimb", "proximity_only": True}},
 }
 
 
