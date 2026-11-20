@@ -120,6 +120,7 @@ class TestExport:
         grid = df[df.sut.isin(["qwen", "internvl", "ministral"]) & (df.arm == "a1_random_tiered")]
         assert int(m["EOneRunsAOneAllAll"]) == len(grid)
         assert "EOnePHolmCrossedAOneAllAll" in m.index and "EOnePHolmEvalsAThreeAllAll" in m.index
+        assert m["EOneAtBudgetTwoZeroSixAZeroAllAll"] and "EOneAtBudgetCiOneFiveZeroZeroAOneAllAll" in m.index
         assert "EOneRunsAZeroLlavaImagenet" in m.index and "EOneRunsAThreeLlavaImagenet" not in m.index
         assert "EOneRunsAZeroLlavaPope" not in m.index
 

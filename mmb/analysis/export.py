@@ -239,6 +239,15 @@ def add_summary_numbers(num: Numbers, sut: str, task: str, summ: pd.DataFrame) -
             num.add(base + [m] + tail, v, f"{d}; {r.arm}, {sut}, {task}", metric=m, **sc)
 
 
+def add_curve_numbers(num: Numbers, sut: str, task: str, curve: pd.DataFrame) -> None:
+    for _, r in curve.iterrows():
+        tail = [arm_short(r.arm), camel(sut), camel(task)]
+        d = f"share of runs crossed within {int(r.budget)} evaluations (%); {r.arm}, {sut}, {task}"
+        num.add(["EOne", "AtBudget", str(int(r.budget))] + tail, f_pct(r.share), d)
+        num.add(["EOne", "AtBudgetCi", str(int(r.budget))] + tail,
+                f"[{100 * r.boot_lo:.0f}--{100 * r.boot_hi:.0f}]", d + ", bootstrap 95% CI")
+
+
 def add_paired_numbers(num: Numbers, sut: str, task: str, paired: pd.DataFrame) -> None:
     for _, r in paired.iterrows():
         a = arm_short(r.arm)
@@ -320,6 +329,7 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
         res = st.run_all(d, ref if ref in arms else None, _tmpdir(gen, sut, task),
                          budgets, n_boot)
         add_summary_numbers(num, sut, task, res["summary"])
+        add_curve_numbers(num, sut, task, res["curve"])
         if "paired" in res:
             add_paired_numbers(num, sut, task, res["paired"])
         if sut != "All" and task != "All":
