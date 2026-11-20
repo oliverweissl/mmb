@@ -17,6 +17,7 @@ stylegan = ["smoo", "timm"]
 diffusion = ["diffusers", "smoo"]
 cache = ["redis"]
 dev = ["pytest", "ruff", "vulture"]
+analysis = ["statsmodels", "matplotlib", "scikit-learn", "scikit-image", "lpips", "sentence-transformers", "open_clip_torch"]
 
 [project.scripts]
 mmb-evolve = "mmb.runners.run_boundary_test:main"
