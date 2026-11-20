@@ -167,6 +167,41 @@ class TestExport:
         assert (paper / "generated" / "tables" / "validity.tex").exists()
 
 
+class TestAgree:
+    def _csv(self, tmp_path, sut, n=10):
+        rows = []
+        for i in range(n):
+            rows.append(dict(run_dir=f"r{i}", exp_id="T", task="imagenet" if i % 2 else "pope", sut=sut,
+                             arm="a0_directed", rng_seed=0, anchor_greedy="x", anchor_greedy_label="a",
+                             anchor_tf_argmax="a", anchor_agree=True, cross_greedy="y", cross_greedy_label="b",
+                             cross_tf_argmax="b", cross_agree=(i % 5 != 0), cross_g_single=-0.3,
+                             cross_verified=(i % 10 != 0), cross_g_search=-0.4))
+        p = tmp_path / f"agree_T_{sut}.csv"
+        pd.DataFrame(rows).to_csv(p, index=False)
+        return p
+
+    def test_macros_and_table(self, tree, tmp_path):
+        root, csv = tree
+        paper = tmp_path / "pa"
+        paper.mkdir()
+        files = [self._csv(tmp_path, "qwen"), self._csv(tmp_path, "internvl", 20)]
+        export.export([csv], paper, n_boot=50, figures=False, agree=files)
+        m = pd.read_csv(paper / "generated" / "numbers_map.csv", dtype=str).set_index("macro")["value"]
+        assert m["EAgreeAnchorShareQwenAll"] == "100.0" and m["EAgreeCrossShareQwenAll"] == "80.0"
+        assert m["EAgreeCrossCountQwenAll"] == "8" and m["EAgreeCrossNQwenAll"] == "10"
+        assert m["EAgreeVerifiedNInternvlAll"] == "20" and m["EAgreeVerifiedCountInternvlAll"] == "18"
+        assert m["EAgreeVerifiedNAllAll"] == "30"
+        assert m["EAgreeCrossCiAllAll"].startswith("[")
+        t = (paper / "generated" / "tables" / "agree.tex").read_text()
+        assert "Qwen3.5-4B" in t and "\\begin{tabular}" in t
+
+    def test_missing_columns_and_nan_are_skipped(self):
+        df = pd.DataFrame({"sut": ["q"] * 3, "task": ["t"] * 3, "anchor_agree": [True, False, None]})
+        rows = export.agree_rows(export.pd.DataFrame(df))
+        tags = {r["tag"] for r in rows}
+        assert tags == {"Anchor"} and all(r["n"] == 2 for r in rows)
+
+
 class TestGallery:
     def test_selection_one_run_per_example_and_sut(self, tree):
         _, csv = tree

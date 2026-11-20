@@ -17,6 +17,7 @@ Written under <paper>/generated/:
   tables/e4.tex                                a0 and a1 per task, grid SUTs pooled
   tables/e2b.tex                               cell-level predictor table per task and SUT (arm a0)
   tables/validity.tex                          proxy medians per arm (only with --validity)
+  tables/agree.tex, EAgree macros              greedy agreement and re-verification (only with --agree)
   tables/per/<task>_<sut>_{summary,paired,budgets}.tex
   figures/crossing-curve.pdf predictor-main.pdf gallery.pdf
   numbers.tex numbers_map.csv                  one macro per headline number; names have no digits
@@ -276,6 +277,72 @@ def add_predictor_numbers(num: Numbers, corr: pd.DataFrame, part: pd.DataFrame) 
                 f"partial rho of {r.predictor} given {r.given} with {r.outcome}, {r.sut}, {r.task}")
 
 
+def _bool(s: pd.Series) -> pd.Series:
+    return s.astype(str).str.lower().isin(("true", "1", "1.0"))
+
+
+def load_agree(paths: Iterable[Path]) -> pd.DataFrame:
+    """scripts/agreement_replay.py CSVs (one per SUT) -> one frame with boolean columns."""
+    df = pd.concat([pd.read_csv(p) for p in paths], ignore_index=True)
+    for c in ("anchor_agree", "cross_agree", "cross_verified"):
+        if c in df:
+            df[c] = df[c].where(df[c].isna(), _bool(df[c]))
+    return df
+
+
+AGREE_MEASURES = (("anchor_agree", "Anchor", "teacher-forced argmax equals the greedy answer on the anchor"),
+                  ("cross_agree", "Cross", "teacher-forced argmax equals the greedy answer on the crossing input"),
+                  ("cross_verified", "Verified", "crossing survives single-item re-scoring"))
+
+
+def agree_rows(df: pd.DataFrame) -> list[dict]:
+    """Shares with Wilson CIs per (sut, task) scope: per SUT, per task, pooled and per cell of both."""
+    rows = []
+    suts = sorted(set(df["sut"]))
+    tasks = sorted(set(df["task"]))
+    scopes_ = [("All", "All", df)]
+    scopes_ += [("All", t, df[df["task"] == t]) for t in tasks]
+    for s in suts:
+        scopes_.append((s, "All", df[df["sut"] == s]))
+        scopes_ += [(s, t, df[(df["sut"] == s) & (df["task"] == t)]) for t in tasks]
+    for sut, task, d in scopes_:
+        for col, tag, desc in AGREE_MEASURES:
+            if col not in d:
+                continue
+            v = d[col].dropna()
+            if not len(v):
+                continue
+            k, n = int(v.astype(bool).sum()), len(v)
+            lo, hi = st.wilson(k, n)
+            rows.append(dict(sut=sut, task=task, tag=tag, desc=desc, k=k, n=n, share=k / n, lo=lo, hi=hi))
+    return rows
+
+
+def add_agree_numbers(num: Numbers, df: pd.DataFrame) -> None:
+    for r in agree_rows(df):
+        tail = [camel(r["sut"]), camel(r["task"])]
+        d = f"{r['desc']}; {r['sut']}, {r['task']}"
+        num.add(["EAgree", r["tag"], "Count"] + tail, str(r["k"]), "count; " + d)
+        num.add(["EAgree", r["tag"], "N"] + tail, str(r["n"]), "denominator; " + d)
+        num.add(["EAgree", r["tag"], "Share"] + tail, f_pct(r["share"]), "share (%); " + d)
+        num.add(["EAgree", r["tag"], "Ci"] + tail, f"[{100 * r['lo']:.0f}--{100 * r['hi']:.0f}]", "Wilson 95% CI (%); " + d)
+
+
+def agree_table(df: pd.DataFrame) -> str:
+    rows = []
+    by = {(r["sut"], r["task"], r["tag"]): r for r in agree_rows(df)}
+    keys = sorted({(r["sut"], r["task"]) for r in by.values() if r["sut"] != "All"} | {("All", "All")})
+    def cell(k, tag):
+        r = by.get((k[0], k[1], tag))
+        return "--" if r is None else f"{100 * r['share']:.1f} [{100 * r['lo']:.0f}--{100 * r['hi']:.0f}]"
+    for k in keys:
+        n = by.get((k[0], k[1], "Cross"))
+        rows.append([st.tex_escape(SUT_NAMES.get(k[0], k[0])), st.tex_escape(TASK_NAMES.get(k[1], k[1])),
+                     str(n["n"]) if n else "--", cell(k, "Anchor"), cell(k, "Cross"), cell(k, "Verified")])
+    return st._booktabs("llrrrr", ["SUT", "Task", "Crossings", r"Anchor agrees (\%)", r"Crossing agrees (\%)",
+                                   r"Verified by re-scoring (\%)"], rows)
+
+
 def add_validity_numbers(num: Numbers, vdf: pd.DataFrame) -> None:
     cols = [c for c in ("img_clip_cos", "img_dino_cos", "img_lpips", "img_ssim", "txt_minilm_cos",
                         "txt_word_edit") if c in vdf]
@@ -307,7 +374,7 @@ def validity_table(vdf: pd.DataFrame) -> str:
 
 def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid_suts=GRID_SUTS,
            validity: Path | None = None, runs_root: Path | None = None, n_boot: int = st.N_BOOT,
-           figures: bool = True) -> Numbers:
+           figures: bool = True, agree: list[Path] | None = None) -> Numbers:
     from mmb.analysis import gallery, plots
 
     gen = Path(paper) / "generated"
@@ -382,6 +449,12 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
             write_tex(tabs / "validity.tex", validity_table(vdf))
             add_validity_numbers(num, vdf)
 
+    if agree:
+        adf = load_agree(agree)
+        if len(adf):
+            write_tex(tabs / "agree.tex", agree_table(adf))
+            add_agree_numbers(num, adf)
+
     if figures:
         grid_df = sc.get(("All", "All"))
         if grid_df is not None:
@@ -415,13 +488,14 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--grid-suts", default=",".join(GRID_SUTS))
     ap.add_argument("--validity", type=Path, default=None)
     ap.add_argument("--runs-root", type=Path, default=None)
+    ap.add_argument("--agree", type=Path, nargs="*", default=[], help="agreement_replay CSVs (one per SUT)")
     ap.add_argument("--n-boot", type=int, default=st.N_BOOT)
     ap.add_argument("--no-figures", action="store_true")
     args = ap.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(message)s")
     num = export(args.csv, args.paper, ref=args.ref, grid_suts=args.grid_suts.split(","),
                  validity=args.validity, runs_root=args.runs_root, n_boot=args.n_boot,
-                 figures=not args.no_figures)
+                 figures=not args.no_figures, agree=args.agree or None)
     logger.info("wrote %d macros to %s", len(num.rows), args.paper / "generated")
     return 0
 

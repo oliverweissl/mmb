@@ -19,6 +19,9 @@ if [ -z "${SKIP_VALIDITY:-}" ]; then
     echo "validity proxies failed; continuing without them" >&2
   fi
 fi
+AGR=()
+for f in results/agree_${EXP}_*.csv; do [ -f "$f" ] && AGR+=("$f"); done
+[ ${#AGR[@]} -gt 0 ] && AGR=(--agree "${AGR[@]}")
 "$PY" -m mmb.analysis.export "results/$EXP.csv" --paper "$PAPER" --runs-root "$ROOT" \
-  --grid-suts "${GRID_SUTS:-qwen,internvl,ministral}" --n-boot "${N_BOOT:-10000}" "${VAL[@]}"
+  --grid-suts "${GRID_SUTS:-qwen,internvl,ministral}" --n-boot "${N_BOOT:-10000}" "${VAL[@]}" "${AGR[@]}"
 echo "generated files: $PAPER/generated"
