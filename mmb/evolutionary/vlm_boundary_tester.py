@@ -595,6 +595,10 @@ class VLMBoundaryTester(SMOO):
                 / f"{self._config.name}_seed_{seed_idx}_{int(start_time)}"
             )
         run_dir.mkdir(parents=True, exist_ok=True)
+        self._run_dir = run_dir
+        self._first_cross_saved = False
+        self._eval_counter = 0
+        self._answer_suffix = answer_suffix
 
         # File-level metadata stamped onto every parquet this seed produces.
         parquet_metadata: dict[bytes, bytes] = {
@@ -761,6 +765,38 @@ class VLMBoundaryTester(SMOO):
     # Single generation
     # ------------------------------------------------------------------
 
+    def _maybe_save_first_cross(self, gen, genotypes, images, texts, logits, target_classes):
+        """Save the first evaluated individual whose pair contrast g has the
+        opposite sign of the anchor reference (first_cross.png/.json), for
+        validity scoring and greedy-generation replay. Evaluation order =
+        generation-major, then individual (same as the trace)."""
+        n = len(texts)
+        start = getattr(self, "_eval_counter", 0)
+        self._eval_counter = start + n
+        anchor = getattr(self, "_anchor_eval", None)
+        if anchor is None or getattr(self, "_first_cross_saved", True):
+            return
+        ia, ib = target_classes
+        g = (logits[:, ia] - logits[:, ib]).float().cpu().numpy()
+        sign0 = np.sign(anchor["anchor_g"])
+        hits = np.nonzero(np.sign(g) == -sign0)[0] if sign0 != 0 else []
+        if len(hits) == 0:
+            return
+        i = int(hits[0])
+        run_dir = self._run_dir
+        images[i].save(run_dir / "first_cross.png")
+        with open(run_dir / "first_cross.json", "w") as f:
+            json.dump({
+                "eval_idx": start + i + 1,
+                "generation": gen,
+                "individual": i,
+                "g": float(g[i]),
+                "text": texts[i],
+                "full_prompt": texts[i] + self._answer_suffix,
+                "genotype": np.asarray(genotypes[i]).astype(np.int64).tolist(),
+            }, f, indent=2)
+        self._first_cross_saved = True
+
     def _run_generation(
         self,
         seed_idx: int,
@@ -812,6 +848,7 @@ class VLMBoundaryTester(SMOO):
                 cache_hits.append(self._sut.last_call_cached)
 
         logits = torch.stack(logits_list)
+        self._maybe_save_first_cross(gen, genotypes, images, texts, logits, target_classes)
 
         # -- Tensor conversion for MatrixDistance -------------------------
         # Skipped when modality=text_only (no MatrixDistance criterion);

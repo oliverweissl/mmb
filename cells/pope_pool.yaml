@@ -1,0 +1,3201 @@
+items:
+- image: ~/data/cells/pope/COCO_val2014_000000465346.jpg
+  prompt: Is there a spoon in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '2785'
+    gt: 'yes'
+    object: spoon
+    image_source: COCO_val2014_000000465346
+    cell_key: pope|COCO_val2014_000000465346|spoon|yes
+- image: ~/data/cells/pope/COCO_val2014_000000239773.jpg
+  prompt: Is there a sports ball in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '1715'
+    gt: 'yes'
+    object: sports ball
+    image_source: COCO_val2014_000000239773
+    cell_key: pope|COCO_val2014_000000239773|sports ball|yes
+- image: ~/data/cells/pope/COCO_val2014_000000470699.jpg
+  prompt: Is there a dog in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '2197'
+    gt: 'yes'
+    object: dog
+    image_source: COCO_val2014_000000470699
+    cell_key: pope|COCO_val2014_000000470699|dog|yes
+- image: ~/data/cells/pope/COCO_val2014_000000407386.jpg
+  prompt: Is there a laptop in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '1443'
+    gt: 'yes'
+    object: laptop
+    image_source: COCO_val2014_000000407386
+    cell_key: pope|COCO_val2014_000000407386|laptop|yes
+- image: ~/data/cells/pope/COCO_val2014_000000039516.jpg
+  prompt: Is there a cup in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '1448'
+    gt: 'no'
+    object: cup
+    image_source: COCO_val2014_000000039516
+    cell_key: pope|COCO_val2014_000000039516|cup|no
+- image: ~/data/cells/pope/COCO_val2014_000000125524.jpg
+  prompt: Is there a fire hydrant in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '2135'
+    gt: 'yes'
+    object: fire hydrant
+    image_source: COCO_val2014_000000125524
+    cell_key: pope|COCO_val2014_000000125524|fire hydrant|yes
+- image: ~/data/cells/pope/COCO_val2014_000000235203.jpg
+  prompt: Is there a car in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '2936'
+    gt: 'no'
+    object: car
+    image_source: COCO_val2014_000000235203
+    cell_key: pope|COCO_val2014_000000235203|car|no
+- image: ~/data/cells/pope/COCO_val2014_000000579415.jpg
+  prompt: Is there a backpack in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '2226'
+    gt: 'no'
+    object: backpack
+    image_source: COCO_val2014_000000579415
+    cell_key: pope|COCO_val2014_000000579415|backpack|no
+- image: ~/data/cells/pope/COCO_val2014_000000288042.jpg
+  prompt: Is there a handbag in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '852'
+    gt: 'no'
+    object: handbag
+    image_source: COCO_val2014_000000288042
+    cell_key: pope|COCO_val2014_000000288042|handbag|no
+- image: ~/data/cells/pope/COCO_val2014_000000188958.jpg
+  prompt: Is there a dog in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '1818'
+    gt: 'no'
+    object: dog
+    image_source: COCO_val2014_000000188958
+    cell_key: pope|COCO_val2014_000000188958|dog|no
+- image: ~/data/cells/pope/COCO_val2014_000000044993.jpg
+  prompt: Is there a bowl in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '2355'
+    gt: 'yes'
+    object: bowl
+    image_source: COCO_val2014_000000044993
+    cell_key: pope|COCO_val2014_000000044993|bowl|yes
+- image: ~/data/cells/pope/COCO_val2014_000000465418.jpg
+  prompt: Is there a dining table in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '1804'
+    gt: 'no'
+    object: dining table
+    image_source: COCO_val2014_000000465418
+    cell_key: pope|COCO_val2014_000000465418|dining table|no
+- image: ~/data/cells/pope/COCO_val2014_000000399702.jpg
+  prompt: Is there a sandwich in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '2835'
+    gt: 'yes'
+    object: sandwich
+    image_source: COCO_val2014_000000399702
+    cell_key: pope|COCO_val2014_000000399702|sandwich|yes
+- image: ~/data/cells/pope/COCO_val2014_000000291936.jpg
+  prompt: Is there a bicycle in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '183'
+    gt: 'yes'
+    object: bicycle
+    image_source: COCO_val2014_000000291936
+    cell_key: pope|COCO_val2014_000000291936|bicycle|yes
+- image: ~/data/cells/pope/COCO_val2014_000000459680.jpg
+  prompt: Is there a handbag in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '1914'
+    gt: 'no'
+    object: handbag
+    image_source: COCO_val2014_000000459680
+    cell_key: pope|COCO_val2014_000000459680|handbag|no
+- image: ~/data/cells/pope/COCO_val2014_000000178078.jpg
+  prompt: Is there a bus in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '978'
+    gt: 'no'
+    object: bus
+    image_source: COCO_val2014_000000178078
+    cell_key: pope|COCO_val2014_000000178078|bus|no
+- image: ~/data/cells/pope/COCO_val2014_000000368541.jpg
+  prompt: Is there a truck in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '2277'
+    gt: 'yes'
+    object: truck
+    image_source: COCO_val2014_000000368541
+    cell_key: pope|COCO_val2014_000000368541|truck|yes
+- image: ~/data/cells/pope/COCO_val2014_000000356424.jpg
+  prompt: Is there a bottle in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '1931'
+    gt: 'yes'
+    object: bottle
+    image_source: COCO_val2014_000000356424
+    cell_key: pope|COCO_val2014_000000356424|bottle|yes
+- image: ~/data/cells/pope/COCO_val2014_000000424792.jpg
+  prompt: Is there a chair in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '279'
+    gt: 'yes'
+    object: chair
+    image_source: COCO_val2014_000000424792
+    cell_key: pope|COCO_val2014_000000424792|chair|yes
+- image: ~/data/cells/pope/COCO_val2014_000000424642.jpg
+  prompt: Is there a person in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '871'
+    gt: 'yes'
+    object: person
+    image_source: COCO_val2014_000000424642
+    cell_key: pope|COCO_val2014_000000424642|person|yes
+- image: ~/data/cells/pope/COCO_val2014_000000113701.jpg
+  prompt: Is there a dining table in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '736'
+    gt: 'no'
+    object: dining table
+    image_source: COCO_val2014_000000113701
+    cell_key: pope|COCO_val2014_000000113701|dining table|no
+- image: ~/data/cells/pope/COCO_val2014_000000447787.jpg
+  prompt: Is there a bottle in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '2465'
+    gt: 'yes'
+    object: bottle
+    image_source: COCO_val2014_000000447787
+    cell_key: pope|COCO_val2014_000000447787|bottle|yes
+- image: ~/data/cells/pope/COCO_val2014_000000105732.jpg
+  prompt: Is there a backpack in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '595'
+    gt: 'yes'
+    object: backpack
+    image_source: COCO_val2014_000000105732
+    cell_key: pope|COCO_val2014_000000105732|backpack|yes
+- image: ~/data/cells/pope/COCO_val2014_000000312406.jpg
+  prompt: Is there a spoon in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '1888'
+    gt: 'no'
+    object: spoon
+    image_source: COCO_val2014_000000312406
+    cell_key: pope|COCO_val2014_000000312406|spoon|no
+- image: ~/data/cells/pope/COCO_val2014_000000579277.jpg
+  prompt: Is there a car in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '2306'
+    gt: 'no'
+    object: car
+    image_source: COCO_val2014_000000579277
+    cell_key: pope|COCO_val2014_000000579277|car|no
+- image: ~/data/cells/pope/COCO_val2014_000000336872.jpg
+  prompt: Is there a bottle in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '124'
+    gt: 'no'
+    object: bottle
+    image_source: COCO_val2014_000000336872
+    cell_key: pope|COCO_val2014_000000336872|bottle|no
+- image: ~/data/cells/pope/COCO_val2014_000000314992.jpg
+  prompt: Is there a backpack in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '868'
+    gt: 'no'
+    object: backpack
+    image_source: COCO_val2014_000000314992
+    cell_key: pope|COCO_val2014_000000314992|backpack|no
+- image: ~/data/cells/pope/COCO_val2014_000000239130.jpg
+  prompt: Is there a car in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '713'
+    gt: 'yes'
+    object: car
+    image_source: COCO_val2014_000000239130
+    cell_key: pope|COCO_val2014_000000239130|car|yes
+- image: ~/data/cells/pope/COCO_val2014_000000079446.jpg
+  prompt: Is there a bottle in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '891'
+    gt: 'yes'
+    object: bottle
+    image_source: COCO_val2014_000000079446
+    cell_key: pope|COCO_val2014_000000079446|bottle|yes
+- image: ~/data/cells/pope/COCO_val2014_000000044520.jpg
+  prompt: Is there a stop sign in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '761'
+    gt: 'yes'
+    object: stop sign
+    image_source: COCO_val2014_000000044520
+    cell_key: pope|COCO_val2014_000000044520|stop sign|yes
+- image: ~/data/cells/pope/COCO_val2014_000000201148.jpg
+  prompt: Is there a dining table in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '1288'
+    gt: 'no'
+    object: dining table
+    image_source: COCO_val2014_000000201148
+    cell_key: pope|COCO_val2014_000000201148|dining table|no
+- image: ~/data/cells/pope/COCO_val2014_000000190788.jpg
+  prompt: Is there a person in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '2911'
+    gt: 'yes'
+    object: person
+    image_source: COCO_val2014_000000190788
+    cell_key: pope|COCO_val2014_000000190788|person|yes
+- image: ~/data/cells/pope/COCO_val2014_000000245642.jpg
+  prompt: Is there a car in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '662'
+    gt: 'no'
+    object: car
+    image_source: COCO_val2014_000000245642
+    cell_key: pope|COCO_val2014_000000245642|car|no
+- image: ~/data/cells/pope/COCO_val2014_000000363908.jpg
+  prompt: Is there a baseball glove in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '2035'
+    gt: 'yes'
+    object: baseball glove
+    image_source: COCO_val2014_000000363908
+    cell_key: pope|COCO_val2014_000000363908|baseball glove|yes
+- image: ~/data/cells/pope/COCO_val2014_000000429033.jpg
+  prompt: Is there a person in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '1323'
+    gt: 'yes'
+    object: person
+    image_source: COCO_val2014_000000429033
+    cell_key: pope|COCO_val2014_000000429033|person|yes
+- image: ~/data/cells/pope/COCO_val2014_000000365822.jpg
+  prompt: Is there a dining table in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '1522'
+    gt: 'no'
+    object: dining table
+    image_source: COCO_val2014_000000365822
+    cell_key: pope|COCO_val2014_000000365822|dining table|no
+- image: ~/data/cells/pope/COCO_val2014_000000209755.jpg
+  prompt: Is there a bowl in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '561'
+    gt: 'yes'
+    object: bowl
+    image_source: COCO_val2014_000000209755
+    cell_key: pope|COCO_val2014_000000209755|bowl|yes
+- image: ~/data/cells/pope/COCO_val2014_000000262736.jpg
+  prompt: Is there a truck in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '2061'
+    gt: 'yes'
+    object: truck
+    image_source: COCO_val2014_000000262736
+    cell_key: pope|COCO_val2014_000000262736|truck|yes
+- image: ~/data/cells/pope/COCO_val2014_000000521643.jpg
+  prompt: Is there a bottle in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '2601'
+    gt: 'yes'
+    object: bottle
+    image_source: COCO_val2014_000000521643
+    cell_key: pope|COCO_val2014_000000521643|bottle|yes
+- image: ~/data/cells/pope/COCO_val2014_000000354088.jpg
+  prompt: Is there a chair in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '368'
+    gt: 'no'
+    object: chair
+    image_source: COCO_val2014_000000354088
+    cell_key: pope|COCO_val2014_000000354088|chair|no
+- image: ~/data/cells/pope/COCO_val2014_000000275863.jpg
+  prompt: Is there a dining table in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '1160'
+    gt: 'no'
+    object: dining table
+    image_source: COCO_val2014_000000275863
+    cell_key: pope|COCO_val2014_000000275863|dining table|no
+- image: ~/data/cells/pope/COCO_val2014_000000327532.jpg
+  prompt: Is there a dining table in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '824'
+    gt: 'no'
+    object: dining table
+    image_source: COCO_val2014_000000327532
+    cell_key: pope|COCO_val2014_000000327532|dining table|no
+- image: ~/data/cells/pope/COCO_val2014_000000246145.jpg
+  prompt: Is there a car in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '1138'
+    gt: 'no'
+    object: car
+    image_source: COCO_val2014_000000246145
+    cell_key: pope|COCO_val2014_000000246145|car|no
+- image: ~/data/cells/pope/COCO_val2014_000000555538.jpg
+  prompt: Is there a dog in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '2840'
+    gt: 'no'
+    object: dog
+    image_source: COCO_val2014_000000555538
+    cell_key: pope|COCO_val2014_000000555538|dog|no
+- image: ~/data/cells/pope/COCO_val2014_000000560064.jpg
+  prompt: Is there a dining table in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '2044'
+    gt: 'no'
+    object: dining table
+    image_source: COCO_val2014_000000560064
+    cell_key: pope|COCO_val2014_000000560064|dining table|no
+- image: ~/data/cells/pope/COCO_val2014_000000318204.jpg
+  prompt: Is there a dog in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '484'
+    gt: 'no'
+    object: dog
+    image_source: COCO_val2014_000000318204
+    cell_key: pope|COCO_val2014_000000318204|dog|no
+- image: ~/data/cells/pope/COCO_val2014_000000383185.jpg
+  prompt: Is there a dining table in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '1244'
+    gt: 'no'
+    object: dining table
+    image_source: COCO_val2014_000000383185
+    cell_key: pope|COCO_val2014_000000383185|dining table|no
+- image: ~/data/cells/pope/COCO_val2014_000000059383.jpg
+  prompt: Is there a toilet in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '2556'
+    gt: 'no'
+    object: toilet
+    image_source: COCO_val2014_000000059383
+    cell_key: pope|COCO_val2014_000000059383|toilet|no
+- image: ~/data/cells/pope/COCO_val2014_000000562155.jpg
+  prompt: Is there a person in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '2581'
+    gt: 'yes'
+    object: person
+    image_source: COCO_val2014_000000562155
+    cell_key: pope|COCO_val2014_000000562155|person|yes
+- image: ~/data/cells/pope/COCO_val2014_000000551881.jpg
+  prompt: Is there a person in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '776'
+    gt: 'no'
+    object: person
+    image_source: COCO_val2014_000000551881
+    cell_key: pope|COCO_val2014_000000551881|person|no
+- image: ~/data/cells/pope/COCO_val2014_000000574790.jpg
+  prompt: Is there a truck in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '1119'
+    gt: 'yes'
+    object: truck
+    image_source: COCO_val2014_000000574790
+    cell_key: pope|COCO_val2014_000000574790|truck|yes
+- image: ~/data/cells/pope/COCO_val2014_000000304819.jpg
+  prompt: Is there a laptop in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '2243'
+    gt: 'yes'
+    object: laptop
+    image_source: COCO_val2014_000000304819
+    cell_key: pope|COCO_val2014_000000304819|laptop|yes
+- image: ~/data/cells/pope/COCO_val2014_000000538236.jpg
+  prompt: Is there a backpack in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '324'
+    gt: 'no'
+    object: backpack
+    image_source: COCO_val2014_000000538236
+    cell_key: pope|COCO_val2014_000000538236|backpack|no
+- image: ~/data/cells/pope/COCO_val2014_000000237767.jpg
+  prompt: Is there a dining table in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '671'
+    gt: 'yes'
+    object: dining table
+    image_source: COCO_val2014_000000237767
+    cell_key: pope|COCO_val2014_000000237767|dining table|yes
+- image: ~/data/cells/pope/COCO_val2014_000000124629.jpg
+  prompt: Is there a sports ball in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '1083'
+    gt: 'yes'
+    object: sports ball
+    image_source: COCO_val2014_000000124629
+    cell_key: pope|COCO_val2014_000000124629|sports ball|yes
+- image: ~/data/cells/pope/COCO_val2014_000000001171.jpg
+  prompt: Is there a bus in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '1794'
+    gt: 'no'
+    object: bus
+    image_source: COCO_val2014_000000001171
+    cell_key: pope|COCO_val2014_000000001171|bus|no
+- image: ~/data/cells/pope/COCO_val2014_000000088507.jpg
+  prompt: Is there a handbag in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '2150'
+    gt: 'no'
+    object: handbag
+    image_source: COCO_val2014_000000088507
+    cell_key: pope|COCO_val2014_000000088507|handbag|no
+- image: ~/data/cells/pope/COCO_val2014_000000287035.jpg
+  prompt: Is there a laptop in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '1331'
+    gt: 'yes'
+    object: laptop
+    image_source: COCO_val2014_000000287035
+    cell_key: pope|COCO_val2014_000000287035|laptop|yes
+- image: ~/data/cells/pope/COCO_val2014_000000564336.jpg
+  prompt: Is there a laptop in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '437'
+    gt: 'yes'
+    object: laptop
+    image_source: COCO_val2014_000000564336
+    cell_key: pope|COCO_val2014_000000564336|laptop|yes
+- image: ~/data/cells/pope/COCO_val2014_000000318209.jpg
+  prompt: Is there a cup in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '1538'
+    gt: 'no'
+    object: cup
+    image_source: COCO_val2014_000000318209
+    cell_key: pope|COCO_val2014_000000318209|cup|no
+- image: ~/data/cells/pope/COCO_val2014_000000214244.jpg
+  prompt: Is there a backpack in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '1616'
+    gt: 'no'
+    object: backpack
+    image_source: COCO_val2014_000000214244
+    cell_key: pope|COCO_val2014_000000214244|backpack|no
+- image: ~/data/cells/pope/COCO_val2014_000000239444.jpg
+  prompt: Is there a person in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '73'
+    gt: 'yes'
+    object: person
+    image_source: COCO_val2014_000000239444
+    cell_key: pope|COCO_val2014_000000239444|person|yes
+- image: ~/data/cells/pope/COCO_val2014_000000514248.jpg
+  prompt: Is there a dog in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '2796'
+    gt: 'no'
+    object: dog
+    image_source: COCO_val2014_000000514248
+    cell_key: pope|COCO_val2014_000000514248|dog|no
+- image: ~/data/cells/pope/COCO_val2014_000000388983.jpg
+  prompt: Is there a car in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '1250'
+    gt: 'no'
+    object: car
+    image_source: COCO_val2014_000000388983
+    cell_key: pope|COCO_val2014_000000388983|car|no
+- image: ~/data/cells/pope/COCO_val2014_000000308907.jpg
+  prompt: Is there a person in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '2001'
+    gt: 'yes'
+    object: person
+    image_source: COCO_val2014_000000308907
+    cell_key: pope|COCO_val2014_000000308907|person|yes
+- image: ~/data/cells/pope/COCO_val2014_000000372009.jpg
+  prompt: Is there a teddy bear in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '1757'
+    gt: 'yes'
+    object: teddy bear
+    image_source: COCO_val2014_000000372009
+    cell_key: pope|COCO_val2014_000000372009|teddy bear|yes
+- image: ~/data/cells/pope/COCO_val2014_000000246999.jpg
+  prompt: Is there a book in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '1680'
+    gt: 'no'
+    object: book
+    image_source: COCO_val2014_000000246999
+    cell_key: pope|COCO_val2014_000000246999|book|no
+- image: ~/data/cells/pope/COCO_val2014_000000200583.jpg
+  prompt: Is there a boat in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '1413'
+    gt: 'yes'
+    object: boat
+    image_source: COCO_val2014_000000200583
+    cell_key: pope|COCO_val2014_000000200583|boat|yes
+- image: ~/data/cells/pope/COCO_val2014_000000557016.jpg
+  prompt: Is there a bus in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '592'
+    gt: 'no'
+    object: bus
+    image_source: COCO_val2014_000000557016
+    cell_key: pope|COCO_val2014_000000557016|bus|no
+- image: ~/data/cells/pope/COCO_val2014_000000235541.jpg
+  prompt: Is there a cow in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '2264'
+    gt: 'no'
+    object: cow
+    image_source: COCO_val2014_000000235541
+    cell_key: pope|COCO_val2014_000000235541|cow|no
+- image: ~/data/cells/pope/COCO_val2014_000000449432.jpg
+  prompt: Is there a handbag in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '1025'
+    gt: 'yes'
+    object: handbag
+    image_source: COCO_val2014_000000449432
+    cell_key: pope|COCO_val2014_000000449432|handbag|yes
+- image: ~/data/cells/pope/COCO_val2014_000000265472.jpg
+  prompt: Is there a dining table in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '2690'
+    gt: 'no'
+    object: dining table
+    image_source: COCO_val2014_000000265472
+    cell_key: pope|COCO_val2014_000000265472|dining table|no
+- image: ~/data/cells/pope/COCO_val2014_000000500257.jpg
+  prompt: Is there a person in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '239'
+    gt: 'yes'
+    object: person
+    image_source: COCO_val2014_000000500257
+    cell_key: pope|COCO_val2014_000000500257|person|yes
+- image: ~/data/cells/pope/COCO_val2014_000000199122.jpg
+  prompt: Is there a person in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '1653'
+    gt: 'yes'
+    object: person
+    image_source: COCO_val2014_000000199122
+    cell_key: pope|COCO_val2014_000000199122|person|yes
+- image: ~/data/cells/pope/COCO_val2014_000000545353.jpg
+  prompt: Is there a bottle in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '2214'
+    gt: 'no'
+    object: bottle
+    image_source: COCO_val2014_000000545353
+    cell_key: pope|COCO_val2014_000000545353|bottle|no
+- image: ~/data/cells/pope/COCO_val2014_000000226097.jpg
+  prompt: Is there a dining table in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '718'
+    gt: 'no'
+    object: dining table
+    image_source: COCO_val2014_000000226097
+    cell_key: pope|COCO_val2014_000000226097|dining table|no
+- image: ~/data/cells/pope/COCO_val2014_000000281028.jpg
+  prompt: Is there a dining table in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '1646'
+    gt: 'no'
+    object: dining table
+    image_source: COCO_val2014_000000281028
+    cell_key: pope|COCO_val2014_000000281028|dining table|no
+- image: ~/data/cells/pope/COCO_val2014_000000544456.jpg
+  prompt: Is there a snowboard in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '54'
+    gt: 'no'
+    object: snowboard
+    image_source: COCO_val2014_000000544456
+    cell_key: pope|COCO_val2014_000000544456|snowboard|no
+- image: ~/data/cells/pope/COCO_val2014_000000172648.jpg
+  prompt: Is there a person in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '1997'
+    gt: 'yes'
+    object: person
+    image_source: COCO_val2014_000000172648
+    cell_key: pope|COCO_val2014_000000172648|person|yes
+- image: ~/data/cells/pope/COCO_val2014_000000408757.jpg
+  prompt: Is there an umbrella in the imange?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '1565'
+    gt: 'yes'
+    object: Is there an umbrella in the imange?
+    image_source: COCO_val2014_000000408757
+    cell_key: pope|COCO_val2014_000000408757|Is there an umbrella in the imange?|yes
+- image: ~/data/cells/pope/COCO_val2014_000000167724.jpg
+  prompt: Is there a dining table in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '2058'
+    gt: 'no'
+    object: dining table
+    image_source: COCO_val2014_000000167724
+    cell_key: pope|COCO_val2014_000000167724|dining table|no
+- image: ~/data/cells/pope/COCO_val2014_000000377352.jpg
+  prompt: Is there a motorcycle in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '1485'
+    gt: 'yes'
+    object: motorcycle
+    image_source: COCO_val2014_000000377352
+    cell_key: pope|COCO_val2014_000000377352|motorcycle|yes
+- image: ~/data/cells/pope/COCO_val2014_000000227204.jpg
+  prompt: Is there an oven in the imange?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '1080'
+    gt: 'no'
+    object: Is there an oven in the imange?
+    image_source: COCO_val2014_000000227204
+    cell_key: pope|COCO_val2014_000000227204|Is there an oven in the imange?|no
+- image: ~/data/cells/pope/COCO_val2014_000000198312.jpg
+  prompt: Is there a potted plant in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '1589'
+    gt: 'yes'
+    object: potted plant
+    image_source: COCO_val2014_000000198312
+    cell_key: pope|COCO_val2014_000000198312|potted plant|yes
+- image: ~/data/cells/pope/COCO_val2014_000000037900.jpg
+  prompt: Is there a knife in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '1379'
+    gt: 'yes'
+    object: knife
+    image_source: COCO_val2014_000000037900
+    cell_key: pope|COCO_val2014_000000037900|knife|yes
+- image: ~/data/cells/pope/COCO_val2014_000000474741.jpg
+  prompt: Is there a chair in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '1846'
+    gt: 'no'
+    object: chair
+    image_source: COCO_val2014_000000474741
+    cell_key: pope|COCO_val2014_000000474741|chair|no
+- image: ~/data/cells/pope/COCO_val2014_000000083275.jpg
+  prompt: Is there a dog in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '452'
+    gt: 'no'
+    object: dog
+    image_source: COCO_val2014_000000083275
+    cell_key: pope|COCO_val2014_000000083275|dog|no
+- image: ~/data/cells/pope/COCO_val2014_000000480122.jpg
+  prompt: Is there a person in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '296'
+    gt: 'no'
+    object: person
+    image_source: COCO_val2014_000000480122
+    cell_key: pope|COCO_val2014_000000480122|person|no
+- image: ~/data/cells/pope/COCO_val2014_000000309371.jpg
+  prompt: Is there a car in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '1600'
+    gt: 'no'
+    object: car
+    image_source: COCO_val2014_000000309371
+    cell_key: pope|COCO_val2014_000000309371|car|no
+- image: ~/data/cells/pope/COCO_val2014_000000467887.jpg
+  prompt: Is there a mouse in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '2121'
+    gt: 'yes'
+    object: mouse
+    image_source: COCO_val2014_000000467887
+    cell_key: pope|COCO_val2014_000000467887|mouse|yes
+- image: ~/data/cells/pope/COCO_val2014_000000429109.jpg
+  prompt: Is there a person in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '13'
+    gt: 'yes'
+    object: person
+    image_source: COCO_val2014_000000429109
+    cell_key: pope|COCO_val2014_000000429109|person|yes
+- image: ~/data/cells/pope/COCO_val2014_000000462805.jpg
+  prompt: Is there a snowboard in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '2539'
+    gt: 'yes'
+    object: snowboard
+    image_source: COCO_val2014_000000462805
+    cell_key: pope|COCO_val2014_000000462805|snowboard|yes
+- image: ~/data/cells/pope/COCO_val2014_000000489728.jpg
+  prompt: Is there a car in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '958'
+    gt: 'no'
+    object: car
+    image_source: COCO_val2014_000000489728
+    cell_key: pope|COCO_val2014_000000489728|car|no
+- image: ~/data/cells/pope/COCO_val2014_000000572260.jpg
+  prompt: Is there a dining table in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '1956'
+    gt: 'no'
+    object: dining table
+    image_source: COCO_val2014_000000572260
+    cell_key: pope|COCO_val2014_000000572260|dining table|no
+- image: ~/data/cells/pope/COCO_val2014_000000307166.jpg
+  prompt: Is there a pizza in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '1291'
+    gt: 'yes'
+    object: pizza
+    image_source: COCO_val2014_000000307166
+    cell_key: pope|COCO_val2014_000000307166|pizza|yes
+- image: ~/data/cells/pope/COCO_val2014_000000394535.jpg
+  prompt: Is there a person in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '2217'
+    gt: 'yes'
+    object: person
+    image_source: COCO_val2014_000000394535
+    cell_key: pope|COCO_val2014_000000394535|person|yes
+- image: ~/data/cells/pope/COCO_val2014_000000021645.jpg
+  prompt: Is there a tv in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '402'
+    gt: 'no'
+    object: tv
+    image_source: COCO_val2014_000000021645
+    cell_key: pope|COCO_val2014_000000021645|tv|no
+- image: ~/data/cells/pope/COCO_val2014_000000023084.jpg
+  prompt: Is there a car in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '2204'
+    gt: 'no'
+    object: car
+    image_source: COCO_val2014_000000023084
+    cell_key: pope|COCO_val2014_000000023084|car|no
+- image: ~/data/cells/pope/COCO_val2014_000000091954.jpg
+  prompt: Is there a train in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '2025'
+    gt: 'yes'
+    object: train
+    image_source: COCO_val2014_000000091954
+    cell_key: pope|COCO_val2014_000000091954|train|yes
+- image: ~/data/cells/pope/COCO_val2014_000000183965.jpg
+  prompt: Is there a person in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '1628'
+    gt: 'no'
+    object: person
+    image_source: COCO_val2014_000000183965
+    cell_key: pope|COCO_val2014_000000183965|person|no
+- image: ~/data/cells/pope/COCO_val2014_000000208028.jpg
+  prompt: Is there a keyboard in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '859'
+    gt: 'yes'
+    object: keyboard
+    image_source: COCO_val2014_000000208028
+    cell_key: pope|COCO_val2014_000000208028|keyboard|yes
+- image: ~/data/cells/pope/COCO_val2014_000000485485.jpg
+  prompt: Is there a person in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '1591'
+    gt: 'yes'
+    object: person
+    image_source: COCO_val2014_000000485485
+    cell_key: pope|COCO_val2014_000000485485|person|yes
+- image: ~/data/cells/pope/COCO_val2014_000000367528.jpg
+  prompt: Is there a person in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '2721'
+    gt: 'yes'
+    object: person
+    image_source: COCO_val2014_000000367528
+    cell_key: pope|COCO_val2014_000000367528|person|yes
+- image: ~/data/cells/pope/COCO_val2014_000000142056.jpg
+  prompt: Is there a baseball glove in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '2590'
+    gt: 'no'
+    object: baseball glove
+    image_source: COCO_val2014_000000142056
+    cell_key: pope|COCO_val2014_000000142056|baseball glove|no
+- image: ~/data/cells/pope/COCO_val2014_000000240434.jpg
+  prompt: Is there a dining table in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '2246'
+    gt: 'no'
+    object: dining table
+    image_source: COCO_val2014_000000240434
+    cell_key: pope|COCO_val2014_000000240434|dining table|no
+- image: ~/data/cells/pope/COCO_val2014_000000120648.jpg
+  prompt: Is there a handbag in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '1339'
+    gt: 'yes'
+    object: handbag
+    image_source: COCO_val2014_000000120648
+    cell_key: pope|COCO_val2014_000000120648|handbag|yes
+- image: ~/data/cells/pope/COCO_val2014_000000482476.jpg
+  prompt: Is there a backpack in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '102'
+    gt: 'no'
+    object: backpack
+    image_source: COCO_val2014_000000482476
+    cell_key: pope|COCO_val2014_000000482476|backpack|no
+- image: ~/data/cells/pope/COCO_val2014_000000170077.jpg
+  prompt: Is there a car in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '2492'
+    gt: 'no'
+    object: car
+    image_source: COCO_val2014_000000170077
+    cell_key: pope|COCO_val2014_000000170077|car|no
+- image: ~/data/cells/pope/COCO_val2014_000000316700.jpg
+  prompt: Is there a person in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '1100'
+    gt: 'no'
+    object: person
+    image_source: COCO_val2014_000000316700
+    cell_key: pope|COCO_val2014_000000316700|person|no
+- image: ~/data/cells/pope/COCO_val2014_000000333756.jpg
+  prompt: Is there a chair in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '1842'
+    gt: 'no'
+    object: chair
+    image_source: COCO_val2014_000000333756
+    cell_key: pope|COCO_val2014_000000333756|chair|no
+- image: ~/data/cells/pope/COCO_val2014_000000461331.jpg
+  prompt: Is there a toaster in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '45'
+    gt: 'yes'
+    object: toaster
+    image_source: COCO_val2014_000000461331
+    cell_key: pope|COCO_val2014_000000461331|toaster|yes
+- image: ~/data/cells/pope/COCO_val2014_000000156704.jpg
+  prompt: Is there a person in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '2143'
+    gt: 'yes'
+    object: person
+    image_source: COCO_val2014_000000156704
+    cell_key: pope|COCO_val2014_000000156704|person|yes
+- image: ~/data/cells/pope/COCO_val2014_000000087435.jpg
+  prompt: Is there a bicycle in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '884'
+    gt: 'no'
+    object: bicycle
+    image_source: COCO_val2014_000000087435
+    cell_key: pope|COCO_val2014_000000087435|bicycle|no
+- image: ~/data/cells/pope/COCO_val2014_000000084447.jpg
+  prompt: Is there a bus in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '354'
+    gt: 'no'
+    object: bus
+    image_source: COCO_val2014_000000084447
+    cell_key: pope|COCO_val2014_000000084447|bus|no
+- image: ~/data/cells/pope/COCO_val2014_000000294475.jpg
+  prompt: Is there a person in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '2450'
+    gt: 'no'
+    object: person
+    image_source: COCO_val2014_000000294475
+    cell_key: pope|COCO_val2014_000000294475|person|no
+- image: ~/data/cells/pope/COCO_val2014_000000580294.jpg
+  prompt: Is there a person in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '613'
+    gt: 'yes'
+    object: person
+    image_source: COCO_val2014_000000580294
+    cell_key: pope|COCO_val2014_000000580294|person|yes
+- image: ~/data/cells/pope/COCO_val2014_000000437347.jpg
+  prompt: Is there a sports ball in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '311'
+    gt: 'yes'
+    object: sports ball
+    image_source: COCO_val2014_000000437347
+    cell_key: pope|COCO_val2014_000000437347|sports ball|yes
+- image: ~/data/cells/pope/COCO_val2014_000000529668.jpg
+  prompt: Is there a backpack in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '1150'
+    gt: 'no'
+    object: backpack
+    image_source: COCO_val2014_000000529668
+    cell_key: pope|COCO_val2014_000000529668|backpack|no
+- image: ~/data/cells/pope/COCO_val2014_000000227227.jpg
+  prompt: Is there a truck in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '566'
+    gt: 'no'
+    object: truck
+    image_source: COCO_val2014_000000227227
+    cell_key: pope|COCO_val2014_000000227227|truck|no
+- image: ~/data/cells/pope/COCO_val2014_000000244455.jpg
+  prompt: Is there a truck in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '1267'
+    gt: 'yes'
+    object: truck
+    image_source: COCO_val2014_000000244455
+    cell_key: pope|COCO_val2014_000000244455|truck|yes
+- image: ~/data/cells/pope/COCO_val2014_000000348524.jpg
+  prompt: Is there a car in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '1696'
+    gt: 'no'
+    object: car
+    image_source: COCO_val2014_000000348524
+    cell_key: pope|COCO_val2014_000000348524|car|no
+- image: ~/data/cells/pope/COCO_val2014_000000076416.jpg
+  prompt: Is there a person in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '2065'
+    gt: 'yes'
+    object: person
+    image_source: COCO_val2014_000000076416
+    cell_key: pope|COCO_val2014_000000076416|person|yes
+- image: ~/data/cells/pope/COCO_val2014_000000323752.jpg
+  prompt: Is there a sports ball in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '2955'
+    gt: 'yes'
+    object: sports ball
+    image_source: COCO_val2014_000000323752
+    cell_key: pope|COCO_val2014_000000323752|sports ball|yes
+- image: ~/data/cells/pope/COCO_val2014_000000265719.jpg
+  prompt: Is there a fork in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '41'
+    gt: 'yes'
+    object: fork
+    image_source: COCO_val2014_000000265719
+    cell_key: pope|COCO_val2014_000000265719|fork|yes
+- image: ~/data/cells/pope/COCO_val2014_000000436127.jpg
+  prompt: Is there a clock in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '1819'
+    gt: 'yes'
+    object: clock
+    image_source: COCO_val2014_000000436127
+    cell_key: pope|COCO_val2014_000000436127|clock|yes
+- image: ~/data/cells/pope/COCO_val2014_000000567886.jpg
+  prompt: Is there a tv in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '912'
+    gt: 'no'
+    object: tv
+    image_source: COCO_val2014_000000567886
+    cell_key: pope|COCO_val2014_000000567886|tv|no
+- image: ~/data/cells/pope/COCO_val2014_000000120792.jpg
+  prompt: Is there a person in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '2125'
+    gt: 'yes'
+    object: person
+    image_source: COCO_val2014_000000120792
+    cell_key: pope|COCO_val2014_000000120792|person|yes
+- image: ~/data/cells/pope/COCO_val2014_000000038645.jpg
+  prompt: Is there a dining table in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '2482'
+    gt: 'no'
+    object: dining table
+    image_source: COCO_val2014_000000038645
+    cell_key: pope|COCO_val2014_000000038645|dining table|no
+- image: ~/data/cells/pope/COCO_val2014_000000217397.jpg
+  prompt: Is there a car in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '332'
+    gt: 'no'
+    object: car
+    image_source: COCO_val2014_000000217397
+    cell_key: pope|COCO_val2014_000000217397|car|no
+- image: ~/data/cells/pope/COCO_val2014_000000343401.jpg
+  prompt: Is there a dog in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '1743'
+    gt: 'yes'
+    object: dog
+    image_source: COCO_val2014_000000343401
+    cell_key: pope|COCO_val2014_000000343401|dog|yes
+- image: ~/data/cells/pope/COCO_val2014_000000011241.jpg
+  prompt: Is there a person in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '1126'
+    gt: 'no'
+    object: person
+    image_source: COCO_val2014_000000011241
+    cell_key: pope|COCO_val2014_000000011241|person|no
+- image: ~/data/cells/pope/COCO_val2014_000000355342.jpg
+  prompt: Is there an orange in the imange?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '1305'
+    gt: 'yes'
+    object: Is there an orange in the imange?
+    image_source: COCO_val2014_000000355342
+    cell_key: pope|COCO_val2014_000000355342|Is there an orange in the imange?|yes
+- image: ~/data/cells/pope/COCO_val2014_000000327038.jpg
+  prompt: Is there a person in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '1165'
+    gt: 'yes'
+    object: person
+    image_source: COCO_val2014_000000327038
+    cell_key: pope|COCO_val2014_000000327038|person|yes
+- image: ~/data/cells/pope/COCO_val2014_000000163814.jpg
+  prompt: Is there a bicycle in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '2704'
+    gt: 'no'
+    object: bicycle
+    image_source: COCO_val2014_000000163814
+    cell_key: pope|COCO_val2014_000000163814|bicycle|no
+- image: ~/data/cells/pope/COCO_val2014_000000421455.jpg
+  prompt: Is there a person in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '173'
+    gt: 'yes'
+    object: person
+    image_source: COCO_val2014_000000421455
+    cell_key: pope|COCO_val2014_000000421455|person|yes
+- image: ~/data/cells/pope/COCO_val2014_000000348469.jpg
+  prompt: Is there a bird in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '2047'
+    gt: 'yes'
+    object: bird
+    image_source: COCO_val2014_000000348469
+    cell_key: pope|COCO_val2014_000000348469|bird|yes
+- image: ~/data/cells/pope/COCO_val2014_000000445200.jpg
+  prompt: Is there a fork in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '2080'
+    gt: 'no'
+    object: fork
+    image_source: COCO_val2014_000000445200
+    cell_key: pope|COCO_val2014_000000445200|fork|no
+- image: ~/data/cells/pope/COCO_val2014_000000307262.jpg
+  prompt: Is there a person in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '2412'
+    gt: 'no'
+    object: person
+    image_source: COCO_val2014_000000307262
+    cell_key: pope|COCO_val2014_000000307262|person|no
+- image: ~/data/cells/pope/COCO_val2014_000000238691.jpg
+  prompt: Is there a handbag in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '2183'
+    gt: 'yes'
+    object: handbag
+    image_source: COCO_val2014_000000238691
+    cell_key: pope|COCO_val2014_000000238691|handbag|yes
+- image: ~/data/cells/pope/COCO_val2014_000000574692.jpg
+  prompt: Is there a person in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '61'
+    gt: 'yes'
+    object: person
+    image_source: COCO_val2014_000000574692
+    cell_key: pope|COCO_val2014_000000574692|person|yes
+- image: ~/data/cells/pope/COCO_val2014_000000007795.jpg
+  prompt: Is there a person in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '788'
+    gt: 'no'
+    object: person
+    image_source: COCO_val2014_000000007795
+    cell_key: pope|COCO_val2014_000000007795|person|no
+- image: ~/data/cells/pope/COCO_val2014_000000123017.jpg
+  prompt: Is there a bowl in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '1387'
+    gt: 'yes'
+    object: bowl
+    image_source: COCO_val2014_000000123017
+    cell_key: pope|COCO_val2014_000000123017|bowl|yes
+- image: ~/data/cells/pope/COCO_val2014_000000338291.jpg
+  prompt: Is there a handbag in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '1684'
+    gt: 'no'
+    object: handbag
+    image_source: COCO_val2014_000000338291
+    cell_key: pope|COCO_val2014_000000338291|handbag|no
+- image: ~/data/cells/pope/COCO_val2014_000000353180.jpg
+  prompt: Is there a traffic light in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '72'
+    gt: 'no'
+    object: traffic light
+    image_source: COCO_val2014_000000353180
+    cell_key: pope|COCO_val2014_000000353180|traffic light|no
+- image: ~/data/cells/pope/COCO_val2014_000000528905.jpg
+  prompt: Is there a truck in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '406'
+    gt: 'no'
+    object: truck
+    image_source: COCO_val2014_000000528905
+    cell_key: pope|COCO_val2014_000000528905|truck|no
+- image: ~/data/cells/pope/COCO_val2014_000000355256.jpg
+  prompt: Is there a chair in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '2237'
+    gt: 'yes'
+    object: chair
+    image_source: COCO_val2014_000000355256
+    cell_key: pope|COCO_val2014_000000355256|chair|yes
+- image: ~/data/cells/pope/COCO_val2014_000000355776.jpg
+  prompt: Is there a car in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '2798'
+    gt: 'no'
+    object: car
+    image_source: COCO_val2014_000000355776
+    cell_key: pope|COCO_val2014_000000355776|car|no
+- image: ~/data/cells/pope/COCO_val2014_000000256906.jpg
+  prompt: Is there a backpack in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '2378'
+    gt: 'no'
+    object: backpack
+    image_source: COCO_val2014_000000256906
+    cell_key: pope|COCO_val2014_000000256906|backpack|no
+- image: ~/data/cells/pope/COCO_val2014_000000111817.jpg
+  prompt: Is there a spoon in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '948'
+    gt: 'no'
+    object: spoon
+    image_source: COCO_val2014_000000111817
+    cell_key: pope|COCO_val2014_000000111817|spoon|no
+- image: ~/data/cells/pope/COCO_val2014_000000114710.jpg
+  prompt: Is there a sheep in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '731'
+    gt: 'yes'
+    object: sheep
+    image_source: COCO_val2014_000000114710
+    cell_key: pope|COCO_val2014_000000114710|sheep|yes
+- image: ~/data/cells/pope/COCO_val2014_000000267684.jpg
+  prompt: Is there a person in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '2439'
+    gt: 'yes'
+    object: person
+    image_source: COCO_val2014_000000267684
+    cell_key: pope|COCO_val2014_000000267684|person|yes
+- image: ~/data/cells/pope/COCO_val2014_000000498100.jpg
+  prompt: Is there a dining table in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '1193'
+    gt: 'yes'
+    object: dining table
+    image_source: COCO_val2014_000000498100
+    cell_key: pope|COCO_val2014_000000498100|dining table|yes
+- image: ~/data/cells/pope/COCO_val2014_000000332025.jpg
+  prompt: Is there a dog in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '475'
+    gt: 'yes'
+    object: dog
+    image_source: COCO_val2014_000000332025
+    cell_key: pope|COCO_val2014_000000332025|dog|yes
+- image: ~/data/cells/pope/COCO_val2014_000000390184.jpg
+  prompt: Is there a couch in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '2778'
+    gt: 'no'
+    object: couch
+    image_source: COCO_val2014_000000390184
+    cell_key: pope|COCO_val2014_000000390184|couch|no
+- image: ~/data/cells/pope/COCO_val2014_000000387098.jpg
+  prompt: Is there a remote in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '641'
+    gt: 'yes'
+    object: remote
+    image_source: COCO_val2014_000000387098
+    cell_key: pope|COCO_val2014_000000387098|remote|yes
+- image: ~/data/cells/pope/COCO_val2014_000000477598.jpg
+  prompt: Is there a car in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '2348'
+    gt: 'no'
+    object: car
+    image_source: COCO_val2014_000000477598
+    cell_key: pope|COCO_val2014_000000477598|car|no
+- image: ~/data/cells/pope/COCO_val2014_000000199940.jpg
+  prompt: Is there a bowl in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '2253'
+    gt: 'yes'
+    object: bowl
+    image_source: COCO_val2014_000000199940
+    cell_key: pope|COCO_val2014_000000199940|bowl|yes
+- image: ~/data/cells/pope/COCO_val2014_000000343967.jpg
+  prompt: Is there a person in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '2342'
+    gt: 'no'
+    object: person
+    image_source: COCO_val2014_000000343967
+    cell_key: pope|COCO_val2014_000000343967|person|no
+- image: ~/data/cells/pope/COCO_val2014_000000097994.jpg
+  prompt: Is there a chair in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '1672'
+    gt: 'no'
+    object: chair
+    image_source: COCO_val2014_000000097994
+    cell_key: pope|COCO_val2014_000000097994|chair|no
+- image: ~/data/cells/pope/COCO_val2014_000000045685.jpg
+  prompt: Is there a person in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '2863'
+    gt: 'yes'
+    object: person
+    image_source: COCO_val2014_000000045685
+    cell_key: pope|COCO_val2014_000000045685|person|yes
+- image: ~/data/cells/pope/COCO_val2014_000000361430.jpg
+  prompt: Is there a bottle in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '2994'
+    gt: 'no'
+    object: bottle
+    image_source: COCO_val2014_000000361430
+    cell_key: pope|COCO_val2014_000000361430|bottle|no
+- image: ~/data/cells/pope/COCO_val2014_000000511341.jpg
+  prompt: Is there a dining table in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '1408'
+    gt: 'no'
+    object: dining table
+    image_source: COCO_val2014_000000511341
+    cell_key: pope|COCO_val2014_000000511341|dining table|no
+- image: ~/data/cells/pope/COCO_val2014_000000204360.jpg
+  prompt: Is there a dining table in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '658'
+    gt: 'no'
+    object: dining table
+    image_source: COCO_val2014_000000204360
+    cell_key: pope|COCO_val2014_000000204360|dining table|no
+- image: ~/data/cells/pope/COCO_val2014_000000463522.jpg
+  prompt: Is there a backpack in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '1399'
+    gt: 'yes'
+    object: backpack
+    image_source: COCO_val2014_000000463522
+    cell_key: pope|COCO_val2014_000000463522|backpack|yes
+- image: ~/data/cells/pope/COCO_val2014_000000211674.jpg
+  prompt: Is there a car in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '23'
+    gt: 'yes'
+    object: car
+    image_source: COCO_val2014_000000211674
+    cell_key: pope|COCO_val2014_000000211674|car|yes
+- image: ~/data/cells/pope/COCO_val2014_000000303534.jpg
+  prompt: Is there a tv in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '1057'
+    gt: 'yes'
+    object: tv
+    image_source: COCO_val2014_000000303534
+    cell_key: pope|COCO_val2014_000000303534|tv|yes
+- image: ~/data/cells/pope/COCO_val2014_000000204100.jpg
+  prompt: Is there a cup in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '1578'
+    gt: 'no'
+    object: cup
+    image_source: COCO_val2014_000000204100
+    cell_key: pope|COCO_val2014_000000204100|cup|no
+- image: ~/data/cells/pope/COCO_val2014_000000243158.jpg
+  prompt: Is there a vase in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '2323'
+    gt: 'yes'
+    object: vase
+    image_source: COCO_val2014_000000243158
+    cell_key: pope|COCO_val2014_000000243158|vase|yes
+- image: ~/data/cells/pope/COCO_val2014_000000094944.jpg
+  prompt: Is there a snowboard in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '625'
+    gt: 'yes'
+    object: snowboard
+    image_source: COCO_val2014_000000094944
+    cell_key: pope|COCO_val2014_000000094944|snowboard|yes
+- image: ~/data/cells/pope/COCO_val2014_000000070813.jpg
+  prompt: Is there a book in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '1534'
+    gt: 'no'
+    object: book
+    image_source: COCO_val2014_000000070813
+    cell_key: pope|COCO_val2014_000000070813|book|no
+- image: ~/data/cells/pope/COCO_val2014_000000311759.jpg
+  prompt: Is there a backpack in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '1729'
+    gt: 'yes'
+    object: backpack
+    image_source: COCO_val2014_000000311759
+    cell_key: pope|COCO_val2014_000000311759|backpack|yes
+- image: ~/data/cells/pope/COCO_val2014_000000203479.jpg
+  prompt: Is there a bottle in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '774'
+    gt: 'no'
+    object: bottle
+    image_source: COCO_val2014_000000203479
+    cell_key: pope|COCO_val2014_000000203479|bottle|no
+- image: ~/data/cells/pope/COCO_val2014_000000246928.jpg
+  prompt: Is there a chair in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '2509'
+    gt: 'yes'
+    object: chair
+    image_source: COCO_val2014_000000246928
+    cell_key: pope|COCO_val2014_000000246928|chair|yes
+- image: ~/data/cells/pope/COCO_val2014_000000063953.jpg
+  prompt: Is there a bench in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '192'
+    gt: 'no'
+    object: bench
+    image_source: COCO_val2014_000000063953
+    cell_key: pope|COCO_val2014_000000063953|bench|no
+- image: ~/data/cells/pope/COCO_val2014_000000192660.jpg
+  prompt: Is there a bottle in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '360'
+    gt: 'no'
+    object: bottle
+    image_source: COCO_val2014_000000192660
+    cell_key: pope|COCO_val2014_000000192660|bottle|no
+- image: ~/data/cells/pope/COCO_val2014_000000140583.jpg
+  prompt: Is there a car in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '164'
+    gt: 'no'
+    object: car
+    image_source: COCO_val2014_000000140583
+    cell_key: pope|COCO_val2014_000000140583|car|no
+- image: ~/data/cells/pope/COCO_val2014_000000031773.jpg
+  prompt: Is there a car in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '232'
+    gt: 'no'
+    object: car
+    image_source: COCO_val2014_000000031773
+    cell_key: pope|COCO_val2014_000000031773|car|no
+- image: ~/data/cells/pope/COCO_val2014_000000175506.jpg
+  prompt: Is there a dining table in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '514'
+    gt: 'no'
+    object: dining table
+    image_source: COCO_val2014_000000175506
+    cell_key: pope|COCO_val2014_000000175506|dining table|no
+- image: ~/data/cells/pope/COCO_val2014_000000360600.jpg
+  prompt: Is there a spoon in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '228'
+    gt: 'no'
+    object: spoon
+    image_source: COCO_val2014_000000360600
+    cell_key: pope|COCO_val2014_000000360600|spoon|no
+- image: ~/data/cells/pope/COCO_val2014_000000264155.jpg
+  prompt: Is there a car in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '2846'
+    gt: 'no'
+    object: car
+    image_source: COCO_val2014_000000264155
+    cell_key: pope|COCO_val2014_000000264155|car|no
+- image: ~/data/cells/pope/COCO_val2014_000000506483.jpg
+  prompt: Is there a person in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '993'
+    gt: 'yes'
+    object: person
+    image_source: COCO_val2014_000000506483
+    cell_key: pope|COCO_val2014_000000506483|person|yes
+- image: ~/data/cells/pope/COCO_val2014_000000468169.jpg
+  prompt: Is there a sports ball in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '1583'
+    gt: 'yes'
+    object: sports ball
+    image_source: COCO_val2014_000000468169
+    cell_key: pope|COCO_val2014_000000468169|sports ball|yes
+- image: ~/data/cells/pope/COCO_val2014_000000392364.jpg
+  prompt: Is there a dining table in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '1812'
+    gt: 'no'
+    object: dining table
+    image_source: COCO_val2014_000000392364
+    cell_key: pope|COCO_val2014_000000392364|dining table|no
+- image: ~/data/cells/pope/COCO_val2014_000000455157.jpg
+  prompt: Is there a laptop in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '489'
+    gt: 'yes'
+    object: laptop
+    image_source: COCO_val2014_000000455157
+    cell_key: pope|COCO_val2014_000000455157|laptop|yes
+- image: ~/data/cells/pope/COCO_val2014_000000210789.jpg
+  prompt: Is there a car in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '8'
+    gt: 'no'
+    object: car
+    image_source: COCO_val2014_000000210789
+    cell_key: pope|COCO_val2014_000000210789|car|no
+- image: ~/data/cells/pope/COCO_val2014_000000102439.jpg
+  prompt: Is there a remote in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '809'
+    gt: 'yes'
+    object: remote
+    image_source: COCO_val2014_000000102439
+    cell_key: pope|COCO_val2014_000000102439|remote|yes
+- image: ~/data/cells/pope/COCO_val2014_000000528136.jpg
+  prompt: Is there a traffic light in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '2516'
+    gt: 'no'
+    object: traffic light
+    image_source: COCO_val2014_000000528136
+    cell_key: pope|COCO_val2014_000000528136|traffic light|no
+- image: ~/data/cells/pope/COCO_val2014_000000331366.jpg
+  prompt: Is there a person in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '1689'
+    gt: 'yes'
+    object: person
+    image_source: COCO_val2014_000000331366
+    cell_key: pope|COCO_val2014_000000331366|person|yes
+- image: ~/data/cells/pope/COCO_val2014_000000273450.jpg
+  prompt: Is there a car in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '1013'
+    gt: 'yes'
+    object: car
+    image_source: COCO_val2014_000000273450
+    cell_key: pope|COCO_val2014_000000273450|car|yes
+- image: ~/data/cells/pope/COCO_val2014_000000572075.jpg
+  prompt: Is there a cat in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '635'
+    gt: 'yes'
+    object: cat
+    image_source: COCO_val2014_000000572075
+    cell_key: pope|COCO_val2014_000000572075|cat|yes
+- image: ~/data/cells/pope/COCO_val2014_000000017379.jpg
+  prompt: Is there a person in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '1433'
+    gt: 'yes'
+    object: person
+    image_source: COCO_val2014_000000017379
+    cell_key: pope|COCO_val2014_000000017379|person|yes
+- image: ~/data/cells/pope/COCO_val2014_000000031971.jpg
+  prompt: Is there a person in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '1898'
+    gt: 'no'
+    object: person
+    image_source: COCO_val2014_000000031971
+    cell_key: pope|COCO_val2014_000000031971|person|no
+- image: ~/data/cells/pope/COCO_val2014_000000295377.jpg
+  prompt: Is there a car in the image?
+  template: '{slot}'
+  fillers:
+  - 'No'
+  - 'Yes'
+  pair:
+  - 'No'
+  - 'Yes'
+  meta:
+    task: pope
+    pope_question_id: '1258'
+    gt: 'no'
+    object: car
+    image_source: COCO_val2014_000000295377
+    cell_key: pope|COCO_val2014_000000295377|car|no
+- image: ~/data/cells/pope/COCO_val2014_000000429913.jpg
+  prompt: Is there a baseball glove in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '2893'
+    gt: 'yes'
+    object: baseball glove
+    image_source: COCO_val2014_000000429913
+    cell_key: pope|COCO_val2014_000000429913|baseball glove|yes
+- image: ~/data/cells/pope/COCO_val2014_000000541783.jpg
+  prompt: Is there a motorcycle in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '2075'
+    gt: 'yes'
+    object: motorcycle
+    image_source: COCO_val2014_000000541783
+    cell_key: pope|COCO_val2014_000000541783|motorcycle|yes
+- image: ~/data/cells/pope/COCO_val2014_000000376959.jpg
+  prompt: Is there a person in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '1155'
+    gt: 'yes'
+    object: person
+    image_source: COCO_val2014_000000376959
+    cell_key: pope|COCO_val2014_000000376959|person|yes
+- image: ~/data/cells/pope/COCO_val2014_000000012333.jpg
+  prompt: Is there a person in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '291'
+    gt: 'yes'
+    object: person
+    image_source: COCO_val2014_000000012333
+    cell_key: pope|COCO_val2014_000000012333|person|yes
+- image: ~/data/cells/pope/COCO_val2014_000000280810.jpg
+  prompt: Is there a broccoli in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '1369'
+    gt: 'yes'
+    object: broccoli
+    image_source: COCO_val2014_000000280810
+    cell_key: pope|COCO_val2014_000000280810|broccoli|yes
+- image: ~/data/cells/pope/COCO_val2014_000000325347.jpg
+  prompt: Is there a backpack in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '2371'
+    gt: 'yes'
+    object: backpack
+    image_source: COCO_val2014_000000325347
+    cell_key: pope|COCO_val2014_000000325347|backpack|yes
+- image: ~/data/cells/pope/COCO_val2014_000000574057.jpg
+  prompt: Is there a train in the image?
+  template: '{slot}'
+  fillers:
+  - 'Yes'
+  - 'No'
+  pair:
+  - 'Yes'
+  - 'No'
+  meta:
+    task: pope
+    pope_question_id: '243'
+    gt: 'yes'
+    object: train
+    image_source: COCO_val2014_000000574057
+    cell_key: pope|COCO_val2014_000000574057|train|yes

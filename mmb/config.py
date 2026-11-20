@@ -297,6 +297,10 @@ class SlotItem:
     fillers: tuple[str, ...]
     pair: tuple[str, ...]
     prompt: str | None = None  # per-item question (overrides config.prompt_template), e.g. VQA/POPE
+    # Extra seed metadata merged into SeedTriple.metadata (e.g. the roster
+    # cell keys anchor/target_class_concrete, level_anchor, ...; for a
+    # fixed cell list shared by every SUT, see scripts/build_cells.py).
+    meta: dict | None = None
 
     def __post_init__(self) -> None:
         if SLOT_PLACEHOLDER not in self.template:
