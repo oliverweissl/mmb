@@ -116,3 +116,41 @@ Reason: at least three SUT families (G2). Precision and serving stack differ fro
 - 2026-11-20 (arm a8): added the (1+lambda) hill climber to the arm list (section 3); the paper cites Harman and McMinn (IEEE TSE 36(2), 2010) for local search in search-based testing.
 - 2026-11-20 (later): D3 now names the reference evaluation as the primary anchor source; section 5b added (shared cell lists, pools, POPE ground-truth anchor, KNN operator without cone filter) with two new threats.
 - 2026-11-20: first draft (C2). Decisions D6 (cache hits counted), anchor_g, cell_id with photograph, run_meta tags, balanced-design rule recorded from the code owner / user.
+
+## 10. Pre-committed analysis plan (frozen 2026-11-20 17:39 UTC, before any MAIN result was inspected)
+
+Written by the paper-side worker at the request of the code owner; committed with this timestamp (the git commit time of this section is the evidence). Everything not listed here that is added after the first MAIN results is labelled **exploratory** in the paper.
+
+### 10.1 Primary outcome (one per RQ1--RQ3 stratum)
+- **Primary comparison:** crossing share of a1_random_tiered against a0_directed, per (task, SUT) stratum (strata: imagenet and pope x qwen, internvl, ministral, plus imagenet x llava = 7). Test: exact McNemar on matched (cell_id, rng_seed) pairs, Holm-adjusted across the 7 strata. Interval for the share difference: percentile bootstrap over cells (10,000 resamples, seed 42; a cell's difference is the mean over its seeds). Code: mmb.analysis.paired.primary_table; paper table primary.tex.
+- A run crosses if some evaluation has the opposite sign of the pair contrast than the anchor reference (strict). The 1e-2 band is never primary (batched-scoring tolerance, section 8 of EXP_SETUP.md); crossings are reported together with their single-item re-verification rate.
+
+### 10.2 Secondary outcomes
+- **Other arms:** a3, a4, a5, a8 against a0 on the same primary outcome, Holm across arms within the stratum.
+- **Evaluations to first crossing** (cache hits counted, censored at the budget): Wilcoxon signed-rank on matched pairs, effect = matched-pairs rank-biserial r, Holm across arms.
+- **Floor** (log10 of min |g|): same test. Secondary because of the tolerance.
+- **Cost of crossing** (code: mmb.analysis.cost; columns of collect.py):
+  - fewest active genes among all crossing evaluations (min_edits_cross; image + text; runs that never cross are censored at the full genotype length);
+  - hypervolume of the crossing evaluations over (image edits, text edits), both minimised, fixed reference point (image_dim + 1, text_dim + 1), reported as a fraction of the box (0 if never crossed) (hv_edits_cross);
+  - when the trace holds the per-row diagnostics diag_img_rms and diag_txt_cosdist (all arms from the second L1 config on): smallest image RMS and text cosine distance among crossing evaluations and the hypervolume over them with the fixed reference point (0.1, 1.0) (hv_mag_cross); magnitude comparisons never mix diagnostic and optimised-fitness columns (mag_source);
+  - smallest character edit distance between a crossing prompt and the seed question.
+  Tests as for evaluations to cross, Holm across arms within a metric. Pairs with an undefined value (e.g. magnitudes of a run that never crossed) are dropped.
+- **Pooled tests** (all tasks and grid SUTs, task-wise, SUT-wise) are secondary; their intervals cluster on (task, cell) because SUTs share cells.
+- **Robustness:** Bayesian mixed logit crossed ~ arm + (1|cell) + (1|sut:task) (statsmodels BinomialBayesMixedGLM, variational Bayes), a1 and every other arm against a0, pooled over the grid; reported as an odds ratio with an approximate 95% interval. A per-cell figure shows a0 minus a1 crossing share per cell and stratum.
+- **Pre-specified predictor analysis (E2b):** anchor_g, prior_g, |prior_g|, probe_gen0, min_gen0, answer_words_diff against floor, evaluations to cross and crossing; Spearman and AUC at cell level with bootstrap intervals, partial rho of the probe given prior and generation-0 minimum (mmb.analysis.predictors, arm a0).
+
+### 10.3 Reporting rules
+- A non-significant paired difference is never reported as equivalence; the interval is reported and effects it excludes are stated.
+- Language: "characterization", "rank-orders / correlates with", never "predicts".
+- Incomplete runs are repeated, never dropped. All arms use the same cells, seeds and budget.
+- Exploratory (not pre-committed): cross-SUT transfer of crossings, POPE failure yield, SUT ranking against accuracy, validity on MAIN crossings, any breakdown not listed above.
+
+### 10.4 Narrative decided before the results (which headline the paper carries)
+Let D = the pooled a0 minus a1 crossing-share difference with its cell-cluster interval, and C = the pooled cost outcomes (fewest edits, edit hypervolume).
+1. **Directed search reaches boundaries more reliably.** D > 0 with interval excluding 0 and Holm-significant primary tests in at least 4 of the 7 strata. Headline for RQ1: directed search crosses more often and in fewer evaluations; cost outcomes reported as supporting. Per-SUT and per-task heterogeneity is reported in full (RQ2, RQ3).
+2. **Directed search finds cheaper boundary inputs, not more of them.** D within +-10 percentage points (interval includes 0) but a0 better than a1 on fewest edits or edit hypervolume with pooled Holm p < 0.05 and a consistent sign in at least 4 strata. Headline: the proximity signal makes boundaries reachable at this budget (even random sampling crosses), and the multi-objective search finds crossings with fewer edits; RQ1 is answered as "equally reliable, cheaper".
+3. **No benefit of directed search at this budget.** Neither of the above. Headline: at confident seeds and a budget of 1,500, random sampling with the same initial sampler crosses as often and as cheaply; RQ1 is an honest negative result with the excluded effect sizes stated (the interval bounds), no claim of equivalence. The contribution carried is the signal and formalization, the equal-budget protocol, and the characterization (RQ2--RQ4) plus the uses (transfer, POPE failure yield).
+4. **a1 better than a0** (primary difference negative, Holm-significant in at least 4 strata) is reported as such under the same wording as 3, with the possible reasons (population search wastes the budget on selection pressure toward |g| rather than crossing) stated as hypotheses.
+
+### 10.5 Change log of this section
+- 2026-11-20 17:39 UTC: created.
