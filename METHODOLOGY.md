@@ -99,13 +99,20 @@ Reason: at least three SUT families (G2). Precision and serving stack differ fro
 | G3 novelty vs MIMICRY | a5 isolates the signal; related work refresh 2026-11-20 | same-group framing risk remains |
 | G5 replication and statistics | S seeds, paired design, Wilson/bootstrap/Holm | S is small until the speed benchmark fixes it |
 | G6 probe as predictor | probe vs prior margin comparison on new runs (E2b) | needs the content-free prior runs |
-| channel attribution (A7) | a6/a7 arms, magnitudes reported per channel in their own units | image and text magnitudes remain incommensurable by design |
+| channel attribution (A7) | a6/a7 arms were dropped from the MAIN grid for budget (section 9, 2026-11-20 frozen design); channel separation stays a single-cell characterization of the earlier study | image and text magnitudes remain incommensurable by design; no channel claim from MAIN |
 | validity (G4) | automatic proxy on every crossing input (E7) | a proxy alone is not validity; the human study stays at 35 raters |
-| task comparison confounded by the image operator (RQ3) | tasks share budget, arms, seeds and SUTs | POPE uses the KNN operator without the cone filter, ImageNet with it, so a difference between tasks mixes task and operator; the cone ablation exists only for ImageNet (thesis Exp-27) |
+| task comparison and the image operator (RQ3) | tasks share budget, arms, seeds and SUTs; since the frozen design the cone filter is OFF for both tasks (one image operator everywhere) | the POPE-operator confound is gone; the cone filter is no longer used, so crossings are not constrained toward a target class and may leave a plausible class region |
 | seed population shaped by the joint SUT filter | one fixed cell list for every SUT, stratified draw, fixed seed | items every SUT answers correctly with margin >= tau are the easy part of the distribution; boundary results describe that population, not all inputs |
 | unequal budgets | equal proposals, caching counted (D6) | duplicates reduce fresh model calls differently per arm (`first_cross_eval_nocache` is the secondary column) |
 
 ## 9. Change log
+- 2026-11-20 (frozen MAIN design and scoring fix; paper updated accordingly):
+  - Cone filter OFF for both tasks (supersedes the 5b statement that ImageNet keeps it).
+  - Arm set in the grid: a0, a1, a3, a4, a5, a8. a2, a6, a7 dropped for budget; channel attribution stays a single-cell characterization.
+  - SUT swap: grid = Qwen3.5-4B (bf16), InternVL3.5-4B (bf16), Ministral-3-3B (FP8 checkpoint dequantised to bf16). LLaVA-NeXT-7B is a continuity block only (a0 vs a1, ImageNet), now NF4 instead of INT8.
+  - K = 18 cells per task, S = 2, tau = 1.0 nats (supersedes the open K/S/tau); 1,296 grid runs + 72 continuity runs.
+  - Scoring fix: the inherited scorer reused one mutable KV cache across candidates (order-dependent, up to ~3 nats); fixed in e3c86f6. Every headline number comes from the MAIN runs; thesis-era numbers (99/119, probe rho, eta^2, HS-01 stimulus margins) are not evidence, the human ratings stand. The paper names the defect in Threats and treats the earlier study as a hypothesis source.
+  - Tolerance: batched vs single-item scoring max |dg| 0.02 to 0.11 in bf16, above the 1e-2 band; band metric reported only with that caveat, crossings re-verified by single-item re-scoring (agreement_replay).
 - 2026-11-20 (arm a8): added the (1+lambda) hill climber to the arm list (section 3); the paper cites Harman and McMinn (IEEE TSE 36(2), 2010) for local search in search-based testing.
 - 2026-11-20 (later): D3 now names the reference evaluation as the primary anchor source; section 5b added (shared cell lists, pools, POPE ground-truth anchor, KNN operator without cone filter) with two new threats.
 - 2026-11-20: first draft (C2). Decisions D6 (cache hits counted), anchor_g, cell_id with photograph, run_meta tags, balanced-design rule recorded from the code owner / user.
