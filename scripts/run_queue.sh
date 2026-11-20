@@ -5,7 +5,7 @@
 set -u
 dir=$1; logdir=${2:-runs/logs}; mkdir -p "$logdir"
 export MMB_IMAGENET_DIR=${MMB_IMAGENET_DIR:-$HOME/data/imagenet-val-hf}
-PY=${PY:-/home/oliver/gardens/mmb/.venv/bin/python}
+PY=${PY:-python}
 for cfg in $(ls "$dir"/*.yaml | sort); do
   name=$(basename "$cfg" .yaml)
   if [ -f "$logdir/$name.done" ]; then continue; fi

@@ -584,6 +584,18 @@ class VLMBoundaryTester(SMOO):
                 "anchor_g": a_lp[ia] - a_lp[ib],
                 "anchor_argmax": scored_categories[int(np.argmax(a_lp))],
             }
+            # Content-free prior (contextual-calibration reference, E2b):
+            # same prompt, uniform gray image at the codec's resolution.
+            from PIL import Image as _Image
+            gray = _Image.new("RGB", a_imgs[0].size, (128, 128, 128))
+            with distlock.lock(self._sut.device_str):
+                p_lp = self._sut.process_input(
+                    gray, text=a_txts[0] + answer_suffix,
+                    categories=scored_categories,
+                )
+            p_lp = [float(v) for v in p_lp.flatten().tolist()]
+            self._anchor_eval["prior_logprobs"] = p_lp
+            self._anchor_eval["prior_g"] = p_lp[ia] - p_lp[ib]
         except Exception as exc:  # noqa: BLE001 -- reference eval must not kill a run
             logger.warning("anchor reference evaluation failed: %s", exc)
 
