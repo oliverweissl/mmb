@@ -19,6 +19,7 @@ from PIL import Image
 SUT_IDS = {
     "llava": ("llava-hf/llava-v1.6-mistral-7b-hf", True),
     "qwen": ("Qwen/Qwen3.5-4B", False),
+    "ministral": ("mistralai/Ministral-3-3B-Instruct-2512", False),
     "internvl": ("OpenGVLab/InternVL3_5-4B-HF", False),
 }
 
@@ -46,7 +47,7 @@ def main() -> None:
     from mmb.sut.scorer import create_scorer
 
     model_id, int8 = SUT_IDS[a.sut]
-    sc = create_scorer(model_id, a.device, enable_thinking=False, load_in_8bit=int8)
+    sc = create_scorer(model_id, a.device, enable_thinking=False, load_in_4bit=int8)
     codec = VQGANCodec(load_vqgan("f8-16384"), device=a.device)
     rows = []
     dirs = sorted(p.parent for p in a.runs.rglob("first_cross.json"))
@@ -63,11 +64,14 @@ def main() -> None:
         for tag, img, prompt in (("anchor", anchor_img, prompt0 + suffix),
                                  ("cross", Image.open(d / "first_cross.png").convert("RGB"), fc["full_prompt"])):
             ans, _, _ = sc.generate(img, prompt)
-            res = {lbl: lpn for (lbl, _lp, lpn, _n) in sc.score_categories(img, prompt, cands)}
+            res = dict(zip(cands, sc.score_batch_tensor([img], [prompt], cands)[0].tolist()))
             tf = max(res, key=res.get)
             gm = match(ans, cands)
             out.update({f"{tag}_greedy": ans, f"{tag}_greedy_label": gm, f"{tag}_tf_argmax": tf,
-                        f"{tag}_agree": gm == tf})
+                        f"{tag}_agree": gm == tf, f"{tag}_g_single": res[cands[0]] - res[cands[1]]})
+        # re-verification: the crossing, scored alone, still has the opposite sign of the anchor
+        out["cross_verified"] = (out["anchor_g_single"] > 0) != (out["cross_g_single"] > 0)
+        out["cross_g_search"] = fc["g"]
         rows.append(out)
         if a.limit and len(rows) >= a.limit:
             break
@@ -81,6 +85,8 @@ def main() -> None:
         for tag in ("anchor", "cross"):
             k = sum(r[f"{tag}_agree"] for r in rows)
             print(f"{tag}: greedy == teacher-forced argmax in {k}/{n} ({k / n:.1%})")
+        v = sum(r["cross_verified"] for r in rows)
+        print(f"crossings verified by single-item re-scoring: {v}/{n} ({v / n:.1%})")
 
 
 if __name__ == "__main__":
