@@ -513,7 +513,9 @@ class VLMBoundaryTester(SMOO):
         #     also None on backends that can't encode_text (currently
         #     OpenVINO) — in that case TextEmbeddingDistance receives
         #     zeros and effectively drops out of the objective set.
-        if self._has_text_dist and self._sut.text_embedder is not None:
+        if self._sut.text_embedder is not None:
+            # Always computed: also feeds the diagnostic text magnitude that
+            # is logged for every arm (diag_txt_cosdist), optimised or not.
             self._anchor_text_embedding = self._sut.text_embedder.embed(
                 prompt_template,
             )
@@ -555,7 +557,7 @@ class VLMBoundaryTester(SMOO):
         #    Skipped when MatrixDistance isn't in the objective set
         #    (modality=text_only). _run_generation will short-circuit the
         #    per-individual tensor conversion in that case.
-        if self._has_matrix_dist:
+        if True:  # origin always built: diagnostic image magnitude for every arm
             # κ=0 reference for MatrixDistance. Delegated to the backend
             # so StyleGAN can reuse its precheck-cached origin image and
             # VQGAN can do its single decode — no batched manipulate
@@ -915,12 +917,27 @@ class VLMBoundaryTester(SMOO):
         self._optimizer.assign_fitness(fitness)
         self._optimizer.update()
 
+        # -- Diagnostic magnitudes, identical for every arm (not optimised) --
+        diag_img = [float("nan")] * len(texts)
+        if origin_tensor is not None:
+            pert = torch.stack([pil_to_tensor(img) for img in images]).float()
+            orig = origin_tensor.unsqueeze(0).float()
+            diag_img = ((pert - orig) ** 2).flatten(1).mean(1).sqrt().cpu().tolist()
+        diag_txt = [float("nan")] * len(texts)
+        if self._sut.text_embedder is not None and getattr(self, "_anchor_text_embedding", None) is not None:
+            diag_txt = [float(v) for v in self._sut.text_embedder.cosine_distances_to(
+                self._anchor_text_embedding, texts)]
+
         # -- Build trace rows ---------------------------------------------
-        return build_trace_rows(
+        rows = build_trace_rows(
             seed_idx, gen, genotypes, logits, texts, cache_hits,
             batched_results, fitness,
             target_classes, categories,
         )
+        for r, di, dt in zip(rows, diag_img, diag_txt):
+            r["diag_img_rms"] = di
+            r["diag_txt_cosdist"] = dt
+        return rows
 
     # ------------------------------------------------------------------
     # Result saving
