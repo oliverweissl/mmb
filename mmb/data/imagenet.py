@@ -27,6 +27,7 @@ import logging
 import urllib.request
 from collections.abc import Sequence
 from dataclasses import dataclass
+import os
 from pathlib import Path
 
 from PIL import Image
@@ -206,9 +207,18 @@ class ImageNetCache:
         cat_indices = {labels.index(cat): cat for cat in need}
         remaining = dict(need)
 
-        ds = load_dataset(
-            "ILSVRC/imagenet-1k", split="validation", streaming=True,
-        )
+        # MMB_IMAGENET_REPO: an ungated mirror of the ILSVRC-2012 validation split
+        # with the same 1000-way label indices (e.g. Tsomaros/Imagenet-1k_validation);
+        # MMB_IMAGENET_DIR: a local snapshot of such a repo (parquet files).
+        repo = os.environ.get("MMB_IMAGENET_REPO", "ILSVRC/imagenet-1k")
+        local = os.environ.get("MMB_IMAGENET_DIR")
+        if local:
+            ds = load_dataset(
+                "parquet", data_files=str(Path(local) / "data" / "validation-*.parquet"),
+                split="train", streaming=True,
+            )
+        else:
+            ds = load_dataset(repo, split="validation", streaming=True)
 
         for sample in tqdm(ds, desc="Streaming ImageNet val", total=50_000):
             label_idx = sample["label"]
