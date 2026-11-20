@@ -1,0 +1,455 @@
+name: MAIN_pope_ministral_a8_hillclimb_s0
+device: cuda
+save_dir: runs/MAIN/pope/ministral/a8_hillclimb/s0
+cache_dirs:
+- ~/.cache/imagenet
+categories:
+- junco
+- ostrich
+- green iguana
+- boa constrictor
+- cello
+- marimba
+generations: 50
+pop_size: 30
+seed: 0
+sut:
+  model_id: mistralai/Ministral-3-3B-Instruct-2512
+  backend: torch
+  batched_scoring: true
+  batch_chunk: 15
+seeds:
+  mode: slot_items
+  slot_items:
+    items:
+    - image: ~/data/cells/pope/COCO_val2014_000000083275.jpg
+      prompt: Is there a dog in the image?
+      template: '{slot}'
+      fillers:
+      - 'No'
+      - 'Yes'
+      pair:
+      - 'No'
+      - 'Yes'
+      meta:
+        task: pope
+        pope_question_id: '452'
+        gt: 'no'
+        object: dog
+        image_source: COCO_val2014_000000083275
+        cell_key: pope|COCO_val2014_000000083275|dog|no
+        cell_idx: 0
+        anchor_g_by_sut:
+          llava_hf_llava_v1_6_mistral_7b_hf: 6.343749906285666
+          mistralai_ministral_3_3b_instruct_2512: 7.875000067753717
+          opengvlab_internvl3_5_4b_hf: 8.124999773746822
+          qwen_qwen3_5_4b: 5.593750176951289
+    - image: ~/data/cells/pope/COCO_val2014_000000267684.jpg
+      prompt: Is there a person in the image?
+      template: '{slot}'
+      fillers:
+      - 'Yes'
+      - 'No'
+      pair:
+      - 'Yes'
+      - 'No'
+      meta:
+        task: pope
+        pope_question_id: '2439'
+        gt: 'yes'
+        object: person
+        image_source: COCO_val2014_000000267684
+        cell_key: pope|COCO_val2014_000000267684|person|yes
+        cell_idx: 1
+        anchor_g_by_sut:
+          llava_hf_llava_v1_6_mistral_7b_hf: 3.5312500540167093
+          mistralai_ministral_3_3b_instruct_2512: 4.874999798834324
+          opengvlab_internvl3_5_4b_hf: 13.87500047616777
+          qwen_qwen3_5_4b: 3.4687499795109034
+    - image: ~/data/cells/pope/COCO_val2014_000000059383.jpg
+      prompt: Is there a toilet in the image?
+      template: '{slot}'
+      fillers:
+      - 'No'
+      - 'Yes'
+      pair:
+      - 'No'
+      - 'Yes'
+      meta:
+        task: pope
+        pope_question_id: '2556'
+        gt: 'no'
+        object: toilet
+        image_source: COCO_val2014_000000059383
+        cell_key: pope|COCO_val2014_000000059383|toilet|no
+        cell_idx: 2
+        anchor_g_by_sut:
+          llava_hf_llava_v1_6_mistral_7b_hf: 6.109375024680048
+          mistralai_ministral_3_3b_instruct_2512: 8.124999614432454
+          opengvlab_internvl3_5_4b_hf: 8.250000307831215
+          qwen_qwen3_5_4b: 5.624999872874469
+    - image: ~/data/cells/pope/COCO_val2014_000000102439.jpg
+      prompt: Is there a remote in the image?
+      template: '{slot}'
+      fillers:
+      - 'Yes'
+      - 'No'
+      pair:
+      - 'Yes'
+      - 'No'
+      meta:
+        task: pope
+        pope_question_id: '809'
+        gt: 'yes'
+        object: remote
+        image_source: COCO_val2014_000000102439
+        cell_key: pope|COCO_val2014_000000102439|remote|yes
+        cell_idx: 3
+        anchor_g_by_sut:
+          llava_hf_llava_v1_6_mistral_7b_hf: 4.718750162981451
+          mistralai_ministral_3_3b_instruct_2512: 2.6249998807907104
+          opengvlab_internvl3_5_4b_hf: 13.500000393949449
+          qwen_qwen3_5_4b: 3.593750063329935
+    - image: ~/data/cells/pope/COCO_val2014_000000023084.jpg
+      prompt: Is there a car in the image?
+      template: '{slot}'
+      fillers:
+      - 'No'
+      - 'Yes'
+      pair:
+      - 'No'
+      - 'Yes'
+      meta:
+        task: pope
+        pope_question_id: '2204'
+        gt: 'no'
+        object: car
+        image_source: COCO_val2014_000000023084
+        cell_key: pope|COCO_val2014_000000023084|car|no
+        cell_idx: 4
+        anchor_g_by_sut:
+          llava_hf_llava_v1_6_mistral_7b_hf: 5.343750161584467
+          mistralai_ministral_3_3b_instruct_2512: 7.124999893363565
+          opengvlab_internvl3_5_4b_hf: 9.375000139989424
+          qwen_qwen3_5_4b: 3.906249960884452
+    - image: ~/data/cells/pope/COCO_val2014_000000327038.jpg
+      prompt: Is there a person in the image?
+      template: '{slot}'
+      fillers:
+      - 'Yes'
+      - 'No'
+      pair:
+      - 'Yes'
+      - 'No'
+      meta:
+        task: pope
+        pope_question_id: '1165'
+        gt: 'yes'
+        object: person
+        image_source: COCO_val2014_000000327038
+        cell_key: pope|COCO_val2014_000000327038|person|yes
+        cell_idx: 5
+        anchor_g_by_sut:
+          llava_hf_llava_v1_6_mistral_7b_hf: 3.609374977648258
+          mistralai_ministral_3_3b_instruct_2512: 4.249999832361937
+          opengvlab_internvl3_5_4b_hf: 14.749999524276063
+          qwen_qwen3_5_4b: 2.7968749329447746
+    - image: ~/data/cells/pope/COCO_val2014_000000316700.jpg
+      prompt: Is there a person in the image?
+      template: '{slot}'
+      fillers:
+      - 'No'
+      - 'Yes'
+      pair:
+      - 'No'
+      - 'Yes'
+      meta:
+        task: pope
+        pope_question_id: '1100'
+        gt: 'no'
+        object: person
+        image_source: COCO_val2014_000000316700
+        cell_key: pope|COCO_val2014_000000316700|person|no
+        cell_idx: 6
+        anchor_g_by_sut:
+          llava_hf_llava_v1_6_mistral_7b_hf: 4.546875089406967
+          mistralai_ministral_3_3b_instruct_2512: 7.999999595107511
+          opengvlab_internvl3_5_4b_hf: 5.874999895691872
+          qwen_qwen3_5_4b: 3.5468751080334187
+    - image: ~/data/cells/pope/COCO_val2014_000000394535.jpg
+      prompt: Is there a person in the image?
+      template: '{slot}'
+      fillers:
+      - 'Yes'
+      - 'No'
+      pair:
+      - 'Yes'
+      - 'No'
+      meta:
+        task: pope
+        pope_question_id: '2217'
+        gt: 'yes'
+        object: person
+        image_source: COCO_val2014_000000394535
+        cell_key: pope|COCO_val2014_000000394535|person|yes
+        cell_idx: 7
+        anchor_g_by_sut:
+          llava_hf_llava_v1_6_mistral_7b_hf: 3.2968749962747097
+          mistralai_ministral_3_3b_instruct_2512: 4.500000145286322
+          opengvlab_internvl3_5_4b_hf: 14.874999525425665
+          qwen_qwen3_5_4b: 3.6718750093132257
+    - image: ~/data/cells/pope/COCO_val2014_000000465418.jpg
+      prompt: Is there a dining table in the image?
+      template: '{slot}'
+      fillers:
+      - 'No'
+      - 'Yes'
+      pair:
+      - 'No'
+      - 'Yes'
+      meta:
+        task: pope
+        pope_question_id: '1804'
+        gt: 'no'
+        object: dining table
+        image_source: COCO_val2014_000000465418
+        cell_key: pope|COCO_val2014_000000465418|dining table|no
+        cell_idx: 8
+        anchor_g_by_sut:
+          llava_hf_llava_v1_6_mistral_7b_hf: 4.468749989755452
+          mistralai_ministral_3_3b_instruct_2512: 8.250000388361514
+          opengvlab_internvl3_5_4b_hf: 4.874999982304871
+          qwen_qwen3_5_4b: 4.843749855645001
+    - image: ~/data/cells/pope/COCO_val2014_000000199122.jpg
+      prompt: Is there a person in the image?
+      template: '{slot}'
+      fillers:
+      - 'Yes'
+      - 'No'
+      pair:
+      - 'Yes'
+      - 'No'
+      meta:
+        task: pope
+        pope_question_id: '1653'
+        gt: 'yes'
+        object: person
+        image_source: COCO_val2014_000000199122
+        cell_key: pope|COCO_val2014_000000199122|person|yes
+        cell_idx: 9
+        anchor_g_by_sut:
+          llava_hf_llava_v1_6_mistral_7b_hf: 3.2187500782310963
+          mistralai_ministral_3_3b_instruct_2512: 4.999999966472387
+          opengvlab_internvl3_5_4b_hf: 14.375000122330675
+          qwen_qwen3_5_4b: 3.8750000577419996
+    - image: ~/data/cells/pope/COCO_val2014_000000477598.jpg
+      prompt: Is there a car in the image?
+      template: '{slot}'
+      fillers:
+      - 'No'
+      - 'Yes'
+      pair:
+      - 'No'
+      - 'Yes'
+      meta:
+        task: pope
+        pope_question_id: '2348'
+        gt: 'no'
+        object: car
+        image_source: COCO_val2014_000000477598
+        cell_key: pope|COCO_val2014_000000477598|car|no
+        cell_idx: 10
+        anchor_g_by_sut:
+          llava_hf_llava_v1_6_mistral_7b_hf: 6.093749954132363
+          mistralai_ministral_3_3b_instruct_2512: 8.687499929452315
+          opengvlab_internvl3_5_4b_hf: 9.875000187254045
+          qwen_qwen3_5_4b: 5.31249987706542
+    - image: ~/data/cells/pope/COCO_val2014_000000562155.jpg
+      prompt: Is there a person in the image?
+      template: '{slot}'
+      fillers:
+      - 'Yes'
+      - 'No'
+      pair:
+      - 'Yes'
+      - 'No'
+      meta:
+        task: pope
+        pope_question_id: '2581'
+        gt: 'yes'
+        object: person
+        image_source: COCO_val2014_000000562155
+        cell_key: pope|COCO_val2014_000000562155|person|yes
+        cell_idx: 11
+        anchor_g_by_sut:
+          llava_hf_llava_v1_6_mistral_7b_hf: 5.109375207219273
+          mistralai_ministral_3_3b_instruct_2512: 5.499999850988388
+          opengvlab_internvl3_5_4b_hf: 14.624999883359123
+          qwen_qwen3_5_4b: 4.390624791383743
+    - image: ~/data/cells/pope/COCO_val2014_000000021645.jpg
+      prompt: Is there a tv in the image?
+      template: '{slot}'
+      fillers:
+      - 'No'
+      - 'Yes'
+      pair:
+      - 'No'
+      - 'Yes'
+      meta:
+        task: pope
+        pope_question_id: '402'
+        gt: 'no'
+        object: tv
+        image_source: COCO_val2014_000000021645
+        cell_key: pope|COCO_val2014_000000021645|tv|no
+        cell_idx: 12
+        anchor_g_by_sut:
+          llava_hf_llava_v1_6_mistral_7b_hf: 1.9062499701976776
+          mistralai_ministral_3_3b_instruct_2512: 4.625000185333192
+          opengvlab_internvl3_5_4b_hf: 2.125000111758709
+          qwen_qwen3_5_4b: 1.9531249850988388
+    - image: ~/data/cells/pope/COCO_val2014_000000574692.jpg
+      prompt: Is there a person in the image?
+      template: '{slot}'
+      fillers:
+      - 'Yes'
+      - 'No'
+      pair:
+      - 'Yes'
+      - 'No'
+      meta:
+        task: pope
+        pope_question_id: '61'
+        gt: 'yes'
+        object: person
+        image_source: COCO_val2014_000000574692
+        cell_key: pope|COCO_val2014_000000574692|person|yes
+        cell_idx: 13
+        anchor_g_by_sut:
+          llava_hf_llava_v1_6_mistral_7b_hf: 4.281250029802322
+          mistralai_ministral_3_3b_instruct_2512: 5.999999784864485
+          opengvlab_internvl3_5_4b_hf: 14.999999881101758
+          qwen_qwen3_5_4b: 4.062499959021807
+    - image: ~/data/cells/pope/COCO_val2014_000000480122.jpg
+      prompt: Is there a person in the image?
+      template: '{slot}'
+      fillers:
+      - 'No'
+      - 'Yes'
+      pair:
+      - 'No'
+      - 'Yes'
+      meta:
+        task: pope
+        pope_question_id: '296'
+        gt: 'no'
+        object: person
+        image_source: COCO_val2014_000000480122
+        cell_key: pope|COCO_val2014_000000480122|person|no
+        cell_idx: 14
+        anchor_g_by_sut:
+          llava_hf_llava_v1_6_mistral_7b_hf: 3.578125011175871
+          mistralai_ministral_3_3b_instruct_2512: 5.875000010244548
+          opengvlab_internvl3_5_4b_hf: 2.3749998956918716
+          qwen_qwen3_5_4b: 3.8437501080334187
+    - image: ~/data/cells/pope/COCO_val2014_000000424642.jpg
+      prompt: Is there a person in the image?
+      template: '{slot}'
+      fillers:
+      - 'Yes'
+      - 'No'
+      pair:
+      - 'Yes'
+      - 'No'
+      meta:
+        task: pope
+        pope_question_id: '871'
+        gt: 'yes'
+        object: person
+        image_source: COCO_val2014_000000424642
+        cell_key: pope|COCO_val2014_000000424642|person|yes
+        cell_idx: 15
+        anchor_g_by_sut:
+          llava_hf_llava_v1_6_mistral_7b_hf: 1.4843749403953552
+          mistralai_ministral_3_3b_instruct_2512: 4.8749998062849045
+          opengvlab_internvl3_5_4b_hf: 15.37499964386734
+          qwen_qwen3_5_4b: 3.468750026077032
+    - image: ~/data/cells/pope/COCO_val2014_000000288042.jpg
+      prompt: Is there a handbag in the image?
+      template: '{slot}'
+      fillers:
+      - 'No'
+      - 'Yes'
+      pair:
+      - 'No'
+      - 'Yes'
+      meta:
+        task: pope
+        pope_question_id: '852'
+        gt: 'no'
+        object: handbag
+        image_source: COCO_val2014_000000288042
+        cell_key: pope|COCO_val2014_000000288042|handbag|no
+        cell_idx: 16
+        anchor_g_by_sut:
+          llava_hf_llava_v1_6_mistral_7b_hf: 2.7499999701976776
+          mistralai_ministral_3_3b_instruct_2512: 6.500000079162419
+          opengvlab_internvl3_5_4b_hf: 5.00000009778887
+          qwen_qwen3_5_4b: 1.3124999701976776
+    - image: ~/data/cells/pope/COCO_val2014_000000332025.jpg
+      prompt: Is there a dog in the image?
+      template: '{slot}'
+      fillers:
+      - 'Yes'
+      - 'No'
+      pair:
+      - 'Yes'
+      - 'No'
+      meta:
+        task: pope
+        pope_question_id: '475'
+        gt: 'yes'
+        object: dog
+        image_source: COCO_val2014_000000332025
+        cell_key: pope|COCO_val2014_000000332025|dog|yes
+        cell_idx: 17
+        anchor_g_by_sut:
+          llava_hf_llava_v1_6_mistral_7b_hf: 4.046875167638063
+          mistralai_ministral_3_3b_instruct_2512: 4.24999987706542
+          opengvlab_internvl3_5_4b_hf: 16.249999297389877
+          qwen_qwen3_5_4b: 3.625000113621354
+image:
+  backend: vqgan_codebook
+  n_candidates: 16383
+  cone_filter:
+    enabled: false
+    alpha_deg: 20.0
+    target_m: 10
+text:
+  spacy_model: en_core_web_sm
+  composite:
+    profile: full_stack
+optimizer:
+  algorithm: hillclimb
+  sampling:
+    mode: sparse_multitier
+    zero_anchor_fraction: 0.05
+    tiers:
+    - p_active: 0.005
+      fraction: 0.2
+    - p_active: 0.03
+      fraction: 0.2
+    - p_active: 0.1
+      fraction: 0.25
+    - p_active: 0.3
+      fraction: 0.2
+    - p_active: 0.5
+      fraction: 0.1
+  early_stop:
+    enable: false
+  proximity_only: true
+tags:
+  exp_id: MAIN
+  task: pope
+  sut: ministral
+  arm: a8_hillclimb

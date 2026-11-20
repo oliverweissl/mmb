@@ -1,0 +1,961 @@
+cell_key,sut,lp_a,lp_b,g,argmax
+junco|ostrich|La0-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.583519697189331,-5.8023271560668945,3.2188074588775635,sparrow
+junco|ostrich|La0-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.2568302154541016,-6.085009574890137,3.828179359436035,sparrow
+junco|ostrich|La0-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-1.7579724788665771,-6.390843391418457,4.63287091255188,sparrow
+junco|ostrich|La0-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-2.461670398712158,-5.180469036102295,2.7187986373901367,sparrow
+junco|ostrich|La0-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.985121965408325,-3.3156557083129883,0.3305337429046631,sparrow
+junco|ostrich|La0-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.676412582397461,-4.604637622833252,1.928225040435791,sparrow
+junco|ostrich|La0-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.6375856399536133,-3.9641854763031006,1.3265998363494873,sparrow
+junco|ostrich|La0-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-2.568584442138672,-4.504121780395508,1.935537338256836,sparrow
+junco|ostrich|La1-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.1630959510803223,-8.292369842529297,6.129273891448975,songbird
+junco|ostrich|La1-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-1.9863232374191284,-7.867402076721191,5.881078839302063,songbird
+junco|ostrich|La1-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-1.6742841005325317,-7.584683418273926,5.910399317741394,songbird
+junco|ostrich|La1-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.9864014387130737,-7.205407619476318,5.219006180763245,songbird
+junco|ostrich|La1-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.635615348815918,-5.119141101837158,2.4835257530212402,songbird
+junco|ostrich|La1-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.5035898685455322,-4.928224086761475,2.4246342182159424,songbird
+junco|ostrich|La1-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.4648728370666504,-4.442808151245117,1.9779353141784668,songbird
+junco|ostrich|La1-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-2.209395408630371,-5.09411096572876,2.8847155570983887,songbird
+junco|green iguana|La0-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.2693977355957031,-3.7623822689056396,2.4929845333099365,sparrow
+junco|green iguana|La0-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-0.512789785861969,-3.8338615894317627,3.3210718035697937,sparrow
+junco|green iguana|La0-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.4732142984867096,-4.035212516784668,3.5619982182979584,sparrow
+junco|green iguana|La0-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-0.808075487613678,-3.609487295150757,2.801411807537079,sparrow
+junco|green iguana|La0-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.0034241676330566,-8.325963020324707,6.32253885269165,sparrow
+junco|green iguana|La0-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-1.2118773460388184,-8.253104209899902,7.041226863861084,sparrow
+junco|green iguana|La0-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-1.0641134977340698,-8.435465812683105,7.371352314949036,sparrow
+junco|green iguana|La0-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.6841408014297485,-7.762438774108887,6.078297972679138,sparrow
+junco|green iguana|La0-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.6826398372650146,-4.018049716949463,2.3354098796844482,sparrow
+junco|green iguana|La0-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-1.2185218334197998,-4.172165393829346,2.953643560409546,sparrow
+junco|green iguana|La0-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-1.016089916229248,-4.0866475105285645,3.0705575942993164,sparrow
+junco|green iguana|La0-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.3267613649368286,-3.7026150226593018,2.375853657722473,sparrow
+junco|green iguana|La1-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.0023008584976196,-4.642458915710449,3.6401580572128296,songbird
+junco|green iguana|La1-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-0.46330833435058594,-4.527879238128662,4.064570903778076,songbird
+junco|green iguana|La1-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.38306671380996704,-4.771531581878662,4.388464868068695,songbird
+junco|green iguana|La1-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-0.6342829465866089,-4.349934101104736,3.7156511545181274,songbird
+junco|green iguana|La1-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.6818348169326782,-8.719283103942871,7.037448287010193,songbird
+junco|green iguana|La1-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-1.1611946821212769,-8.415292739868164,7.254098057746887,songbird
+junco|green iguana|La1-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.8764761686325073,-8.605239868164062,7.728763699531555,songbird
+junco|green iguana|La1-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.2037194967269897,-8.01447868347168,6.81075918674469,songbird
+junco|green iguana|La1-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.3549515008926392,-5.239832878112793,3.884881377220154,songbird
+junco|green iguana|La1-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-1.268088936805725,-5.176631927490234,3.9085429906845093,songbird
+junco|green iguana|La1-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.8444684743881226,-4.825047016143799,3.9805785417556763,songbird
+junco|green iguana|La1-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-0.9026855230331421,-4.770279407501221,3.8675938844680786,songbird
+junco|green iguana|La2-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-0.3133469521999359,-4.217072010040283,3.9037250578403473,bird
+junco|green iguana|La2-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-0.2812311053276062,-4.03931188583374,3.758080780506134,bird
+junco|green iguana|La2-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.06999213993549347,-4.435604572296143,4.365612432360649,bird
+junco|green iguana|La2-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-0.3770630657672882,-3.910362482070923,3.5332994163036346,bird
+junco|green iguana|La2-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.0448994636535645,-8.17333984375,6.1284403800964355,bird
+junco|green iguana|La2-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-1.923632025718689,-8.087121963500977,6.163489937782288,bird
+junco|green iguana|La2-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.5043726563453674,-8.295502662658691,7.791130006313324,bird
+junco|green iguana|La2-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-2.521354913711548,-8.0950288772583,5.573673963546753,bird
+junco|green iguana|La2-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.895615577697754,-6.09596061706543,2.200345039367676,bird
+junco|green iguana|La2-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-4.418447017669678,-5.963987827301025,1.5455408096313477,bird
+junco|green iguana|La2-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.4355037212371826,-5.564225673675537,3.1287219524383545,bird
+junco|green iguana|La2-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-4.480222702026367,-5.960960388183594,1.4807376861572266,bird
+junco|boa constrictor|La0-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.8873862028121948,-5.140444755554199,3.2530585527420044,sparrow
+junco|boa constrictor|La0-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-1.2612230777740479,-5.384481430053711,4.123258352279663,sparrow
+junco|boa constrictor|La0-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-1.1967074871063232,-5.676204681396484,4.479497194290161,sparrow
+junco|boa constrictor|La0-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.355538010597229,-4.763628005981445,3.4080899953842163,sparrow
+junco|boa constrictor|La0-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.025613784790039,-18.896921157836914,16.871307373046875,sparrow
+junco|boa constrictor|La0-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-1.4805253744125366,-18.994245529174805,17.513720154762268,sparrow
+junco|boa constrictor|La0-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-1.3771764039993286,-19.275829315185547,17.89865291118622,sparrow
+junco|boa constrictor|La0-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.6602559089660645,-17.99432945251465,16.334073543548584,sparrow
+junco|boa constrictor|La0-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.6826398372650146,-4.018049716949463,2.3354098796844482,sparrow
+junco|boa constrictor|La0-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-1.2185218334197998,-4.172165393829346,2.953643560409546,sparrow
+junco|boa constrictor|La0-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-1.016089916229248,-4.0866475105285645,3.0705575942993164,sparrow
+junco|boa constrictor|La0-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.3267613649368286,-3.7026150226593018,2.375853657722473,sparrow
+junco|boa constrictor|La1-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.4281842708587646,-6.577822208404541,5.149637937545776,songbird
+junco|boa constrictor|La1-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-0.8444904685020447,-6.361176013946533,5.5166855454444885,songbird
+junco|boa constrictor|La1-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.9287111163139343,-6.48129415512085,5.552583038806915,songbird
+junco|boa constrictor|La1-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-0.9619636535644531,-6.294260501861572,5.332296848297119,songbird
+junco|boa constrictor|La1-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.6516739130020142,-19.947877883911133,18.29620397090912,songbird
+junco|boa constrictor|La1-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-1.2536065578460693,-19.479867935180664,18.226261377334595,songbird
+junco|boa constrictor|La1-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-1.217779278755188,-19.718761444091797,18.50098216533661,songbird
+junco|boa constrictor|La1-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.2536321878433228,-18.80999755859375,17.556365370750427,songbird
+junco|boa constrictor|La1-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.3549515008926392,-5.239832878112793,3.884881377220154,songbird
+junco|boa constrictor|La1-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-1.268088936805725,-5.176631927490234,3.9085429906845093,songbird
+junco|boa constrictor|La1-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.8444684743881226,-4.825047016143799,3.9805785417556763,songbird
+junco|boa constrictor|La1-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-0.9026855230331421,-4.770279407501221,3.8675938844680786,songbird
+junco|boa constrictor|La2-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.575629711151123,-6.852838516235352,5.2772088050842285,bird
+junco|boa constrictor|La2-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-1.5141700506210327,-6.801814556121826,5.2876445055007935,bird
+junco|boa constrictor|La2-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.6181589365005493,-6.768508434295654,6.150349497795105,bird
+junco|boa constrictor|La2-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.3363063335418701,-6.688297748565674,5.351991415023804,bird
+junco|boa constrictor|La2-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.4211974143981934,-17.85088539123535,15.429687976837158,bird
+junco|boa constrictor|La2-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.550102949142456,-17.61260223388672,15.062499284744263,bird
+junco|boa constrictor|La2-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-1.0949277877807617,-17.837116241455078,16.742188453674316,bird
+junco|boa constrictor|La2-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-2.550117015838623,-17.12433624267578,14.574219226837158,bird
+junco|boa constrictor|La2-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.895615577697754,-6.09596061706543,2.200345039367676,bird
+junco|boa constrictor|La2-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-4.418447017669678,-5.963987827301025,1.5455408096313477,bird
+junco|boa constrictor|La2-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.4355037212371826,-5.564225673675537,3.1287219524383545,bird
+junco|boa constrictor|La2-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-4.480222702026367,-5.960960388183594,1.4807376861572266,bird
+junco|cello|La0-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.017526149749756,-8.732523918151855,6.7149977684021,sparrow
+junco|cello|La0-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-1.3261607885360718,-8.519783973693848,7.193623185157776,sparrow
+junco|cello|La0-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-1.168438196182251,-8.699911117553711,7.53147292137146,sparrow
+junco|cello|La0-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.480541706085205,-8.105828285217285,6.62528657913208,sparrow
+junco|cello|La0-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.0945823192596436,-7.274600982666016,5.180018663406372,sparrow
+junco|cello|La0-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-0.9690647125244141,-7.440148830413818,6.471084117889404,sparrow
+junco|cello|La0-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.8131234049797058,-7.188419342041016,6.37529593706131,sparrow
+junco|cello|La0-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.2686781883239746,-7.398014545440674,6.129336357116699,sparrow
+junco|cello|La0-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.8342537879943848,-6.349910259246826,4.515656471252441,sparrow
+junco|cello|La0-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-0.9358913898468018,-6.240617275238037,5.304725885391235,sparrow
+junco|cello|La0-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.7333154678344727,-6.7645955085754395,6.031280040740967,sparrow
+junco|cello|La0-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.147917628288269,-5.882333278656006,4.734415650367737,sparrow
+junco|cello|La1-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.5317966938018799,-10.373713493347168,8.841916799545288,songbird
+junco|cello|La1-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-1.0911535024642944,-10.248522758483887,9.157369256019592,songbird
+junco|cello|La1-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.7632027268409729,-9.912749290466309,9.149546563625336,songbird
+junco|cello|La1-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-0.9886717796325684,-9.773015975952148,8.78434419631958,songbird
+junco|cello|La1-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.3987438678741455,-10.861876487731934,9.463132619857788,songbird
+junco|cello|La1-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-0.46792006492614746,-10.10481071472168,9.636890649795532,songbird
+junco|cello|La1-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.23124021291732788,-9.748021125793457,9.51678091287613,songbird
+junco|cello|La1-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-0.542367696762085,-10.3356294631958,9.793261766433716,songbird
+junco|cello|La1-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.2751327753067017,-8.333759307861328,7.0586265325546265,songbird
+junco|cello|La1-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-0.622929573059082,-8.042877197265625,7.419947624206543,songbird
+junco|cello|La1-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.26161515712738037,-8.205013275146484,7.943398118019104,songbird
+junco|cello|La1-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-0.5475770235061646,-7.721440315246582,7.1738632917404175,songbird
+junco|cello|La2-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.6129807233810425,-9.707779884338379,8.094799160957336,bird
+junco|cello|La2-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-1.033544659614563,-9.394583702087402,8.36103904247284,bird
+junco|cello|La2-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.2286614179611206,-9.058600425720215,8.829939007759094,bird
+junco|cello|La2-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.4778270721435547,-9.181232452392578,7.703405380249023,bird
+junco|cello|La2-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-0.7169166207313538,-10.161986351013184,9.44506973028183,bird
+junco|cello|La2-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-0.2223242074251175,-10.074304580688477,9.851980373263359,bird
+junco|cello|La2-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.020879002287983894,-10.222455978393555,10.20157697610557,bird
+junco|cello|La2-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-0.3485078513622284,-9.937910079956055,9.589402228593826,bird
+junco|cello|La2-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-0.647435188293457,-8.476149559020996,7.828714370727539,bird
+junco|cello|La2-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-0.5295892357826233,-8.28831958770752,7.758730351924896,bird
+junco|cello|La2-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.04436448588967323,-8.88946533203125,8.845100846141577,bird
+junco|cello|La2-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-0.7412105798721313,-8.034769058227539,7.293558478355408,bird
+junco|marimba|La0-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.7200852632522583,-5.435234069824219,3.7151488065719604,sparrow
+junco|marimba|La0-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-0.8447787165641785,-5.5558013916015625,4.711022675037384,sparrow
+junco|marimba|La0-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.7574110627174377,-5.43241548538208,4.675004422664642,sparrow
+junco|marimba|La0-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.0640480518341064,-5.272207260131836,4.2081592082977295,sparrow
+junco|marimba|La0-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.8493456840515137,-4.561211109161377,2.7118654251098633,sparrow
+junco|marimba|La0-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-0.8512789607048035,-4.5391011238098145,3.687822163105011,sparrow
+junco|marimba|La0-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.7035000324249268,-4.7764892578125,4.072989225387573,sparrow
+junco|marimba|La0-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.0918992757797241,-4.12654447555542,3.034645199775696,sparrow
+junco|marimba|La0-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.8342537879943848,-6.349910259246826,4.515656471252441,sparrow
+junco|marimba|La0-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-0.9358913898468018,-6.240617275238037,5.304725885391235,sparrow
+junco|marimba|La0-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.7333154678344727,-6.7645955085754395,6.031280040740967,sparrow
+junco|marimba|La0-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.147917628288269,-5.882333278656006,4.734415650367737,sparrow
+junco|marimba|La1-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.472439169883728,-6.737733840942383,5.265294671058655,songbird
+junco|marimba|La1-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-0.720976710319519,-6.576492786407471,5.855516076087952,songbird
+junco|marimba|La1-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.47265446186065674,-6.095205783843994,5.622551321983337,songbird
+junco|marimba|La1-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-0.8381001949310303,-6.464575290679932,5.626475095748901,songbird
+junco|marimba|La1-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-0.6624413728713989,-6.194416522979736,5.531975150108337,songbird
+junco|marimba|La1-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-0.1425665020942688,-6.125206470489502,5.982639968395233,songbird
+junco|marimba|La1-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.046532172709703445,-6.050751209259033,6.00421903654933,songbird
+junco|marimba|La1-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-0.26808932423591614,-6.005756378173828,5.737667053937912,songbird
+junco|marimba|La1-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.2751327753067017,-8.333759307861328,7.0586265325546265,songbird
+junco|marimba|La1-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-0.622929573059082,-8.042877197265625,7.419947624206543,songbird
+junco|marimba|La1-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.26161515712738037,-8.205013275146484,7.943398118019104,songbird
+junco|marimba|La1-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-0.5475770235061646,-7.721440315246582,7.1738632917404175,songbird
+junco|marimba|La2-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.638076663017273,-7.09928560256958,5.461208939552307,bird
+junco|marimba|La2-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-0.9074942469596863,-7.011232376098633,6.1037381291389465,bird
+junco|marimba|La2-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.26626721024513245,-6.755836009979248,6.489568799734116,bird
+junco|marimba|La2-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.441835641860962,-6.8827805519104,5.4409449100494385,bird
+junco|marimba|La2-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-0.21018487215042114,-5.823112964630127,5.612928092479706,bird
+junco|marimba|La2-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-0.17724642157554626,-5.670326232910156,5.49307981133461,bird
+junco|marimba|La2-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.01581002026796341,-5.858585357666016,5.842775337398052,bird
+junco|marimba|La2-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-0.2889840006828308,-5.523796558380127,5.234812557697296,bird
+junco|marimba|La2-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-0.647435188293457,-8.476149559020996,7.828714370727539,bird
+junco|marimba|La2-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-0.5295892357826233,-8.28831958770752,7.758730351924896,bird
+junco|marimba|La2-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.04436448588967323,-8.88946533203125,8.845100846141577,bird
+junco|marimba|La2-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-0.7412105798721313,-8.034769058227539,7.293558478355408,bird
+ostrich|junco|La0-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.148869514465332,-8.49850845336914,5.349638938903809,ratite
+ostrich|junco|La0-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-3.4864351749420166,-8.918147087097168,5.431711912155151,ratite
+ostrich|junco|La0-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-4.032994747161865,-10.48616886138916,6.453174114227295,ratite
+ostrich|junco|La0-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.449849843978882,-9.62771224975586,6.1778624057769775,ratite
+ostrich|junco|La0-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.3242366313934326,-6.953108310699463,3.6288716793060303,ratite
+ostrich|junco|La0-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-3.5694451332092285,-7.3155198097229,3.746074676513672,ratite
+ostrich|junco|La0-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-3.932302236557007,-8.45961856842041,4.527316331863403,ratite
+ostrich|junco|La0-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.543823003768921,-8.188337326049805,4.644514322280884,ratite
+ostrich|junco|La1-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.153463363647461,-8.681404113769531,6.52794075012207,flightless bird
+ostrich|junco|La1-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.2784512042999268,-8.988053321838379,6.709602117538452,flightless bird
+ostrich|junco|La1-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.4120991230010986,-11.249070167541504,8.836971044540405,flightless bird
+ostrich|junco|La1-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.9402204751968384,-9.217059135437012,7.276838660240173,flightless bird
+ostrich|junco|La1-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.4009110927581787,-7.54278564453125,5.141874551773071,flightless bird
+ostrich|junco|La1-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.4394681453704834,-8.2373628616333,5.797894716262817,flightless bird
+ostrich|junco|La1-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.443848133087158,-8.911911010742188,6.468062877655029,flightless bird
+ostrich|junco|La1-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-2.220728874206543,-7.8936262130737305,5.6728973388671875,flightless bird
+ostrich|green iguana|La0-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.1175949573516846,-3.2930753231048584,0.17548036575317383,ratite
+ostrich|green iguana|La0-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-3.265578269958496,-3.5757834911346436,0.31020522117614746,ratite
+ostrich|green iguana|La0-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-3.860132932662964,-3.9243087768554688,0.06417584419250488,ratite
+ostrich|green iguana|La0-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.366067409515381,-3.6266987323760986,0.2606313228607178,ratite
+ostrich|green iguana|La0-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.2724413871765137,-7.724149703979492,4.4517083168029785,ratite
+ostrich|green iguana|La0-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-3.443122386932373,-8.387131690979004,4.944009304046631,ratite
+ostrich|green iguana|La0-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-4.022284984588623,-9.174949645996094,5.152664661407471,ratite
+ostrich|green iguana|La0-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.477764129638672,-8.197186470031738,4.719422340393066,ratite
+ostrich|green iguana|La0-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.522017478942871,-4.55910062789917,1.0370831489562988,ratite
+ostrich|green iguana|La0-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-3.7895662784576416,-4.835138320922852,1.04557204246521,ratite
+ostrich|green iguana|La0-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-4.344193935394287,-4.917026996612549,0.5728330612182617,ratite
+ostrich|green iguana|La0-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.8057162761688232,-4.446098804473877,0.6403825283050537,ratite
+ostrich|green iguana|La1-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.1427838802337646,-4.265649795532227,2.122865915298462,flightless bird
+ostrich|green iguana|La1-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.1957461833953857,-4.369563579559326,2.1738173961639404,flightless bird
+ostrich|green iguana|La1-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-1.8716906309127808,-4.677231788635254,2.805541157722473,flightless bird
+ostrich|green iguana|La1-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.6247830390930176,-4.273561954498291,2.6487789154052734,flightless bird
+ostrich|green iguana|La1-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.3765485286712646,-8.061079978942871,5.6845314502716064,flightless bird
+ostrich|green iguana|La1-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.361295461654663,-8.344810485839844,5.983515024185181,flightless bird
+ostrich|green iguana|La1-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.4694581031799316,-9.35084056854248,6.881382465362549,flightless bird
+ostrich|green iguana|La1-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-2.0285754203796387,-7.839957237243652,5.811381816864014,flightless bird
+ostrich|green iguana|La1-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.216111898422241,-4.323274612426758,2.1071627140045166,flightless bird
+ostrich|green iguana|La1-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.2784769535064697,-4.510826587677002,2.2323496341705322,flightless bird
+ostrich|green iguana|La1-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.0953369140625,-4.7102580070495605,2.6149210929870605,flightless bird
+ostrich|green iguana|La1-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.7244257926940918,-3.7611420154571533,2.0367162227630615,flightless bird
+ostrich|green iguana|La2-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.9785293340682983,-3.696483612060547,1.7179542779922485,bird
+ostrich|green iguana|La2-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-4.589221477508545,-3.1530866622924805,-1.4361348152160645,iguana
+ostrich|green iguana|La2-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.6626694798469543,-3.8456461429595947,3.1829766631126404,bird
+ostrich|green iguana|La2-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-4.53894567489624,-3.0458755493164062,-1.493070125579834,iguana
+ostrich|green iguana|La2-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.697591543197632,-7.4583539962768555,3.7607624530792236,bird
+ostrich|green iguana|La2-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-4.63955545425415,-6.261257648468018,1.6217021942138672,bird
+ostrich|green iguana|La2-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.4784083366394043,-7.784322261810303,5.305913925170898,bird
+ostrich|green iguana|La2-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-4.891678333282471,-5.539730072021484,0.6480517387390137,bird
+ostrich|green iguana|La2-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-5.115767002105713,-5.034511089324951,-0.08125591278076172,reptile
+ostrich|green iguana|La2-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-6.419735908508301,-3.9919118881225586,-2.427824020385742,reptile
+ostrich|green iguana|La2-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-6.657673358917236,-5.266689300537109,-1.390984058380127,reptile
+ostrich|green iguana|La2-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-7.228276252746582,-3.4539270401000977,-3.7743492126464844,reptile
+ostrich|boa constrictor|La0-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.5711512565612793,-5.482744216918945,2.911592960357666,ratite
+ostrich|boa constrictor|La0-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.9319722652435303,-5.668542861938477,2.7365705966949463,ratite
+ostrich|boa constrictor|La0-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-3.628871202468872,-6.4899749755859375,2.8611037731170654,ratite
+ostrich|boa constrictor|La0-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.124723196029663,-5.83617639541626,2.7114531993865967,ratite
+ostrich|boa constrictor|La0-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.237481117248535,-18.27760887145996,15.040127754211426,ratite
+ostrich|boa constrictor|La0-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-3.4466378688812256,-19.387340545654297,15.940702676773071,ratite
+ostrich|boa constrictor|La0-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-3.9404008388519287,-20.822124481201172,16.881723642349243,ratite
+ostrich|boa constrictor|La0-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.623598337173462,-19.15923309326172,15.535634756088257,ratite
+ostrich|boa constrictor|La0-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.522017478942871,-4.55910062789917,1.0370831489562988,ratite
+ostrich|boa constrictor|La0-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-3.7895662784576416,-4.835138320922852,1.04557204246521,ratite
+ostrich|boa constrictor|La0-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-4.344193935394287,-4.917026996612549,0.5728330612182617,ratite
+ostrich|boa constrictor|La0-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.8057162761688232,-4.446098804473877,0.6403825283050537,ratite
+ostrich|boa constrictor|La1-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.173783779144287,-6.639811038970947,4.46602725982666,flightless bird
+ostrich|boa constrictor|La1-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.1950316429138184,-6.8074951171875,4.612463474273682,flightless bird
+ostrich|boa constrictor|La1-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.329028606414795,-7.451135635375977,5.122107028961182,flightless bird
+ostrich|boa constrictor|La1-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.8525763750076294,-6.513818264007568,4.661241888999939,flightless bird
+ostrich|boa constrictor|La1-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.3770389556884766,-20.238523483276367,17.86148452758789,flightless bird
+ostrich|boa constrictor|La1-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.398070812225342,-21.725452423095703,19.32738161087036,flightless bird
+ostrich|boa constrictor|La1-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.448932647705078,-23.04210090637207,20.593168258666992,flightless bird
+ostrich|boa constrictor|La1-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-2.018871545791626,-19.169883728027344,17.151012182235718,flightless bird
+ostrich|boa constrictor|La1-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.216111898422241,-4.323274612426758,2.1071627140045166,flightless bird
+ostrich|boa constrictor|La1-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.2784769535064697,-4.510826587677002,2.2323496341705322,flightless bird
+ostrich|boa constrictor|La1-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.0953369140625,-4.7102580070495605,2.6149210929870605,flightless bird
+ostrich|boa constrictor|La1-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.7244257926940918,-3.7611420154571533,2.0367162227630615,flightless bird
+ostrich|boa constrictor|La2-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.9419922828674316,-6.235415935516357,2.293423652648926,bird
+ostrich|boa constrictor|La2-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-5.0880231857299805,-4.644752025604248,-0.4432711601257324,constrictor
+ostrich|boa constrictor|La2-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-3.499640703201294,-6.340341091156006,2.840700387954712,bird
+ostrich|boa constrictor|La2-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-5.592398643493652,-3.8699722290039062,-1.722426414489746,constrictor
+ostrich|boa constrictor|La2-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-4.666421413421631,-17.47892189025879,12.812500476837158,bird
+ostrich|boa constrictor|La2-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-5.321230888366699,-15.4579496383667,10.13671875,bird
+ostrich|boa constrictor|La2-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-3.9262912273406982,-18.14894676208496,14.222655534744263,bird
+ostrich|boa constrictor|La2-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-6.072573661804199,-13.7405424118042,7.66796875,bird
+ostrich|boa constrictor|La2-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-5.115767002105713,-5.034511089324951,-0.08125591278076172,reptile
+ostrich|boa constrictor|La2-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-6.419735908508301,-3.9919118881225586,-2.427824020385742,reptile
+ostrich|boa constrictor|La2-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-6.657673358917236,-5.266689300537109,-1.390984058380127,reptile
+ostrich|boa constrictor|La2-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-7.228276252746582,-3.4539270401000977,-3.7743492126464844,reptile
+ostrich|cello|La0-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.7436680793762207,-8.54638957977295,5.8027215003967285,ratite
+ostrich|cello|La0-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-3.223809003829956,-9.831229209899902,6.607420206069946,ratite
+ostrich|cello|La0-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-3.7519643306732178,-10.359408378601074,6.6074440479278564,ratite
+ostrich|cello|La0-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.2540342807769775,-9.877151489257812,6.623117208480835,ratite
+ostrich|cello|La0-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.2428629398345947,-7.711686134338379,4.468823194503784,ratite
+ostrich|cello|La0-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-3.5444560050964355,-8.66174030303955,5.117284297943115,ratite
+ostrich|cello|La0-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-4.041074275970459,-11.18078899383545,7.13971471786499,ratite
+ostrich|cello|La0-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.5583367347717285,-9.757670402526855,6.199333667755127,ratite
+ostrich|cello|La0-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.0732455253601074,-5.752899646759033,2.679654121398926,ratite
+ostrich|cello|La0-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-3.4012794494628906,-6.651249885559082,3.2499704360961914,ratite
+ostrich|cello|La0-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-3.9318764209747314,-7.94356107711792,4.0116846561431885,ratite
+ostrich|cello|La0-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.465062379837036,-6.785345077514648,3.3202826976776123,ratite
+ostrich|cello|La1-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.5475292205810547,-10.848779678344727,8.301250457763672,flightless bird
+ostrich|cello|La1-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.5943877696990967,-11.475234031677246,8.88084626197815,flightless bird
+ostrich|cello|La1-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.5785937309265137,-12.274018287658691,9.695424556732178,flightless bird
+ostrich|cello|La1-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-2.297762393951416,-11.152298927307129,8.854536533355713,flightless bird
+ostrich|cello|La1-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.303330659866333,-10.537137031555176,8.233806371688843,flightless bird
+ostrich|cello|La1-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.3294241428375244,-10.826305389404297,8.496881246566772,flightless bird
+ostrich|cello|La1-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.2821204662323,-12.873046875,10.5909264087677,flightless bird
+ostrich|cello|La1-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-2.0330450534820557,-11.426501274108887,9.393456220626831,flightless bird
+ostrich|cello|La1-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.074409008026123,-6.7327165603637695,4.6583075523376465,flightless bird
+ostrich|cello|La1-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.022578477859497,-6.889347076416016,4.8667685985565186,flightless bird
+ostrich|cello|La1-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.0896689891815186,-8.708736419677734,6.619067430496216,flightless bird
+ostrich|cello|La1-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.794105052947998,-6.777104377746582,4.982999324798584,flightless bird
+ostrich|cello|La2-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.093555450439453,-9.502744674682617,6.409189224243164,bird
+ostrich|cello|La2-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-4.884272575378418,-9.303776741027832,4.419504165649414,bird
+ostrich|cello|La2-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-1.1907013654708862,-9.555547714233398,8.364846348762512,bird
+ostrich|cello|La2-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-5.023911476135254,-9.070830345153809,4.046918869018555,bird
+ostrich|cello|La2-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.9723775386810303,-9.578743934631348,5.606366395950317,bird
+ostrich|cello|La2-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-5.1796650886535645,-7.922277450561523,2.742612361907959,bird
+ostrich|cello|La2-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-1.0234768390655518,-10.457352638244629,9.433875799179077,bird
+ostrich|cello|La2-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-5.53721809387207,-8.47430419921875,2.9370861053466797,bird
+ostrich|cello|La2-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.7277109622955322,-7.531863212585449,3.804152250289917,bird
+ostrich|cello|La2-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-5.086052417755127,-6.406330585479736,1.3202781677246094,bird
+ostrich|cello|La2-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-1.1263691186904907,-9.075007438659668,7.948638319969177,bird
+ostrich|cello|La2-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-5.427921772003174,-6.3272705078125,0.8993487358093262,bird
+ostrich|marimba|La0-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.700817346572876,-5.452041149139404,2.7512238025665283,ratite
+ostrich|marimba|La0-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-3.0561249256134033,-5.774696350097656,2.718571424484253,ratite
+ostrich|marimba|La0-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-3.628742218017578,-6.324037551879883,2.6952953338623047,ratite
+ostrich|marimba|La0-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.0851404666900635,-5.811933517456055,2.726793050765991,ratite
+ostrich|marimba|La0-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.201559543609619,-4.618794918060303,1.4172353744506836,ratite
+ostrich|marimba|La0-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-3.465372323989868,-4.950920581817627,1.4855482578277588,ratite
+ostrich|marimba|La0-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-3.9389748573303223,-5.715905666351318,1.776930809020996,ratite
+ostrich|marimba|La0-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.495185613632202,-4.996826171875,1.5016405582427979,ratite
+ostrich|marimba|La0-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.0732455253601074,-5.752899646759033,2.679654121398926,ratite
+ostrich|marimba|La0-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-3.4012794494628906,-6.651249885559082,3.2499704360961914,ratite
+ostrich|marimba|La0-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-3.9318764209747314,-7.94356107711792,4.0116846561431885,ratite
+ostrich|marimba|La0-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.465062379837036,-6.785345077514648,3.3202826976776123,ratite
+ostrich|marimba|La1-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.4229209423065186,-6.190254211425781,3.7673332691192627,flightless bird
+ostrich|marimba|La1-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.5011308193206787,-6.383235454559326,3.8821046352386475,flightless bird
+ostrich|marimba|La1-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.6306560039520264,-7.269774913787842,4.639118909835815,flightless bird
+ostrich|marimba|La1-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-2.2147741317749023,-6.237226486206055,4.022452354431152,flightless bird
+ostrich|marimba|La1-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.2769906520843506,-5.327834606170654,3.0508439540863037,flightless bird
+ostrich|marimba|La1-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.261497974395752,-5.438649654388428,3.177151679992676,flightless bird
+ostrich|marimba|La1-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.245415210723877,-6.762441635131836,4.517026424407959,flightless bird
+ostrich|marimba|La1-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.9080182313919067,-5.4197998046875,3.5117815732955933,flightless bird
+ostrich|marimba|La1-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.074409008026123,-6.7327165603637695,4.6583075523376465,flightless bird
+ostrich|marimba|La1-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.022578477859497,-6.889347076416016,4.8667685985565186,flightless bird
+ostrich|marimba|La1-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.0896689891815186,-8.708736419677734,6.619067430496216,flightless bird
+ostrich|marimba|La1-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.794105052947998,-6.777104377746582,4.982999324798584,flightless bird
+ostrich|marimba|La2-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.3334240913391113,-6.632430553436279,3.299006462097168,bird
+ostrich|marimba|La2-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-4.188730239868164,-5.545419692993164,1.356689453125,bird
+ostrich|marimba|La2-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.058526039123535,-7.158298969268799,5.099772930145264,bird
+ostrich|marimba|La2-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-4.111751556396484,-5.482646942138672,1.3708953857421875,bird
+ostrich|marimba|La2-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.974555253982544,-5.1063361167907715,2.1317808628082275,bird
+ostrich|marimba|La2-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-4.4820404052734375,-4.40044641494751,-0.08159399032592773,percussion instrument
+ostrich|marimba|La2-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.39708152413368225,-5.764308929443359,5.367227405309677,bird
+ostrich|marimba|La2-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-4.652726173400879,-4.16563081741333,-0.48709535598754883,percussion instrument
+ostrich|marimba|La2-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.7277109622955322,-7.531863212585449,3.804152250289917,bird
+ostrich|marimba|La2-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-5.086052417755127,-6.406330585479736,1.3202781677246094,bird
+ostrich|marimba|La2-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-1.1263691186904907,-9.075007438659668,7.948638319969177,bird
+ostrich|marimba|La2-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-5.427921772003174,-6.3272705078125,0.8993487358093262,bird
+green iguana|junco|La0-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.349871039390564,-10.278206825256348,8.928335785865784,iguana
+green iguana|junco|La0-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-1.4164987802505493,-10.086222648620605,8.669723868370056,iguana
+green iguana|junco|La0-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.922971785068512,-10.65307331085205,9.730101525783539,iguana
+green iguana|junco|La0-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.0514373779296875,-10.307065963745117,9.25562858581543,iguana
+green iguana|junco|La0-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.4833730459213257,-9.238780975341797,7.755407929420471,iguana
+green iguana|junco|La0-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-1.5813521146774292,-8.745108604431152,7.163756489753723,iguana
+green iguana|junco|La0-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-1.0264633893966675,-9.755553245544434,8.729089856147766,iguana
+green iguana|junco|La0-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-0.9969010353088379,-8.979777336120605,7.982876300811768,iguana
+green iguana|junco|La0-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.047881603240967,-18.006919860839844,15.959038257598877,iguana
+green iguana|junco|La0-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-1.9336495399475098,-15.660311698913574,13.726662158966064,iguana
+green iguana|junco|La0-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-1.7831453084945679,-18.564271926879883,16.781126618385315,iguana
+green iguana|junco|La0-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.2990342378616333,-18.084596633911133,16.7855623960495,iguana
+green iguana|junco|La1-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.1016640663146973,-9.34261703491211,7.240952968597412,lizard
+green iguana|junco|La1-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.1712050437927246,-9.276200294494629,7.104995250701904,lizard
+green iguana|junco|La1-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-1.9786838293075562,-9.771220207214355,7.792536377906799,lizard
+green iguana|junco|La1-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-2.3718817234039307,-9.108460426330566,6.736578702926636,lizard
+green iguana|junco|La1-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.3100337982177734,-9.198736190795898,6.888702392578125,lizard
+green iguana|junco|La1-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.597318410873413,-8.818038940429688,6.220720529556274,lizard
+green iguana|junco|La1-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.1247189044952393,-9.105206489562988,6.980487585067749,lizard
+green iguana|junco|La1-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-2.371981620788574,-8.20793628692627,5.835954666137695,lizard
+green iguana|junco|La1-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.0328564643859863,-16.75711441040039,13.724257946014404,lizard
+green iguana|junco|La1-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-3.2832014560699463,-14.878898620605469,11.595697164535522,lizard
+green iguana|junco|La1-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-3.0172531604766846,-16.089189529418945,13.07193636894226,lizard
+green iguana|junco|La1-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-2.986125946044922,-15.882404327392578,12.896278381347656,lizard
+green iguana|junco|La2-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-0.9768510460853577,-7.836742401123047,6.859891355037689,reptile
+green iguana|junco|La2-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-1.0114485025405884,-7.906722545623779,6.895274043083191,reptile
+green iguana|junco|La2-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.9767575263977051,-8.281941413879395,7.3051838874816895,reptile
+green iguana|junco|La2-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.0912128686904907,-7.660398483276367,6.5691856145858765,reptile
+green iguana|junco|La2-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.560604214668274,-9.630010604858398,8.069406390190125,reptile
+green iguana|junco|La2-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-1.7830438613891602,-9.481237411499023,7.698193550109863,reptile
+green iguana|junco|La2-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-1.5915179252624512,-9.736927032470703,8.145409107208252,reptile
+green iguana|junco|La2-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.6484633684158325,-8.482481002807617,6.834017634391785,reptile
+green iguana|junco|La2-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.120642900466919,-17.541584014892578,15.42094111442566,reptile
+green iguana|junco|La2-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.33655047416687,-16.818218231201172,14.481667757034302,reptile
+green iguana|junco|La2-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.1986184120178223,-17.271604537963867,15.072986125946045,reptile
+green iguana|junco|La2-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-2.1258184909820557,-17.330551147460938,15.204732656478882,reptile
+green iguana|ostrich|La0-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.967408299446106,-5.841759204864502,3.874350905418396,iguana
+green iguana|ostrich|La0-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-1.3768576383590698,-4.780124187469482,3.4032665491104126,iguana
+green iguana|ostrich|La0-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.1101784706115723,-6.934860706329346,4.824682235717773,iguana
+green iguana|ostrich|La0-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.5143903493881226,-5.545069694519043,4.03067934513092,iguana
+green iguana|ostrich|La0-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.5555366277694702,-4.36027193069458,2.80473530292511,iguana
+green iguana|ostrich|La0-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-1.2737401723861694,-3.4482319355010986,2.174491763114929,iguana
+green iguana|ostrich|La0-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-1.2683206796646118,-4.884246349334717,3.615925669670105,iguana
+green iguana|ostrich|La0-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.1720478534698486,-4.114803791046143,2.942755937576294,iguana
+green iguana|ostrich|La0-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.047881603240967,-18.006919860839844,15.959038257598877,iguana
+green iguana|ostrich|La0-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-1.9336495399475098,-15.660311698913574,13.726662158966064,iguana
+green iguana|ostrich|La0-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-1.7831453084945679,-18.564271926879883,16.781126618385315,iguana
+green iguana|ostrich|La0-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.2990342378616333,-18.084596633911133,16.7855623960495,iguana
+green iguana|ostrich|La1-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.0306224822998047,-6.976001262664795,3.9453787803649902,lizard
+green iguana|ostrich|La1-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.846121311187744,-5.893060207366943,3.046938896179199,lizard
+green iguana|ostrich|La1-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-3.064718246459961,-7.348047733306885,4.283329486846924,lizard
+green iguana|ostrich|La1-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-2.945197343826294,-5.671861171722412,2.726663827896118,lizard
+green iguana|ostrich|La1-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.581873655319214,-4.9205002784729,2.3386266231536865,lizard
+green iguana|ostrich|La1-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.9391531944274902,-3.628721237182617,0.689568042755127,lizard
+green iguana|ostrich|La1-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.511834144592285,-4.955833435058594,2.4439992904663086,lizard
+green iguana|ostrich|La1-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-2.7219221591949463,-4.3068318367004395,1.5849096775054932,lizard
+green iguana|ostrich|La1-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.0328564643859863,-16.75711441040039,13.724257946014404,lizard
+green iguana|ostrich|La1-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-3.2832014560699463,-14.878898620605469,11.595697164535522,lizard
+green iguana|ostrich|La1-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-3.0172531604766846,-16.089189529418945,13.07193636894226,lizard
+green iguana|ostrich|La1-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-2.986125946044922,-15.882404327392578,12.896278381347656,lizard
+green iguana|ostrich|La2-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.131470203399658,-8.744105339050293,6.612635135650635,reptile
+green iguana|ostrich|La2-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-1.9964519739151,-8.02009391784668,6.02364194393158,reptile
+green iguana|ostrich|La2-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.1623642444610596,-9.1146879196167,6.95232367515564,reptile
+green iguana|ostrich|La2-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-2.1731278896331787,-7.5429277420043945,5.369799852371216,reptile
+green iguana|ostrich|La2-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.4989784955978394,-5.168278694152832,3.6693001985549927,reptile
+green iguana|ostrich|La2-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-1.8485692739486694,-4.356393337249756,2.5078240633010864,reptile
+green iguana|ostrich|La2-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-1.5866032838821411,-5.0762104988098145,3.4896072149276733,reptile
+green iguana|ostrich|La2-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.6799217462539673,-4.294525623321533,2.614603877067566,reptile
+green iguana|ostrich|La2-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.120642900466919,-17.541584014892578,15.42094111442566,reptile
+green iguana|ostrich|La2-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.33655047416687,-16.818218231201172,14.481667757034302,reptile
+green iguana|ostrich|La2-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.1986184120178223,-17.271604537963867,15.072986125946045,reptile
+green iguana|ostrich|La2-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-2.1258184909820557,-17.330551147460938,15.204732656478882,reptile
+green iguana|boa constrictor|La0-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.9663331508636475,-4.8103508949279785,1.844017744064331,iguana
+green iguana|boa constrictor|La0-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.6649630069732666,-3.7875940799713135,1.1226310729980469,iguana
+green iguana|boa constrictor|La0-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.8075180053710938,-4.891162395477295,2.083644390106201,iguana
+green iguana|boa constrictor|La0-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-2.5862886905670166,-4.703715801239014,2.117427110671997,iguana
+green iguana|boa constrictor|La0-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.555445671081543,-16.006174087524414,14.450728416442871,iguana
+green iguana|boa constrictor|La0-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-1.416569709777832,-12.28091049194336,10.864340782165527,iguana
+green iguana|boa constrictor|La0-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-1.617395043373108,-13.203710556030273,11.586315512657166,iguana
+green iguana|boa constrictor|La0-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.360162615776062,-14.928135871887207,13.567973256111145,iguana
+green iguana|boa constrictor|La1-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.048992395401001,-6.111037731170654,3.0620453357696533,lizard
+green iguana|boa constrictor|La1-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-3.1676406860351562,-4.528682708740234,1.3610420227050781,lizard
+green iguana|boa constrictor|La1-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-3.25545597076416,-5.666728973388672,2.4112730026245117,lizard
+green iguana|boa constrictor|La1-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.306083917617798,-5.094935894012451,1.7888519763946533,lizard
+green iguana|boa constrictor|La1-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.6513917446136475,-16.255905151367188,13.60451340675354,lizard
+green iguana|boa constrictor|La1-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-3.2371339797973633,-13.302389144897461,10.065255165100098,lizard
+green iguana|boa constrictor|La1-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-3.2088005542755127,-13.292595863342285,10.083795309066772,lizard
+green iguana|boa constrictor|La1-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.0019636154174805,-14.488298416137695,11.486334800720215,lizard
+green iguana|cello|La0-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.1829419136047363,-10.5704927444458,8.387550830841064,iguana
+green iguana|cello|La0-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.162142038345337,-9.964929580688477,7.80278754234314,iguana
+green iguana|cello|La0-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-1.7260276079177856,-10.651629447937012,8.925601840019226,iguana
+green iguana|cello|La0-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.6794986724853516,-10.522332191467285,8.842833518981934,iguana
+green iguana|cello|La0-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.4525138139724731,-10.720626831054688,9.268113017082214,iguana
+green iguana|cello|La0-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-1.3039259910583496,-9.385741233825684,8.081815242767334,iguana
+green iguana|cello|La0-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-1.0264476537704468,-11.400452613830566,10.37400496006012,iguana
+green iguana|cello|La0-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-0.8553219437599182,-10.767232894897461,9.911910951137543,iguana
+green iguana|cello|La0-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.3907743692398071,-9.985596656799316,8.59482228755951,iguana
+green iguana|cello|La0-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-1.1919194459915161,-8.22929573059082,7.037376284599304,iguana
+green iguana|cello|La0-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-1.0661985874176025,-10.862015724182129,9.795817136764526,iguana
+green iguana|cello|La0-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-0.7791016697883606,-10.212625503540039,9.433523833751678,iguana
+green iguana|cello|La1-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.0715630054473877,-11.239717483520508,8.16815447807312,lizard
+green iguana|cello|La1-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-3.1496787071228027,-10.719060897827148,7.569382190704346,lizard
+green iguana|cello|La1-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.993562698364258,-11.293237686157227,8.299674987792969,lizard
+green iguana|cello|La1-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.141744375228882,-10.82398509979248,7.682240724563599,lizard
+green iguana|cello|La1-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.728827714920044,-10.407854080200195,7.679026365280151,lizard
+green iguana|cello|La1-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.985896587371826,-9.474364280700684,6.488467693328857,lizard
+green iguana|cello|La1-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.425900459289551,-11.37248420715332,8.94658374786377,lizard
+green iguana|cello|La1-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.001420497894287,-9.988004684448242,6.986584186553955,lizard
+green iguana|cello|La1-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.5811591148376465,-9.811660766601562,7.230501651763916,lizard
+green iguana|cello|La1-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.8769381046295166,-8.802742004394531,5.925803899765015,lizard
+green iguana|cello|La1-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.2865543365478516,-10.591280937194824,8.304726600646973,lizard
+green iguana|cello|La1-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-2.58892560005188,-9.528420448303223,6.939494848251343,lizard
+green iguana|cello|La2-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.514107584953308,-10.602561950683594,9.088454365730286,reptile
+green iguana|cello|La2-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-1.7104483842849731,-10.398781776428223,8.68833339214325,reptile
+green iguana|cello|La2-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-1.6224361658096313,-10.638751029968262,9.01631486415863,reptile
+green iguana|cello|La2-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.6276990175247192,-10.14970874786377,8.52200973033905,reptile
+green iguana|cello|La2-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.5089291334152222,-10.787994384765625,9.279065251350403,reptile
+green iguana|cello|La2-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-1.7259459495544434,-10.330280303955078,8.604334354400635,reptile
+green iguana|cello|La2-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-1.380408763885498,-11.424321174621582,10.043912410736084,reptile
+green iguana|cello|La2-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.7829723358154297,-10.1521577835083,8.369185447692871,reptile
+green iguana|cello|La2-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.6121286153793335,-8.808829307556152,7.196700692176819,reptile
+green iguana|cello|La2-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-1.824470043182373,-8.176167488098145,6.3516974449157715,reptile
+green iguana|cello|La2-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-1.4625543355941772,-9.949713706970215,8.487159371376038,reptile
+green iguana|cello|La2-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.5295413732528687,-8.466205596923828,6.9366642236709595,reptile
+green iguana|marimba|La0-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.5813339948654175,-7.293397426605225,5.712063431739807,iguana
+green iguana|marimba|La0-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-1.5245680809020996,-6.775990962982178,5.251422882080078,iguana
+green iguana|marimba|La0-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-1.1466208696365356,-7.341207504272461,6.194586634635925,iguana
+green iguana|marimba|La0-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.1719306707382202,-7.338003158569336,6.166072487831116,iguana
+green iguana|marimba|La0-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.648455262184143,-5.902544021606445,4.254088759422302,iguana
+green iguana|marimba|La0-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-1.3396130800247192,-5.357987880706787,4.018374800682068,iguana
+green iguana|marimba|La0-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-1.011522889137268,-6.57879114151001,5.567268252372742,iguana
+green iguana|marimba|La0-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.021591067314148,-6.310203552246094,5.288612484931946,iguana
+green iguana|marimba|La0-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.3907743692398071,-9.985596656799316,8.59482228755951,iguana
+green iguana|marimba|La0-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-1.1919194459915161,-8.22929573059082,7.037376284599304,iguana
+green iguana|marimba|La0-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-1.0661985874176025,-10.862015724182129,9.795817136764526,iguana
+green iguana|marimba|La0-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-0.7791016697883606,-10.212625503540039,9.433523833751678,iguana
+green iguana|marimba|La1-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.395059585571289,-7.8814826011657715,5.486423015594482,lizard
+green iguana|marimba|La1-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.495979070663452,-7.505937576293945,5.009958505630493,lizard
+green iguana|marimba|La1-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.147656202316284,-8.01773452758789,5.8700783252716064,lizard
+green iguana|marimba|La1-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-2.658932685852051,-7.8071770668029785,5.148244380950928,lizard
+green iguana|marimba|La1-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.939105272293091,-5.828007221221924,2.888901948928833,lizard
+green iguana|marimba|La1-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-3.0251283645629883,-5.446525573730469,2.4213972091674805,lizard
+green iguana|marimba|La1-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.37943434715271,-6.41196870803833,4.03253436088562,lizard
+green iguana|marimba|La1-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-2.915748119354248,-5.951770305633545,3.036022186279297,lizard
+green iguana|marimba|La1-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.5811591148376465,-9.811660766601562,7.230501651763916,lizard
+green iguana|marimba|La1-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.8769381046295166,-8.802742004394531,5.925803899765015,lizard
+green iguana|marimba|La1-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.2865543365478516,-10.591280937194824,8.304726600646973,lizard
+green iguana|marimba|La1-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-2.58892560005188,-9.528420448303223,6.939494848251343,lizard
+green iguana|marimba|La2-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.4420734643936157,-7.261834621429443,5.819761157035828,reptile
+green iguana|marimba|La2-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-1.5915368795394897,-7.089680194854736,5.498143315315247,reptile
+green iguana|marimba|La2-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-1.3190113306045532,-7.444454193115234,6.125442862510681,reptile
+green iguana|marimba|La2-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.5192875862121582,-7.187358379364014,5.6680707931518555,reptile
+green iguana|marimba|La2-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.7829737663269043,-4.988866329193115,3.205892562866211,reptile
+green iguana|marimba|La2-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-1.8971532583236694,-4.821773529052734,2.924620270729065,reptile
+green iguana|marimba|La2-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-1.3292174339294434,-5.3203654289245605,3.991147994995117,reptile
+green iguana|marimba|La2-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.6742321252822876,-4.85146951675415,3.177237391471863,reptile
+green iguana|marimba|La2-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.6121286153793335,-8.808829307556152,7.196700692176819,reptile
+green iguana|marimba|La2-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-1.824470043182373,-8.176167488098145,6.3516974449157715,reptile
+green iguana|marimba|La2-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-1.4625543355941772,-9.949713706970215,8.487159371376038,reptile
+green iguana|marimba|La2-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.5295413732528687,-8.466205596923828,6.9366642236709595,reptile
+boa constrictor|junco|La0-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-0.015975160524249077,-9.370884895324707,9.354909734800458,constrictor
+boa constrictor|junco|La0-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-0.01765645295381546,-9.62550163269043,9.607845179736614,constrictor
+boa constrictor|junco|La0-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.011076778173446655,-9.563754081726074,9.552677303552628,constrictor
+boa constrictor|junco|La0-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-0.0143029959872365,-9.070974349975586,9.05667135398835,constrictor
+boa constrictor|junco|La0-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-0.14784114062786102,-5.553432464599609,5.405591323971748,constrictor
+boa constrictor|junco|La0-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-0.021016113460063934,-8.865165710449219,8.844149596989155,constrictor
+boa constrictor|junco|La0-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.06452380865812302,-6.276003837585449,6.211480028927326,constrictor
+boa constrictor|junco|La0-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-0.0350506566464901,-6.21622896194458,6.18117830529809,constrictor
+boa constrictor|junco|La0-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-0.7805247902870178,-12.309566497802734,11.529041707515717,constrictor
+boa constrictor|junco|La0-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-0.16608859598636627,-18.7905216217041,18.624433025717735,constrictor
+boa constrictor|junco|La0-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.2675294578075409,-14.805525779724121,14.53799632191658,constrictor
+boa constrictor|junco|La0-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-0.2108502835035324,-13.397214889526367,13.186364606022835,constrictor
+boa constrictor|junco|La1-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.406221628189087,-9.305709838867188,7.899488210678101,snake
+boa constrictor|junco|La1-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-0.6181552410125732,-9.270553588867188,8.652398347854614,snake
+boa constrictor|junco|La1-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.1366034895181656,-9.250812530517578,9.114209040999413,snake
+boa constrictor|junco|La1-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-0.01605311781167984,-8.899261474609375,8.883208356797695,snake
+boa constrictor|junco|La1-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.7401965856552124,-5.440414905548096,3.7002183198928833,snake
+boa constrictor|junco|La1-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-0.22865630686283112,-7.122157096862793,6.893500789999962,snake
+boa constrictor|junco|La1-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.4742218255996704,-5.869928359985352,5.395706534385681,snake
+boa constrictor|junco|La1-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-0.03867250680923462,-6.648261547088623,6.609589040279388,snake
+boa constrictor|junco|La1-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-4.204683303833008,-11.470308303833008,7.265625,snake
+boa constrictor|junco|La1-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-0.9549286961555481,-13.915865898132324,12.960937201976776,snake
+boa constrictor|junco|La1-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-1.6132588386535645,-11.839820861816406,10.226562023162842,snake
+boa constrictor|junco|La1-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-0.2890622317790985,-11.40625,11.117187768220901,snake
+boa constrictor|junco|La2-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.7778671979904175,-7.491723537445068,5.713856339454651,reptile
+boa constrictor|junco|La2-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-0.9374539256095886,-6.344820976257324,5.407367050647736,reptile
+boa constrictor|junco|La2-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.8887732028961182,-6.783135414123535,5.894362211227417,reptile
+boa constrictor|junco|La2-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-0.476741760969162,-6.1691060066223145,5.6923642456531525,reptile
+boa constrictor|junco|La2-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.396493434906006,-7.6084065437316895,5.211913108825684,reptile
+boa constrictor|junco|La2-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-1.4729105234146118,-8.605900764465332,7.13299024105072,reptile
+boa constrictor|junco|La2-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-1.8662394285202026,-7.63724422454834,5.771004796028137,reptile
+boa constrictor|junco|La2-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.2121787071228027,-8.193289756774902,6.9811110496521,reptile
+boa constrictor|junco|La2-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.6599719524383545,-15.526750564575195,12.86677861213684,reptile
+boa constrictor|junco|La2-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-1.7416481971740723,-18.346006393432617,16.604358196258545,reptile
+boa constrictor|junco|La2-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.162731885910034,-16.8631649017334,14.700433015823364,reptile
+boa constrictor|junco|La2-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.7366162538528442,-17.17076301574707,15.434146761894226,reptile
+boa constrictor|ostrich|La0-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.0764871835708618,-3.7080183029174805,2.6315311193466187,constrictor
+boa constrictor|ostrich|La0-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-0.772582471370697,-3.783404588699341,3.010822117328644,constrictor
+boa constrictor|ostrich|La0-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.4295823872089386,-3.229783535003662,2.8002011477947235,constrictor
+boa constrictor|ostrich|La0-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-0.48925331234931946,-3.151319980621338,2.6620666682720184,constrictor
+boa constrictor|ostrich|La0-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-0.3816471993923187,-3.3762893676757812,2.9946421682834625,constrictor
+boa constrictor|ostrich|La0-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-0.08221042901277542,-5.682304382324219,5.600093953311443,constrictor
+boa constrictor|ostrich|La0-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.05007148161530495,-4.614966869354248,4.564895387738943,constrictor
+boa constrictor|ostrich|La0-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-0.044464051723480225,-3.8697919845581055,3.8253279328346252,constrictor
+boa constrictor|ostrich|La0-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-0.7805247902870178,-12.309566497802734,11.529041707515717,constrictor
+boa constrictor|ostrich|La0-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-0.16608859598636627,-18.7905216217041,18.624433025717735,constrictor
+boa constrictor|ostrich|La0-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.2675294578075409,-14.805525779724121,14.53799632191658,constrictor
+boa constrictor|ostrich|La0-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-0.2108502835035324,-13.397214889526367,13.186364606022835,constrictor
+boa constrictor|ostrich|La1-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.1504979133605957,-2.9504752159118652,0.7999773025512695,snake
+boa constrictor|ostrich|La1-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.470667839050293,-4.520768165588379,2.050100326538086,snake
+boa constrictor|ostrich|La1-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.6054759621620178,-3.3616344928741455,2.7561585307121277,snake
+boa constrictor|ostrich|La1-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-0.19246889650821686,-3.330951690673828,3.1384827941656113,snake
+boa constrictor|ostrich|La1-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.8569068908691406,-3.3195173740386963,0.46261048316955566,snake
+boa constrictor|ostrich|La1-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-1.4539419412612915,-4.776362895965576,3.3224209547042847,snake
+boa constrictor|ostrich|La1-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.6401541233062744,-4.348845958709717,3.7086918354034424,snake
+boa constrictor|ostrich|La1-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-0.07780203223228455,-4.367120265960693,4.289318233728409,snake
+boa constrictor|ostrich|La1-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-4.204683303833008,-11.470308303833008,7.265625,snake
+boa constrictor|ostrich|La1-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-0.9549286961555481,-13.915865898132324,12.960937201976776,snake
+boa constrictor|ostrich|La1-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-1.6132588386535645,-11.839820861816406,10.226562023162842,snake
+boa constrictor|ostrich|La1-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-0.2890622317790985,-11.40625,11.117187768220901,snake
+boa constrictor|ostrich|La2-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.513657808303833,-5.661120414733887,3.1474626064300537,reptile
+boa constrictor|ostrich|La2-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.2037265300750732,-6.055602550506592,3.8518760204315186,reptile
+boa constrictor|ostrich|La2-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.0424044132232666,-6.286289691925049,4.243885278701782,reptile
+boa constrictor|ostrich|La2-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.8209419250488281,-6.016602039337158,4.19566011428833,reptile
+boa constrictor|ostrich|La2-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.1605730056762695,-4.1397480964660645,1.979175090789795,reptile
+boa constrictor|ostrich|La2-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-1.4834089279174805,-5.272512912750244,3.7891039848327637,reptile
+boa constrictor|ostrich|La2-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-1.6591213941574097,-4.855766773223877,3.1966453790664673,reptile
+boa constrictor|ostrich|La2-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.0963828563690186,-4.752657890319824,3.6562750339508057,reptile
+boa constrictor|ostrich|La2-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.6599719524383545,-15.526750564575195,12.86677861213684,reptile
+boa constrictor|ostrich|La2-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-1.7416481971740723,-18.346006393432617,16.604358196258545,reptile
+boa constrictor|ostrich|La2-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.162731885910034,-16.8631649017334,14.700433015823364,reptile
+boa constrictor|ostrich|La2-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.7366162538528442,-17.17076301574707,15.434146761894226,reptile
+boa constrictor|green iguana|La0-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.1908396482467651,-1.9145417213439941,0.723702073097229,constrictor
+boa constrictor|green iguana|La0-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-0.5541067719459534,-2.7856972217559814,2.231590449810028,constrictor
+boa constrictor|green iguana|La0-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.04649763181805611,-3.9034080505371094,3.8569104187190533,constrictor
+boa constrictor|green iguana|La0-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-0.07497082650661469,-3.340406656265259,3.265435829758644,constrictor
+boa constrictor|green iguana|La0-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.347276210784912,-4.938438892364502,3.59116268157959,constrictor
+boa constrictor|green iguana|La0-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-0.3975278437137604,-6.601848125457764,6.204320281744003,constrictor
+boa constrictor|green iguana|La0-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.3888162672519684,-5.426539897918701,5.037723630666733,constrictor
+boa constrictor|green iguana|La0-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-0.18908590078353882,-5.486331462860107,5.297245562076569,constrictor
+boa constrictor|green iguana|La1-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-5.573742389678955,-1.7694395780563354,-3.8043028116226196,iguana
+boa constrictor|green iguana|La1-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.740264892578125,-2.916318655014038,0.17605376243591309,snake
+boa constrictor|green iguana|La1-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.07782331854104996,-4.279444694519043,4.201621375977993,snake
+boa constrictor|green iguana|La1-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-0.06900552660226822,-4.122527599334717,4.053522072732449,snake
+boa constrictor|green iguana|La1-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-5.0608954429626465,-4.342955589294434,-0.7179398536682129,lizard
+boa constrictor|green iguana|La1-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-1.9962215423583984,-4.541114330291748,2.5448927879333496,snake
+boa constrictor|green iguana|La1-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-1.4810574054718018,-4.6858601570129395,3.2048027515411377,snake
+boa constrictor|green iguana|La1-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-0.1777738630771637,-4.82720947265625,4.649435609579086,snake
+boa constrictor|cello|La0-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.0798391103744507,-5.029422283172607,3.9495831727981567,constrictor
+boa constrictor|cello|La0-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-0.41994616389274597,-7.1372857093811035,6.7173395454883575,constrictor
+boa constrictor|cello|La0-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.19136635959148407,-7.4545207023620605,7.2631543427705765,constrictor
+boa constrictor|cello|La0-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-0.22279180586338043,-6.091508865356445,5.868717059493065,constrictor
+boa constrictor|cello|La0-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-0.4790816605091095,-4.42522668838501,3.9461450278759003,constrictor
+boa constrictor|cello|La0-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-0.04722132906317711,-7.422022819519043,7.374801490455866,constrictor
+boa constrictor|cello|La0-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.09436634182929993,-5.496512413024902,5.402146071195602,constrictor
+boa constrictor|cello|La0-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-0.18159432709217072,-4.283623695373535,4.102029368281364,constrictor
+boa constrictor|cello|La0-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.2689199447631836,-3.707610607147217,2.438690662384033,constrictor
+boa constrictor|cello|La0-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-0.17490066587924957,-6.62523889541626,6.45033822953701,constrictor
+boa constrictor|cello|La0-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.3423522710800171,-4.848950386047363,4.506598114967346,constrictor
+boa constrictor|cello|La0-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-0.2965690791606903,-3.651381254196167,3.3548121750354767,constrictor
+boa constrictor|cello|La1-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-5.274212837219238,-6.187939167022705,0.9137263298034668,snake
+boa constrictor|cello|La1-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.885652780532837,-8.824220657348633,5.938567876815796,snake
+boa constrictor|cello|La1-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-3.0486414432525635,-9.053810119628906,6.005168676376343,snake
+boa constrictor|cello|La1-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.96404230594635,-6.533371448516846,4.569329142570496,snake
+boa constrictor|cello|La1-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-4.004042148590088,-6.029463291168213,2.025421142578125,snake
+boa constrictor|cello|La1-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.464015483856201,-9.661980628967285,7.197965145111084,snake
+boa constrictor|cello|La1-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-3.0486960411071777,-8.050008773803711,5.001312732696533,snake
+boa constrictor|cello|La1-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.0640993118286133,-7.079270839691162,6.015171527862549,snake
+boa constrictor|cello|La1-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.997697353363037,-3.9168314933776855,-0.08086585998535156,musical instrument
+boa constrictor|cello|La1-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-0.7660194039344788,-6.992447853088379,6.2264284491539,snake
+boa constrictor|cello|La1-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-1.105424165725708,-6.306652069091797,5.201227903366089,snake
+boa constrictor|cello|La1-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-0.3535103499889374,-4.895532608032227,4.542022258043289,snake
+boa constrictor|cello|La2-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.312488079071045,-6.609373569488525,4.2968854904174805,reptile
+boa constrictor|cello|La2-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-1.7936744689941406,-8.407407760620117,6.613733291625977,reptile
+boa constrictor|cello|La2-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-1.907596468925476,-9.697371482849121,7.789775013923645,reptile
+boa constrictor|cello|La2-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.5503158569335938,-9.069906234741211,7.519590377807617,reptile
+boa constrictor|cello|La2-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.5948872566223145,-6.63845157623291,4.043564319610596,reptile
+boa constrictor|cello|La2-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.078949213027954,-8.985677719116211,6.906728506088257,reptile
+boa constrictor|cello|La2-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.229796886444092,-8.147491455078125,5.917694568634033,reptile
+boa constrictor|cello|La2-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-2.0894386768341064,-7.798287868499756,5.708849191665649,reptile
+boa constrictor|cello|La2-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.5760881900787354,-4.582869529724121,2.0067813396453857,reptile
+boa constrictor|cello|La2-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-1.8141201734542847,-6.549310684204102,4.735190510749817,reptile
+boa constrictor|cello|La2-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.125866651535034,-6.134110450744629,4.008243799209595,reptile
+boa constrictor|cello|La2-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.7988775968551636,-5.284251689910889,3.485374093055725,reptile
+boa constrictor|marimba|La0-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-0.3330157399177551,-5.02685022354126,4.693834483623505,constrictor
+boa constrictor|marimba|La0-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-0.040399596095085144,-6.469777584075928,6.429377987980843,constrictor
+boa constrictor|marimba|La0-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.09976708889007568,-5.75446081161499,5.6546937227249146,constrictor
+boa constrictor|marimba|La0-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-0.023166373372077942,-5.737919330596924,5.714752957224846,constrictor
+boa constrictor|marimba|La0-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-0.699451744556427,-3.053328514099121,2.353876769542694,constrictor
+boa constrictor|marimba|La0-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-0.1464824378490448,-4.25825834274292,4.111775904893875,constrictor
+boa constrictor|marimba|La0-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.21179606020450592,-3.846921920776367,3.6351258605718613,constrictor
+boa constrictor|marimba|La0-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-0.08193143457174301,-3.0581696033477783,2.9762381687760353,constrictor
+boa constrictor|marimba|La0-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.2689199447631836,-3.707610607147217,2.438690662384033,constrictor
+boa constrictor|marimba|La0-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-0.17490066587924957,-6.62523889541626,6.45033822953701,constrictor
+boa constrictor|marimba|La0-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.3423522710800171,-4.848950386047363,4.506598114967346,constrictor
+boa constrictor|marimba|La0-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-0.2965690791606903,-3.651381254196167,3.3548121750354767,constrictor
+boa constrictor|marimba|La1-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-4.279903411865234,-4.658483028411865,0.37857961654663086,snake
+boa constrictor|marimba|La1-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-0.8348131775856018,-6.4335618019104,5.598748624324799,snake
+boa constrictor|marimba|La1-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-1.6633299589157104,-5.952977657318115,4.289647698402405,snake
+boa constrictor|marimba|La1-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-0.11624006927013397,-5.29818868637085,5.181948617100716,snake
+boa constrictor|marimba|La1-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.7271080017089844,-3.12530255317688,0.3981945514678955,snake
+boa constrictor|marimba|La1-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-0.8173010945320129,-4.579942226409912,3.762641131877899,snake
+boa constrictor|marimba|La1-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.8348716497421265,-4.478987216949463,3.6441155672073364,snake
+boa constrictor|marimba|La1-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-0.11802227050065994,-3.901503801345825,3.7834815308451653,snake
+boa constrictor|marimba|La1-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.997697353363037,-3.9168314933776855,-0.08086585998535156,musical instrument
+boa constrictor|marimba|La1-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-0.7660194039344788,-6.992447853088379,6.2264284491539,snake
+boa constrictor|marimba|La1-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-1.105424165725708,-6.306652069091797,5.201227903366089,snake
+boa constrictor|marimba|La1-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-0.3535103499889374,-4.895532608032227,4.542022258043289,snake
+boa constrictor|marimba|La2-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.4510273933410645,-5.608608245849609,3.157580852508545,reptile
+boa constrictor|marimba|La2-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-1.5863198041915894,-6.849524974822998,5.263205170631409,reptile
+boa constrictor|marimba|La2-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-1.9802581071853638,-6.357898712158203,4.377640604972839,reptile
+boa constrictor|marimba|La2-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.1716722249984741,-5.997312068939209,4.825639843940735,reptile
+boa constrictor|marimba|La2-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.7763853073120117,-3.6591997146606445,0.8828144073486328,reptile
+boa constrictor|marimba|La2-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-1.9336258172988892,-4.214964389801025,2.2813385725021362,reptile
+boa constrictor|marimba|La2-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.323683977127075,-4.196126461029053,1.8724424839019775,reptile
+boa constrictor|marimba|La2-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.923456072807312,-3.7464191913604736,1.8229631185531616,reptile
+boa constrictor|marimba|La2-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.5760881900787354,-4.582869529724121,2.0067813396453857,reptile
+boa constrictor|marimba|La2-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-1.8141201734542847,-6.549310684204102,4.735190510749817,reptile
+boa constrictor|marimba|La2-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.125866651535034,-6.134110450744629,4.008243799209595,reptile
+boa constrictor|marimba|La2-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.7988775968551636,-5.284251689910889,3.485374093055725,reptile
+cello|junco|La0-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.029590606689453,-10.072667121887207,8.043076515197754,cello
+cello|junco|La0-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-3.6760573387145996,-8.920235633850098,5.244178295135498,cello
+cello|junco|La0-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.06884404271841049,-8.691911697387695,8.623067654669285,cello
+cello|junco|La0-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-2.4301915168762207,-8.541559219360352,6.111367702484131,cello
+cello|junco|La0-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.407686710357666,-7.491709232330322,5.084022521972656,cello
+cello|junco|La0-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-4.110888481140137,-5.114799499511719,1.003911018371582,cello
+cello|junco|La0-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.4964708685874939,-5.801171779632568,5.3047009110450745,cello
+cello|junco|La0-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-2.463013172149658,-3.8927063941955566,1.4296932220458984,cello
+cello|junco|La0-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.735767364501953,-21.738624572753906,19.002857208251953,cello
+cello|junco|La0-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-3.9127280712127686,-20.843032836914062,16.930304765701294,cello
+cello|junco|La0-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.40156081318855286,-18.48280906677246,18.081248253583908,cello
+cello|junco|La0-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-2.9334447383880615,-15.777044296264648,12.843599557876587,cello
+cello|junco|La1-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.2040021419525146,-11.506787300109863,8.302785158157349,string instrument
+cello|junco|La1-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-3.74252986907959,-12.205696105957031,8.463166236877441,string instrument
+cello|junco|La1-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-3.2586331367492676,-11.619505882263184,8.360872745513916,string instrument
+cello|junco|La1-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.5008230209350586,-10.539027214050293,7.038204193115234,string instrument
+cello|junco|La1-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.875349521636963,-8.832425117492676,4.957075595855713,string instrument
+cello|junco|La1-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-4.590074062347412,-9.117422103881836,4.527348041534424,string instrument
+cello|junco|La1-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-3.902775526046753,-8.0707426071167,4.167967081069946,string instrument
+cello|junco|La1-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.720487356185913,-5.638449192047119,1.917961835861206,string instrument
+cello|junco|La1-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-4.008030891418457,-26.69671058654785,22.688679695129395,string instrument
+cello|junco|La1-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-4.414189338684082,-27.93381690979004,23.519627571105957,string instrument
+cello|junco|La1-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-3.968993902206421,-26.477025985717773,22.508032083511353,string instrument
+cello|junco|La1-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.926581382751465,-20.001567840576172,16.074986457824707,string instrument
+cello|junco|La2-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.4771037101745605,-13.005864143371582,9.528760433197021,musical instrument
+cello|junco|La2-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-3.9611623287200928,-13.151060104370117,9.189897775650024,musical instrument
+cello|junco|La2-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-3.8987138271331787,-12.624846458435059,8.72613263130188,musical instrument
+cello|junco|La2-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.633241891860962,-12.450307846069336,8.817065954208374,musical instrument
+cello|junco|La2-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.687863826751709,-11.577669143676758,7.889805316925049,musical instrument
+cello|junco|La2-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-4.336077690124512,-10.52359676361084,6.187519073486328,musical instrument
+cello|junco|La2-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-3.937839984893799,-9.164411544799805,5.226571559906006,musical instrument
+cello|junco|La2-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.726969003677368,-9.402775764465332,5.675806760787964,musical instrument
+cello|junco|La2-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-4.0158305168151855,-29.86368751525879,25.847856998443604,musical instrument
+cello|junco|La2-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-4.257949352264404,-29.617448806762695,25.35949945449829,musical instrument
+cello|junco|La2-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-4.203299522399902,-27.105810165405273,22.90251064300537,musical instrument
+cello|junco|La2-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.93776273727417,-26.68117904663086,22.74341630935669,musical instrument
+cello|ostrich|La0-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.561260461807251,-6.86605167388916,3.304791212081909,cello
+cello|ostrich|La0-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-4.113327503204346,-5.1719970703125,1.0586695671081543,cello
+cello|ostrich|La0-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-1.4691925048828125,-6.789614200592041,5.3204216957092285,cello
+cello|ostrich|La0-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.6155474185943604,-5.0804572105407715,1.4649097919464111,cello
+cello|ostrich|La0-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.5405869483947754,-4.813557147979736,2.272970199584961,cello
+cello|ostrich|La0-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-3.958505868911743,-4.027055740356445,0.06854987144470215,cello
+cello|ostrich|La0-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.31607499718666077,-4.210764408111572,3.8946894109249115,cello
+cello|ostrich|La0-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-2.583693027496338,-3.527205467224121,0.9435124397277832,cello
+cello|ostrich|La0-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.735767364501953,-21.738624572753906,19.002857208251953,cello
+cello|ostrich|La0-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-3.9127280712127686,-20.843032836914062,16.930304765701294,cello
+cello|ostrich|La0-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.40156081318855286,-18.48280906677246,18.081248253583908,cello
+cello|ostrich|La0-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-2.9334447383880615,-15.777044296264648,12.843599557876587,cello
+cello|ostrich|La1-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-4.082481861114502,-7.2368693351745605,3.1543874740600586,string instrument
+cello|ostrich|La1-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-4.344299793243408,-6.828782081604004,2.4844822883605957,string instrument
+cello|ostrich|La1-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-4.1021409034729,-7.174476623535156,3.072335720062256,string instrument
+cello|ostrich|La1-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.930697202682495,-4.614331245422363,0.6836340427398682,string instrument
+cello|ostrich|La1-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-4.000261306762695,-6.044462203979492,2.044200897216797,string instrument
+cello|ostrich|La1-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-4.531400680541992,-6.6589741706848145,2.1275734901428223,string instrument
+cello|ostrich|La1-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-3.758194923400879,-6.320589065551758,2.562394142150879,string instrument
+cello|ostrich|La1-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.887962579727173,-4.302926063537598,0.4149634838104248,string instrument
+cello|ostrich|La1-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-4.008030891418457,-26.69671058654785,22.688679695129395,string instrument
+cello|ostrich|La1-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-4.414189338684082,-27.93381690979004,23.519627571105957,string instrument
+cello|ostrich|La1-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-3.968993902206421,-26.477025985717773,22.508032083511353,string instrument
+cello|ostrich|La1-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.926581382751465,-20.001567840576172,16.074986457824707,string instrument
+cello|ostrich|La2-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.8909425735473633,-12.538350105285645,8.647407531738281,musical instrument
+cello|ostrich|La2-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-4.101807594299316,-11.263063430786133,7.161255836486816,musical instrument
+cello|ostrich|La2-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-4.01594352722168,-10.494550704956055,6.478607177734375,musical instrument
+cello|ostrich|La2-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.7895491123199463,-9.197833061218262,5.408283948898315,musical instrument
+cello|ostrich|La2-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.7581398487091064,-8.491767883300781,4.733628034591675,musical instrument
+cello|ostrich|La2-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-4.086132526397705,-8.000136375427246,3.914003849029541,musical instrument
+cello|ostrich|La2-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-3.8128654956817627,-7.030849933624268,3.217984437942505,musical instrument
+cello|ostrich|La2-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.726977586746216,-6.398723602294922,2.671746015548706,musical instrument
+cello|ostrich|La2-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-4.0158305168151855,-29.86368751525879,25.847856998443604,musical instrument
+cello|ostrich|La2-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-4.257949352264404,-29.617448806762695,25.35949945449829,musical instrument
+cello|ostrich|La2-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-4.203299522399902,-27.105810165405273,22.90251064300537,musical instrument
+cello|ostrich|La2-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.93776273727417,-26.68117904663086,22.74341630935669,musical instrument
+cello|green iguana|La0-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.2335939407348633,-4.863000869750977,3.6294069290161133,cello
+cello|green iguana|La0-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-3.3791489601135254,-3.870302438735962,0.4911534786224365,cello
+cello|green iguana|La0-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.028299784287810326,-5.987555980682373,5.959256196394563,cello
+cello|green iguana|La0-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.6728737354278564,-3.910557746887207,2.2376840114593506,cello
+cello|green iguana|La0-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.4190075397491455,-10.077154159545898,7.658146619796753,cello
+cello|green iguana|La0-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-3.740474224090576,-8.801336288452148,5.060862064361572,cello
+cello|green iguana|La0-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.37822338938713074,-9.070073127746582,8.691849738359451,cello
+cello|green iguana|La0-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-2.120896339416504,-8.109355926513672,5.988459587097168,cello
+cello|green iguana|La0-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.9315375089645386,-6.325569152832031,4.394031643867493,cello
+cello|green iguana|La0-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-3.605238199234009,-5.715577602386475,2.110339403152466,cello
+cello|green iguana|La0-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.19275525212287903,-6.118713855743408,5.925958603620529,cello
+cello|green iguana|La0-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.873031497001648,-5.2916178703308105,3.4185863733291626,cello
+cello|green iguana|La1-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.962322235107422,-7.1100640296936035,4.147741794586182,string instrument
+cello|green iguana|La1-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-3.8830699920654297,-7.8602776527404785,3.977207660675049,string instrument
+cello|green iguana|La1-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.915576934814453,-7.8658576011657715,4.950280666351318,string instrument
+cello|green iguana|La1-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.4538023471832275,-5.756185531616211,2.3023831844329834,string instrument
+cello|green iguana|La1-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.7581169605255127,-10.744369506835938,6.986252546310425,string instrument
+cello|green iguana|La1-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-4.40635871887207,-11.117642402648926,6.7112836837768555,string instrument
+cello|green iguana|La1-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-3.8752493858337402,-10.876842498779297,7.001593112945557,string instrument
+cello|green iguana|La1-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.7934017181396484,-9.282246589660645,5.488844871520996,string instrument
+cello|green iguana|La1-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.828390598297119,-6.74609375,2.917703151702881,string instrument
+cello|green iguana|La1-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-4.515712738037109,-7.0620903968811035,2.546377658843994,string instrument
+cello|green iguana|La1-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-4.000199794769287,-7.055851459503174,3.0556516647338867,string instrument
+cello|green iguana|La1-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.7582318782806396,-5.221215724945068,1.4629838466644287,string instrument
+cello|green iguana|La2-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.5317370891571045,-6.856791019439697,3.3250539302825928,musical instrument
+cello|green iguana|La2-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-4.000209331512451,-7.195077419281006,3.1948680877685547,musical instrument
+cello|green iguana|La2-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-3.9845964908599854,-7.235454082489014,3.2508575916290283,musical instrument
+cello|green iguana|La2-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.742539882659912,-6.013085842132568,2.2705459594726562,musical instrument
+cello|green iguana|La2-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.72690486907959,-11.240460395812988,7.513555526733398,musical instrument
+cello|green iguana|La2-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-4.148601055145264,-10.964179992675781,6.815578937530518,musical instrument
+cello|green iguana|La2-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-4.117369651794434,-10.672335624694824,6.554965972900391,musical instrument
+cello|green iguana|La2-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.7737648487091064,-10.457746505737305,6.683981657028198,musical instrument
+cello|green iguana|La2-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.765946865081787,-7.623723983764648,3.8577771186828613,musical instrument
+cello|green iguana|La2-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-4.203272342681885,-7.288942813873291,3.0856704711914062,musical instrument
+cello|green iguana|La2-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-4.1642327308654785,-7.20469856262207,3.040465831756592,musical instrument
+cello|green iguana|La2-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.836230516433716,-6.7736287117004395,2.9373981952667236,musical instrument
+cello|boa constrictor|La0-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.0959813594818115,-6.4341864585876465,3.338205099105835,cello
+cello|boa constrictor|La0-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-4.1189775466918945,-5.209896087646484,1.0909185409545898,cello
+cello|boa constrictor|La0-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.766579270362854,-6.10111665725708,5.334537386894226,cello
+cello|boa constrictor|La0-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-2.969512939453125,-4.724799156188965,1.7552862167358398,cello
+cello|boa constrictor|La0-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.2844297885894775,-21.106945037841797,18.82251524925232,cello
+cello|boa constrictor|La0-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-3.9479031562805176,-19.23760223388672,15.289699077606201,cello
+cello|boa constrictor|La0-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.5098203420639038,-20.45372200012207,19.943901658058167,cello
+cello|boa constrictor|La0-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-2.6293904781341553,-14.797842025756836,12.16845154762268,cello
+cello|boa constrictor|La0-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.9315375089645386,-6.325569152832031,4.394031643867493,cello
+cello|boa constrictor|La0-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-3.605238199234009,-5.715577602386475,2.110339403152466,cello
+cello|boa constrictor|La0-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.19275525212287903,-6.118713855743408,5.925958603620529,cello
+cello|boa constrictor|La0-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.873031497001648,-5.2916178703308105,3.4185863733291626,cello
+cello|boa constrictor|La1-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-4.218899250030518,-7.246825695037842,3.027926445007324,string instrument
+cello|boa constrictor|La1-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-4.562594413757324,-7.353391647338867,2.790797233581543,string instrument
+cello|boa constrictor|La1-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-4.203280925750732,-7.644008159637451,3.4407272338867188,string instrument
+cello|boa constrictor|La1-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.9850099086761475,-4.878503799438477,0.8934938907623291,string instrument
+cello|boa constrictor|La1-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.5941739082336426,-25.16587257385254,21.571698665618896,string instrument
+cello|boa constrictor|La1-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-4.312635898590088,-27.279541015625,22.966905117034912,string instrument
+cello|boa constrictor|La1-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-3.883087635040283,-26.48490333557129,22.601815700531006,string instrument
+cello|boa constrictor|La1-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.7349791526794434,-21.581262588500977,17.846283435821533,string instrument
+cello|boa constrictor|La1-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.828390598297119,-6.74609375,2.917703151702881,string instrument
+cello|boa constrictor|La1-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-4.515712738037109,-7.0620903968811035,2.546377658843994,string instrument
+cello|boa constrictor|La1-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-4.000199794769287,-7.055851459503174,3.0556516647338867,string instrument
+cello|boa constrictor|La1-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.7582318782806396,-5.221215724945068,1.4629838466644287,string instrument
+cello|boa constrictor|La2-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.9065566062927246,-8.690922737121582,4.784366130828857,musical instrument
+cello|boa constrictor|La2-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-4.226726055145264,-8.833602905273438,4.606876850128174,musical instrument
+cello|boa constrictor|La2-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-4.148648262023926,-8.5889892578125,4.440340995788574,musical instrument
+cello|boa constrictor|La2-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.8987855911254883,-7.998498916625977,4.099713325500488,musical instrument
+cello|boa constrictor|La2-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.703486442565918,-29.09446907043457,25.390982627868652,musical instrument
+cello|boa constrictor|La2-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-4.211086273193359,-29.666301727294922,25.455215454101562,musical instrument
+cello|boa constrictor|La2-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-4.054898262023926,-28.187915802001953,24.133017539978027,musical instrument
+cello|boa constrictor|La2-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.789398431777954,-26.037282943725586,22.247884511947632,musical instrument
+cello|boa constrictor|La2-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.765946865081787,-7.623723983764648,3.8577771186828613,musical instrument
+cello|boa constrictor|La2-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-4.203272342681885,-7.288942813873291,3.0856704711914062,musical instrument
+cello|boa constrictor|La2-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-4.1642327308654785,-7.20469856262207,3.040465831756592,musical instrument
+cello|boa constrictor|La2-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.836230516433716,-6.7736287117004395,2.9373981952667236,musical instrument
+cello|marimba|La0-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.9535295963287354,-3.6096630096435547,0.6561334133148193,cello
+cello|marimba|La0-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-3.8504855632781982,-4.160758018493652,0.3102724552154541,cello
+cello|marimba|La0-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.2707419991493225,-3.4669876098632812,3.1962456107139587,cello
+cello|marimba|La0-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.284273862838745,-2.869215726852417,-0.4150581359863281,marimba
+cello|marimba|La0-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.257324457168579,-3.982343912124634,1.7250194549560547,cello
+cello|marimba|La0-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-4.241266250610352,-3.982139825820923,-0.2591264247894287,percussion instrument
+cello|marimba|La0-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-0.4372507631778717,-3.736440658569336,3.2991898953914642,cello
+cello|marimba|La0-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.631160259246826,-3.069500207901001,-0.5616600513458252,percussion instrument
+cello|marimba|La1-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.8825480937957764,-3.856602668762207,-0.025945425033569336,marimba
+cello|marimba|La1-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-4.375245094299316,-5.728062152862549,1.3528170585632324,string instrument
+cello|marimba|La1-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-3.9690732955932617,-5.86223030090332,1.8931570053100586,string instrument
+cello|marimba|La1-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.7656266689300537,-3.2369682788848877,-0.528658390045166,marimba
+cello|marimba|La1-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-4.33616828918457,-4.984943389892578,0.6487751007080078,string instrument
+cello|marimba|La1-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-4.676118850708008,-4.8242411613464355,0.14812231063842773,string instrument
+cello|marimba|La1-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-4.14480447769165,-4.9257001876831055,0.7808957099914551,string instrument
+cello|marimba|La1-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-4.127117156982422,-3.488633394241333,-0.6384837627410889,percussion instrument
+marimba|junco|La0-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-0.36500227451324463,-9.300585746765137,8.935583472251892,marimba
+marimba|junco|La0-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.307663679122925,-9.69494915008545,7.387285470962524,marimba
+marimba|junco|La0-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-1.6637896299362183,-10.15986156463623,8.496071934700012,marimba
+marimba|junco|La0-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.5552750825881958,-10.492183685302734,8.936908602714539,marimba
+marimba|junco|La0-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-0.4687706530094147,-9.54419231414795,9.075421661138535,marimba
+marimba|junco|La0-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.8464667797088623,-9.045104026794434,6.198637247085571,marimba
+marimba|junco|La0-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.172431707382202,-9.368083953857422,7.19565224647522,marimba
+marimba|junco|La0-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-2.03204083442688,-10.232709884643555,8.200669050216675,marimba
+marimba|junco|La0-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.016230821609497,-23.431238174438477,22.41500735282898,marimba
+marimba|junco|La0-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-3.0052855014801025,-22.03339958190918,19.028114080429077,marimba
+marimba|junco|La0-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.4013328552246094,-23.525510787963867,21.124177932739258,marimba
+marimba|junco|La0-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-2.495008707046509,-24.896617889404297,22.401609182357788,marimba
+marimba|junco|La1-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.969739317893982,-10.5366792678833,8.566939949989319,percussion instrument
+marimba|junco|La1-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.393583059310913,-10.562703132629395,8.169120073318481,percussion instrument
+marimba|junco|La1-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.4147279262542725,-10.139239311218262,7.724511384963989,percussion instrument
+marimba|junco|La1-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-2.073784112930298,-10.545149803161621,8.471365690231323,percussion instrument
+marimba|junco|La1-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.7052170038223267,-9.388009071350098,7.682792067527771,percussion instrument
+marimba|junco|La1-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.417066812515259,-8.455692291259766,6.038625478744507,percussion instrument
+marimba|junco|La1-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.2769854068756104,-7.763156414031982,5.486171007156372,percussion instrument
+marimba|junco|La1-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-2.0037436485290527,-9.116012573242188,7.112268924713135,percussion instrument
+marimba|junco|La1-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.9645518064498901,-24.89950180053711,22.93494999408722,percussion instrument
+marimba|junco|La1-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.4873085021972656,-23.433095932006836,20.94578742980957,percussion instrument
+marimba|junco|La1-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.5033369064331055,-23.454326629638672,20.950989723205566,percussion instrument
+marimba|junco|La1-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-2.31569504737854,-25.109180450439453,22.793485403060913,percussion instrument
+marimba|junco|La2-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.1728131771087646,-12.85743522644043,9.684622049331665,musical instrument
+marimba|junco|La2-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-4.070520401000977,-12.45500659942627,8.384486198425293,musical instrument
+marimba|junco|La2-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-3.523944139480591,-12.518767356872559,8.994823217391968,musical instrument
+marimba|junco|La2-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.48494553565979,-12.59636116027832,9.11141562461853,musical instrument
+marimba|junco|La2-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.5317187309265137,-11.777996063232422,8.246277332305908,musical instrument
+marimba|junco|La2-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-4.0002336502075195,-9.808853149414062,5.808619499206543,musical instrument
+marimba|junco|La2-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-3.6722583770751953,-10.0512113571167,6.378952980041504,musical instrument
+marimba|junco|La2-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.703512191772461,-10.785603523254395,7.082091331481934,musical instrument
+marimba|junco|La2-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.609776496887207,-29.469547271728516,25.85977077484131,musical instrument
+marimba|junco|La2-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-4.390748977661133,-26.19359016418457,21.802841186523438,musical instrument
+marimba|junco|La2-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-4.086126327514648,-27.8226261138916,23.736499786376953,musical instrument
+marimba|junco|La2-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.9455716609954834,-28.21925926208496,24.273687601089478,musical instrument
+marimba|ostrich|La0-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.2972755432128906,-8.360163688659668,6.062888145446777,marimba
+marimba|ostrich|La0-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-3.091271162033081,-7.4455952644348145,4.354324102401733,marimba
+marimba|ostrich|La0-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.864898920059204,-6.898981094360352,4.0340821743011475,marimba
+marimba|ostrich|La0-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-2.7788021564483643,-8.48473834991455,5.7059361934661865,marimba
+marimba|ostrich|La0-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-0.5460696816444397,-6.863796234130859,6.31772655248642,marimba
+marimba|ostrich|La0-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.4924423694610596,-5.747664928436279,3.2552225589752197,marimba
+marimba|ostrich|La0-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.136056900024414,-6.246100902557373,4.110044002532959,marimba
+marimba|ostrich|La0-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.7932692766189575,-6.678056716918945,4.884787440299988,marimba
+marimba|ostrich|La0-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.016230821609497,-23.431238174438477,22.41500735282898,marimba
+marimba|ostrich|La0-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-3.0052855014801025,-22.03339958190918,19.028114080429077,marimba
+marimba|ostrich|La0-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.4013328552246094,-23.525510787963867,21.124177932739258,marimba
+marimba|ostrich|La0-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-2.495008707046509,-24.896617889404297,22.401609182357788,marimba
+marimba|ostrich|La1-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.1777727603912354,-9.758042335510254,7.5802695751190186,percussion instrument
+marimba|ostrich|La1-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.6930389404296875,-7.9537434577941895,5.260704517364502,percussion instrument
+marimba|ostrich|La1-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.4922354221343994,-6.138799667358398,3.646564245223999,percussion instrument
+marimba|ostrich|La1-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-2.34210205078125,-9.074808120727539,6.732706069946289,percussion instrument
+marimba|ostrich|La1-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.814058780670166,-8.001896858215332,6.187838077545166,percussion instrument
+marimba|ostrich|La1-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.4743258953094482,-6.740612506866455,4.266286611557007,percussion instrument
+marimba|ostrich|La1-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.381169080734253,-6.405916213989258,4.024747133255005,percussion instrument
+marimba|ostrich|La1-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-2.144129991531372,-7.20427942276001,5.060149431228638,percussion instrument
+marimba|ostrich|La1-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.9645518064498901,-24.89950180053711,22.93494999408722,percussion instrument
+marimba|ostrich|La1-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.4873085021972656,-23.433095932006836,20.94578742980957,percussion instrument
+marimba|ostrich|La1-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.5033369064331055,-23.454326629638672,20.950989723205566,percussion instrument
+marimba|ostrich|La1-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-2.31569504737854,-25.109180450439453,22.793485403060913,percussion instrument
+marimba|ostrich|La2-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.828469753265381,-11.523985862731934,7.695516109466553,musical instrument
+marimba|ostrich|La2-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-3.922253131866455,-8.29349422454834,4.371241092681885,musical instrument
+marimba|ostrich|La2-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-3.6765801906585693,-7.709890365600586,4.033310174942017,musical instrument
+marimba|ostrich|La2-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.7778847217559814,-9.494844436645508,5.716959714889526,musical instrument
+marimba|ostrich|La2-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.641017198562622,-8.910101890563965,5.269084692001343,musical instrument
+marimba|ostrich|La2-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-4.133019924163818,-6.912255764007568,2.77923583984375,musical instrument
+marimba|ostrich|La2-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-3.82843279838562,-7.459846496582031,3.631413698196411,musical instrument
+marimba|ostrich|La2-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.7816340923309326,-7.666606426239014,3.884972333908081,musical instrument
+marimba|ostrich|La2-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.609776496887207,-29.469547271728516,25.85977077484131,musical instrument
+marimba|ostrich|La2-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-4.390748977661133,-26.19359016418457,21.802841186523438,musical instrument
+marimba|ostrich|La2-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-4.086126327514648,-27.8226261138916,23.736499786376953,musical instrument
+marimba|ostrich|La2-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.9455716609954834,-28.21925926208496,24.273687601089478,musical instrument
+marimba|green iguana|La0-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-0.17871730029582977,-4.574722766876221,4.396005466580391,marimba
+marimba|green iguana|La0-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.14121413230896,-4.333192348480225,2.1919782161712646,marimba
+marimba|green iguana|La0-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-1.4111977815628052,-4.6125969886779785,3.2013992071151733,marimba
+marimba|green iguana|La0-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.2934659719467163,-4.603405475616455,3.3099395036697388,marimba
+marimba|green iguana|La0-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-0.8935008645057678,-9.6740083694458,8.780507504940033,marimba
+marimba|green iguana|La0-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.8829052448272705,-10.102730751037598,7.219825506210327,marimba
+marimba|green iguana|La0-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.2504348754882812,-10.200881958007812,7.950447082519531,marimba
+marimba|green iguana|La0-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-2.3284692764282227,-10.573667526245117,8.245198249816895,marimba
+marimba|green iguana|La0-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.0860310792922974,-5.644537448883057,4.558506369590759,marimba
+marimba|green iguana|La0-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.8204171657562256,-5.660560607910156,2.8401434421539307,marimba
+marimba|green iguana|La0-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.463785409927368,-6.199058532714844,3.7352731227874756,marimba
+marimba|green iguana|La0-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-2.3232595920562744,-6.277467250823975,3.9542076587677,marimba
+marimba|green iguana|La1-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.6327972412109375,-5.935113906860352,4.302316665649414,percussion instrument
+marimba|green iguana|La1-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.2609052658081055,-5.305118083953857,3.044212818145752,percussion instrument
+marimba|green iguana|La1-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.232553720474243,-5.662107944488525,3.4295542240142822,percussion instrument
+marimba|green iguana|La1-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.9232406616210938,-5.596011638641357,3.6727709770202637,percussion instrument
+marimba|green iguana|La1-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.8503354787826538,-9.777605056762695,7.9272695779800415,percussion instrument
+marimba|green iguana|La1-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.3883705139160156,-10.134407043457031,7.746036529541016,percussion instrument
+marimba|green iguana|La1-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.4250285625457764,-9.530769348144531,7.105740785598755,percussion instrument
+marimba|green iguana|La1-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-2.0686166286468506,-9.97610855102539,7.90749192237854,percussion instrument
+marimba|green iguana|La1-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.8191885948181152,-5.618465423583984,3.799276828765869,percussion instrument
+marimba|green iguana|La1-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.4976656436920166,-5.753402233123779,3.2557365894317627,percussion instrument
+marimba|green iguana|La1-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.518669366836548,-4.913533687591553,2.394864320755005,percussion instrument
+marimba|green iguana|La1-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-2.094576597213745,-5.602649688720703,3.508073091506958,percussion instrument
+marimba|green iguana|La2-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.0324630737304688,-6.31403923034668,3.281576156616211,musical instrument
+marimba|green iguana|La2-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-4.047083854675293,-5.435227870941162,1.3881440162658691,musical instrument
+marimba|green iguana|La2-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-3.5941879749298096,-5.7830424308776855,2.188854455947876,musical instrument
+marimba|green iguana|La2-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.6332483291625977,-5.712429523468018,2.07918119430542,musical instrument
+marimba|green iguana|La2-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.2898011207580566,-11.14455795288086,7.854756832122803,musical instrument
+marimba|green iguana|La2-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-4.062696933746338,-10.840179443359375,6.777482509613037,musical instrument
+marimba|green iguana|La2-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-3.7815613746643066,-10.903305053710938,7.121743679046631,musical instrument
+marimba|green iguana|La2-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.68789005279541,-11.006302833557129,7.318412780761719,musical instrument
+marimba|green iguana|La2-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.3210129737854004,-7.438615798950195,4.117602825164795,musical instrument
+marimba|green iguana|La2-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-4.140799522399902,-6.430444717407227,2.289645195007324,musical instrument
+marimba|green iguana|La2-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-3.9221229553222656,-6.996959686279297,3.0748367309570312,musical instrument
+marimba|green iguana|La2-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.8206405639648438,-6.9449615478515625,3.1243209838867188,musical instrument
+marimba|boa constrictor|La0-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-0.9570028185844421,-6.567888259887695,5.610885441303253,marimba
+marimba|boa constrictor|La0-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.635594367980957,-6.6179022789001465,3.9823079109191895,marimba
+marimba|boa constrictor|La0-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.448202133178711,-6.579959869384766,4.131757736206055,marimba
+marimba|boa constrictor|La0-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-1.9177780151367188,-6.7663750648498535,4.848597049713135,marimba
+marimba|boa constrictor|La0-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.001367211341858,-22.611988067626953,21.610620856285095,marimba
+marimba|boa constrictor|La0-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.7839672565460205,-23.32330322265625,20.53933596611023,marimba
+marimba|boa constrictor|La0-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.260838747024536,-24.086206436157227,21.82536768913269,marimba
+marimba|boa constrictor|La0-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-2.250422716140747,-24.49782371520996,22.247400999069214,marimba
+marimba|boa constrictor|La0-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.0860310792922974,-5.644537448883057,4.558506369590759,marimba
+marimba|boa constrictor|La0-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.8204171657562256,-5.660560607910156,2.8401434421539307,marimba
+marimba|boa constrictor|La0-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.463785409927368,-6.199058532714844,3.7352731227874756,marimba
+marimba|boa constrictor|La0-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-2.3232595920562744,-6.277467250823975,3.9542076587677,marimba
+marimba|boa constrictor|La1-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.042494297027588,-7.209975719451904,5.167481422424316,percussion instrument
+marimba|boa constrictor|La1-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.393624782562256,-7.025655269622803,4.632030487060547,percussion instrument
+marimba|boa constrictor|La1-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.555283308029175,-6.493985652923584,3.938702344894409,percussion instrument
+marimba|boa constrictor|La1-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-2.170097589492798,-7.016880512237549,4.846782922744751,percussion instrument
+marimba|boa constrictor|La1-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.938571572303772,-25.063749313354492,23.12517774105072,percussion instrument
+marimba|boa constrictor|La1-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.3493525981903076,-24.338075637817383,21.988723039627075,percussion instrument
+marimba|boa constrictor|La1-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.4094960689544678,-23.91206169128418,21.502565622329712,percussion instrument
+marimba|boa constrictor|La1-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-2.1907904148101807,-24.601654052734375,22.410863637924194,percussion instrument
+marimba|boa constrictor|La1-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.8191885948181152,-5.618465423583984,3.799276828765869,percussion instrument
+marimba|boa constrictor|La1-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.4976656436920166,-5.753402233123779,3.2557365894317627,percussion instrument
+marimba|boa constrictor|La1-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.518669366836548,-4.913533687591553,2.394864320755005,percussion instrument
+marimba|boa constrictor|La1-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-2.094576597213745,-5.602649688720703,3.508073091506958,percussion instrument
+marimba|boa constrictor|La2-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.633247137069702,-9.004195213317871,5.370948076248169,musical instrument
+marimba|boa constrictor|La2-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-4.257997035980225,-8.447728157043457,4.189731121063232,musical instrument
+marimba|boa constrictor|La2-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-4.117428779602051,-8.434752464294434,4.317323684692383,musical instrument
+marimba|boa constrictor|La2-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.836318254470825,-8.432169914245605,4.59585165977478,musical instrument
+marimba|boa constrictor|La2-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.2118003368377686,-28.175548553466797,24.96374821662903,musical instrument
+marimba|boa constrictor|La2-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-4.234532356262207,-26.38994789123535,22.155415534973145,musical instrument
+marimba|boa constrictor|La2-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-3.828420400619507,-27.48885726928711,23.660436868667603,musical instrument
+marimba|boa constrictor|La2-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.8050179481506348,-27.457683563232422,23.652665615081787,musical instrument
+marimba|boa constrictor|La2-Lt2|p0,llava-hf/llava-v1.6-mistral-7b-hf,-3.3210129737854004,-7.438615798950195,4.117602825164795,musical instrument
+marimba|boa constrictor|La2-Lt2|p1,llava-hf/llava-v1.6-mistral-7b-hf,-4.140799522399902,-6.430444717407227,2.289645195007324,musical instrument
+marimba|boa constrictor|La2-Lt2|p2,llava-hf/llava-v1.6-mistral-7b-hf,-3.9221229553222656,-6.996959686279297,3.0748367309570312,musical instrument
+marimba|boa constrictor|La2-Lt2|p3,llava-hf/llava-v1.6-mistral-7b-hf,-3.8206405639648438,-6.9449615478515625,3.1243209838867188,musical instrument
+marimba|cello|La0-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-1.6224207878112793,-8.673867225646973,7.051446437835693,marimba
+marimba|cello|La0-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.8414344787597656,-7.621516704559326,4.7800822257995605,marimba
+marimba|cello|La0-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.6879494190216064,-7.313170433044434,4.625221014022827,marimba
+marimba|cello|La0-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-2.5472209453582764,-7.842309951782227,5.29508900642395,marimba
+marimba|cello|La0-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.2116641998291016,-6.692604064941406,4.480939865112305,marimba
+marimba|cello|La0-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.860710859298706,-6.502101421356201,3.641390562057495,marimba
+marimba|cello|La0-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.576469659805298,-4.716318607330322,2.1398489475250244,marimba
+marimba|cello|La0-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-2.715022325515747,-6.432008266448975,3.7169859409332275,marimba
+marimba|cello|La1-Lt0|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.2297110557556152,-9.293794631958008,7.064083576202393,percussion instrument
+marimba|cello|La1-Lt0|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.859609842300415,-8.369489669799805,5.50987982749939,percussion instrument
+marimba|cello|La1-Lt0|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.7154605388641357,-6.702081203460693,3.9866206645965576,percussion instrument
+marimba|cello|La1-Lt0|p3,llava-hf/llava-v1.6-mistral-7b-hf,-2.4803123474121094,-8.077886581420898,5.597574234008789,percussion instrument
+marimba|cello|La1-Lt1|p0,llava-hf/llava-v1.6-mistral-7b-hf,-2.323007106781006,-5.418254375457764,3.095247268676758,percussion instrument
+marimba|cello|La1-Lt1|p1,llava-hf/llava-v1.6-mistral-7b-hf,-2.6661975383758545,-5.073764324188232,2.407566785812378,percussion instrument
+marimba|cello|La1-Lt1|p2,llava-hf/llava-v1.6-mistral-7b-hf,-2.8743937015533447,-3.9131345748901367,1.038740873336792,percussion instrument
+marimba|cello|La1-Lt1|p3,llava-hf/llava-v1.6-mistral-7b-hf,-2.5034663677215576,-4.290373802185059,1.786907434463501,percussion instrument

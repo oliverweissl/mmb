@@ -1,0 +1,961 @@
+cell_key,sut,lp_a,lp_b,g,argmax
+junco|ostrich|La0-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.1113797202706337,-7.4464335441589355,7.335053823888302,sparrow
+junco|ostrich|La0-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.09485310316085815,-6.608154296875,6.513301193714142,sparrow
+junco|ostrich|La0-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.06941434741020203,-7.102660655975342,7.03324630856514,sparrow
+junco|ostrich|La0-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.07544910907745361,-7.939090728759766,7.863641619682312,sparrow
+junco|ostrich|La0-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.07316353172063828,-3.511215925216675,3.4380523934960365,sparrow
+junco|ostrich|La0-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.06870996952056885,-2.1931874752044678,2.124477505683899,sparrow
+junco|ostrich|La0-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.05836187303066254,-2.7891876697540283,2.730825796723366,sparrow
+junco|ostrich|La0-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.056831758469343185,-3.6840686798095703,3.627236921340227,sparrow
+junco|ostrich|La1-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.021888764575123787,-9.429616928100586,9.407728163525462,songbird
+junco|ostrich|La1-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.016164196655154228,-9.14288330078125,9.126719104126096,songbird
+junco|ostrich|La1-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.01964797079563141,-8.942639350891113,8.922991380095482,songbird
+junco|ostrich|La1-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.02199254184961319,-9.367461204528809,9.345468662679195,songbird
+junco|ostrich|La1-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.014949466101825237,-4.95107889175415,4.936129425652325,songbird
+junco|ostrich|La1-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.0116237448528409,-4.531528472900391,4.51990472804755,songbird
+junco|ostrich|La1-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.013084235601127148,-4.094336032867432,4.0812517972663045,songbird
+junco|ostrich|La1-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.016098087653517723,-5.034770488739014,5.018672401085496,songbird
+junco|green iguana|La0-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.09434501081705093,-7.750513553619385,7.656168542802334,sparrow
+junco|green iguana|La0-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.08063041418790817,-7.166750907897949,7.086120493710041,sparrow
+junco|green iguana|La0-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.07320433855056763,-6.6101531982421875,6.53694885969162,sparrow
+junco|green iguana|La0-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.0699634775519371,-7.588972091674805,7.519008614122868,sparrow
+junco|green iguana|La0-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.09334490448236465,-5.3607072830200195,5.267362378537655,sparrow
+junco|green iguana|La0-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.07921621203422546,-6.119862079620361,6.040645867586136,sparrow
+junco|green iguana|La0-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.05104326829314232,-5.984677314758301,5.9336340464651585,sparrow
+junco|green iguana|La0-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.0633348748087883,-7.0813398361206055,7.018004961311817,sparrow
+junco|green iguana|La0-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.09350806474685669,-7.280820846557617,7.1873127818107605,sparrow
+junco|green iguana|La0-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.07184754312038422,-5.826053619384766,5.754206076264381,sparrow
+junco|green iguana|La0-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.054039034992456436,-7.1596293449401855,7.105590309947729,sparrow
+junco|green iguana|La0-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.06584914773702621,-8.067415237426758,8.001566089689732,sparrow
+junco|green iguana|La1-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.0192574430257082,-9.613507270812988,9.59424982778728,songbird
+junco|green iguana|La1-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.014371407218277454,-9.45234489440918,9.437973487190902,songbird
+junco|green iguana|La1-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.015709051862359047,-9.328686714172363,9.312977662310004,songbird
+junco|green iguana|La1-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.01936756819486618,-9.598148345947266,9.5787807777524,songbird
+junco|green iguana|La1-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.014501544646918774,-9.247631072998047,9.233129528351128,songbird
+junco|green iguana|La1-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.012025128118693829,-9.101975440979004,9.08995031286031,songbird
+junco|green iguana|La1-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.012726577930152416,-8.894817352294922,8.88209077436477,songbird
+junco|green iguana|La1-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.014645767398178577,-9.277484893798828,9.26283912640065,songbird
+junco|green iguana|La1-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.01973891630768776,-8.959172248840332,8.939433332532644,songbird
+junco|green iguana|La1-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.014905436895787716,-8.71987533569336,8.704969898797572,songbird
+junco|green iguana|La1-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.015470225363969803,-8.642436027526855,8.626965802162886,songbird
+junco|green iguana|La1-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.01811956986784935,-8.926264762878418,8.908145193010569,songbird
+junco|green iguana|La2-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.037363070994615555,-9.050840377807617,9.013477306813002,bird
+junco|green iguana|La2-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.027103988453745842,-9.123905181884766,9.09680119343102,bird
+junco|green iguana|La2-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.02978929691016674,-8.937762260437012,8.907972963526845,bird
+junco|green iguana|La2-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.032623425126075745,-9.204780578613281,9.172157153487206,bird
+junco|green iguana|La2-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.05082131177186966,-8.5934419631958,8.542620651423931,bird
+junco|green iguana|La2-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.03372472524642944,-8.582088470458984,8.548363745212555,bird
+junco|green iguana|La2-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.03302360698580742,-8.548319816589355,8.515296209603548,bird
+junco|green iguana|La2-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.04509348422288895,-8.761985778808594,8.716892294585705,bird
+junco|green iguana|La2-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.05928206816315651,-8.327914237976074,8.268632169812918,bird
+junco|green iguana|La2-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.04471668228507042,-8.086241722106934,8.041525039821863,bird
+junco|green iguana|La2-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.04343865439295769,-8.02315902709961,7.979720372706652,bird
+junco|green iguana|La2-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.05207070708274841,-8.449296951293945,8.397226244211197,bird
+junco|boa constrictor|La0-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.10473573952913284,-5.104579448699951,4.999843709170818,sparrow
+junco|boa constrictor|La0-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.09468149393796921,-4.604349613189697,4.509668119251728,sparrow
+junco|boa constrictor|La0-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.07069035619497299,-5.487635135650635,5.416944779455662,sparrow
+junco|boa constrictor|La0-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.0763000026345253,-5.6492180824279785,5.572918079793453,sparrow
+junco|boa constrictor|La0-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.10941988229751587,-5.742166996002197,5.632747113704681,sparrow
+junco|boa constrictor|La0-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.09433846920728683,-5.6485700607299805,5.554231591522694,sparrow
+junco|boa constrictor|La0-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.057028766721487045,-5.9094767570495605,5.8524479903280735,sparrow
+junco|boa constrictor|La0-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.07075615972280502,-6.63800048828125,6.567244328558445,sparrow
+junco|boa constrictor|La0-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.09350806474685669,-7.280820846557617,7.1873127818107605,sparrow
+junco|boa constrictor|La0-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.07184754312038422,-5.826053619384766,5.754206076264381,sparrow
+junco|boa constrictor|La0-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.054039034992456436,-7.1596293449401855,7.105590309947729,sparrow
+junco|boa constrictor|La0-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.06584914773702621,-8.067415237426758,8.001566089689732,sparrow
+junco|boa constrictor|La1-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.021151280030608177,-6.370110988616943,6.348959708586335,songbird
+junco|boa constrictor|La1-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.01667337492108345,-6.304707050323486,6.288033675402403,songbird
+junco|boa constrictor|La1-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.01947122812271118,-6.253886699676514,6.2344154715538025,songbird
+junco|boa constrictor|La1-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.021287700161337852,-6.359788417816162,6.338500717654824,songbird
+junco|boa constrictor|La1-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.015991074964404106,-7.002573013305664,6.98658193834126,songbird
+junco|boa constrictor|La1-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.012002198025584221,-7.2152099609375,7.203207762911916,songbird
+junco|boa constrictor|La1-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.012704044580459595,-6.459352970123291,6.446648925542831,songbird
+junco|boa constrictor|La1-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.013105898164212704,-7.275630950927734,7.262525052763522,songbird
+junco|boa constrictor|La1-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.01973891630768776,-8.959172248840332,8.939433332532644,songbird
+junco|boa constrictor|La1-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.014905436895787716,-8.71987533569336,8.704969898797572,songbird
+junco|boa constrictor|La1-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.015470225363969803,-8.642436027526855,8.626965802162886,songbird
+junco|boa constrictor|La1-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.01811956986784935,-8.926264762878418,8.908145193010569,songbird
+junco|boa constrictor|La2-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.05276402831077576,-5.925394535064697,5.8726305067539215,bird
+junco|boa constrictor|La2-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.037679627537727356,-5.951798915863037,5.91411928832531,bird
+junco|boa constrictor|La2-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.04238959774374962,-5.932156085968018,5.889766488224268,bird
+junco|boa constrictor|La2-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.04624636471271515,-5.99607515335083,5.949828788638115,bird
+junco|boa constrictor|La2-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.04021672531962395,-8.465527534484863,8.42531080916524,bird
+junco|boa constrictor|La2-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.03709075227379799,-8.169198989868164,8.132108237594366,bird
+junco|boa constrictor|La2-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.0333775132894516,-7.9280524253845215,7.89467491209507,bird
+junco|boa constrictor|La2-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.03988470509648323,-8.543610572814941,8.503725867718458,bird
+junco|boa constrictor|La2-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.05928206816315651,-8.327914237976074,8.268632169812918,bird
+junco|boa constrictor|La2-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.04471668228507042,-8.086241722106934,8.041525039821863,bird
+junco|boa constrictor|La2-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.04343865439295769,-8.02315902709961,7.979720372706652,bird
+junco|boa constrictor|La2-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.05207070708274841,-8.449296951293945,8.397226244211197,bird
+junco|cello|La0-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.08459901064634323,-4.822500228881836,4.737901218235493,sparrow
+junco|cello|La0-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.060170888900756836,-4.73285436630249,4.672683477401733,sparrow
+junco|cello|La0-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.04652636870741844,-5.711064338684082,5.664537969976664,sparrow
+junco|cello|La0-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.04872409626841545,-5.99320125579834,5.944477159529924,sparrow
+junco|cello|La0-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.07336295396089554,-8.673510551452637,8.600147597491741,sparrow
+junco|cello|La0-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.05235539376735687,-8.444160461425781,8.391805067658424,sparrow
+junco|cello|La0-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.04612606391310692,-8.422066688537598,8.37594062462449,sparrow
+junco|cello|La0-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.047088105231523514,-8.684761047363281,8.637672942131758,sparrow
+junco|cello|La0-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.0909024104475975,-5.294739246368408,5.203836835920811,sparrow
+junco|cello|La0-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.07076910883188248,-4.577948093414307,4.507178984582424,sparrow
+junco|cello|La0-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.04804568365216255,-5.249889373779297,5.201843690127134,sparrow
+junco|cello|La0-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.0610295794904232,-5.305676460266113,5.24464688077569,sparrow
+junco|cello|La1-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.015472926199436188,-7.862000465393066,7.84652753919363,songbird
+junco|cello|La1-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.01197178103029728,-7.769484996795654,7.757513215765357,songbird
+junco|cello|La1-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.012819434516131878,-7.626498699188232,7.6136792646721005,songbird
+junco|cello|La1-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.013464869000017643,-7.9574713706970215,7.944006501697004,songbird
+junco|cello|La1-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.014990580268204212,-8.744521141052246,8.729530560784042,songbird
+junco|cello|La1-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.011886374093592167,-8.593994140625,8.582107766531408,songbird
+junco|cello|La1-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.013445925898849964,-8.483284950256348,8.469839024357498,songbird
+junco|cello|La1-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.014711061492562294,-8.285990715026855,8.271279653534293,songbird
+junco|cello|La1-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.014683617278933525,-5.7047343254089355,5.690050708130002,songbird
+junco|cello|La1-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.011179283261299133,-5.617967128753662,5.606787845492363,songbird
+junco|cello|La1-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.010738632641732693,-5.511871337890625,5.501132705248892,songbird
+junco|cello|La1-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.013199783861637115,-5.643425464630127,5.63022568076849,songbird
+junco|cello|La2-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.02630799449980259,-7.903439044952393,7.87713105045259,bird
+junco|cello|La2-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.0216279998421669,-8.094643592834473,8.073015592992306,bird
+junco|cello|La2-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.021368633955717087,-7.833670139312744,7.812301505357027,bird
+junco|cello|La2-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.023549504578113556,-8.041048049926758,8.017498545348644,bird
+junco|cello|La2-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.030064880847930908,-8.228151321411133,8.198086440563202,bird
+junco|cello|La2-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.020425107330083847,-8.401870727539062,8.381445620208979,bird
+junco|cello|La2-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.024442393332719803,-8.23681640625,8.21237401291728,bird
+junco|cello|La2-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.023834960535168648,-8.258946418762207,8.235111458227038,bird
+junco|cello|La2-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.03590092435479164,-5.588977336883545,5.553076412528753,bird
+junco|cello|La2-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.02663213200867176,-5.59651517868042,5.569883046671748,bird
+junco|cello|La2-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.023712383583188057,-5.604665756225586,5.580953372642398,bird
+junco|cello|La2-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.028424369171261787,-5.650712966918945,5.6222885977476835,bird
+junco|marimba|La0-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.0784469023346901,-4.524024486541748,4.445577584207058,sparrow
+junco|marimba|La0-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.06112361326813698,-3.215862274169922,3.154738660901785,sparrow
+junco|marimba|La0-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.05390334501862526,-4.077041149139404,4.023137804120779,sparrow
+junco|marimba|La0-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.05753582715988159,-4.5503010749816895,4.492765247821808,sparrow
+junco|marimba|La0-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.08251098543405533,-6.121675491333008,6.0391645058989525,sparrow
+junco|marimba|La0-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.06405234336853027,-6.106761932373047,6.042709589004517,sparrow
+junco|marimba|La0-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.046489614993333817,-6.229541778564453,6.183052163571119,sparrow
+junco|marimba|La0-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.05312064662575722,-6.263546466827393,6.210425820201635,sparrow
+junco|marimba|La0-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.0909024104475975,-5.294739246368408,5.203836835920811,sparrow
+junco|marimba|La0-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.07076910883188248,-4.577948093414307,4.507178984582424,sparrow
+junco|marimba|La0-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.04804568365216255,-5.249889373779297,5.201843690127134,sparrow
+junco|marimba|La0-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.0610295794904232,-5.305676460266113,5.24464688077569,sparrow
+junco|marimba|La1-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.01789611391723156,-6.114725112915039,6.0968289989978075,songbird
+junco|marimba|La1-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.01438535563647747,-5.7641282081604,5.749742852523923,songbird
+junco|marimba|La1-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.016012847423553467,-5.785035610198975,5.769022762775421,songbird
+junco|marimba|La1-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.015592958778142929,-6.077278137207031,6.061685178428888,songbird
+junco|marimba|La1-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.01455679815262556,-6.738083362579346,6.72352656442672,songbird
+junco|marimba|La1-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.011438818648457527,-6.755259990692139,6.743821172043681,songbird
+junco|marimba|La1-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.011971677653491497,-6.665561676025391,6.653589998371899,songbird
+junco|marimba|La1-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.013105109333992004,-6.715308666229248,6.702203556895256,songbird
+junco|marimba|La1-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.014683617278933525,-5.7047343254089355,5.690050708130002,songbird
+junco|marimba|La1-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.011179283261299133,-5.617967128753662,5.606787845492363,songbird
+junco|marimba|La1-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.010738632641732693,-5.511871337890625,5.501132705248892,songbird
+junco|marimba|La1-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.013199783861637115,-5.643425464630127,5.63022568076849,songbird
+junco|marimba|La2-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.042037494480609894,-5.560373783111572,5.518336288630962,bird
+junco|marimba|La2-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.02680971287190914,-5.534296035766602,5.507486322894692,bird
+junco|marimba|La2-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.03308911621570587,-5.399751663208008,5.366662546992302,bird
+junco|marimba|La2-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.0369861014187336,-5.50567102432251,5.468684922903776,bird
+junco|marimba|La2-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.032711226493120193,-6.188915252685547,6.156204026192427,bird
+junco|marimba|La2-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.023909106850624084,-6.196914196014404,6.17300508916378,bird
+junco|marimba|La2-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.023736247792840004,-6.216606140136719,6.192869892343879,bird
+junco|marimba|La2-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.028881482779979706,-6.2188720703125,6.18999058753252,bird
+junco|marimba|La2-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.03590092435479164,-5.588977336883545,5.553076412528753,bird
+junco|marimba|La2-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.02663213200867176,-5.59651517868042,5.569883046671748,bird
+junco|marimba|La2-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.023712383583188057,-5.604665756225586,5.580953372642398,bird
+junco|marimba|La2-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.028424369171261787,-5.650712966918945,5.6222885977476835,bird
+ostrich|junco|La0-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.1216907650232315,-4.755527019500732,4.633836254477501,ratite
+ostrich|junco|La0-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.08974605053663254,-4.78139066696167,4.691644616425037,ratite
+ostrich|junco|La0-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.14985330402851105,-4.849748611450195,4.699895307421684,ratite
+ostrich|junco|La0-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.18315592408180237,-4.741173267364502,4.5580173432827,ratite
+ostrich|junco|La0-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.09719676524400711,-7.1618757247924805,7.064678959548473,ratite
+ostrich|junco|La0-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.07194884121417999,-6.166870594024658,6.094921752810478,ratite
+ostrich|junco|La0-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.12061607837677002,-7.373103618621826,7.252487540245056,ratite
+ostrich|junco|La0-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.12033303081989288,-7.185315132141113,7.06498210132122,ratite
+ostrich|junco|La1-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.013081311248242855,-4.762381076812744,4.749299765564501,flightless bird
+ostrich|junco|La1-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.010404755361378193,-4.720175743103027,4.709770987741649,flightless bird
+ostrich|junco|La1-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.021862896159291267,-4.781215190887451,4.75935229472816,flightless bird
+ostrich|junco|La1-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.013999730348587036,-4.694285869598389,4.680286139249802,flightless bird
+ostrich|junco|La1-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.015512079000473022,-6.778956413269043,6.76344433426857,flightless bird
+ostrich|junco|La1-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.012071702629327774,-6.39565896987915,6.383587267249823,flightless bird
+ostrich|junco|La1-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.029483705759048462,-6.9266791343688965,6.897195428609848,flightless bird
+ostrich|junco|La1-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.01590699702501297,-6.810147762298584,6.794240765273571,flightless bird
+ostrich|green iguana|La0-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.08816023916006088,-6.887345790863037,6.799185551702976,ratite
+ostrich|green iguana|La0-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.0708804577589035,-6.38520622253418,6.314325764775276,ratite
+ostrich|green iguana|La0-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.10868611931800842,-6.736499786376953,6.627813667058945,ratite
+ostrich|green iguana|La0-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.12112410366535187,-5.811030864715576,5.689906761050224,ratite
+ostrich|green iguana|La0-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.13744418323040009,-6.905608654022217,6.768164470791817,ratite
+ostrich|green iguana|La0-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.09196573495864868,-7.015283584594727,6.923317849636078,ratite
+ostrich|green iguana|La0-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.16857551038265228,-6.498843669891357,6.330268159508705,ratite
+ostrich|green iguana|La0-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.15213674306869507,-6.435286998748779,6.283150255680084,ratite
+ostrich|green iguana|La0-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.16953514516353607,-4.857699394226074,4.688164249062538,ratite
+ostrich|green iguana|La0-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.1270395666360855,-5.096378803253174,4.969339236617088,ratite
+ostrich|green iguana|La0-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.20832596719264984,-5.052692413330078,4.844366446137428,ratite
+ostrich|green iguana|La0-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.1873023509979248,-4.750410556793213,4.563108205795288,ratite
+ostrich|green iguana|La1-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.012730413116514683,-8.502443313598633,8.489712900482118,flightless bird
+ostrich|green iguana|La1-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.011742212809622288,-8.016888618469238,8.005146405659616,flightless bird
+ostrich|green iguana|La1-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.021933577954769135,-8.71933650970459,8.69740293174982,flightless bird
+ostrich|green iguana|La1-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.015343296341598034,-7.443952560424805,7.428609264083207,flightless bird
+ostrich|green iguana|La1-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.011879337020218372,-6.970222473144531,6.958343136124313,flightless bird
+ostrich|green iguana|La1-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.010636941529810429,-6.648508548736572,6.637871607206762,flightless bird
+ostrich|green iguana|La1-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.016969090327620506,-6.849617958068848,6.832648867741227,flightless bird
+ostrich|green iguana|La1-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.012497667223215103,-6.248998641967773,6.236500974744558,flightless bird
+ostrich|green iguana|La1-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.012499178759753704,-6.98930549621582,6.976806317456067,flightless bird
+ostrich|green iguana|La1-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.009589762426912785,-5.827947616577148,5.818357854150236,flightless bird
+ostrich|green iguana|La1-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.023411909118294716,-7.473905563354492,7.4504936542361975,flightless bird
+ostrich|green iguana|La1-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.013500929810106754,-5.990376949310303,5.976876019500196,flightless bird
+ostrich|green iguana|La2-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.057017385959625244,-7.717187881469727,7.660170495510101,bird
+ostrich|green iguana|La2-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.06372083723545074,-7.73600435256958,7.672283515334129,bird
+ostrich|green iguana|La2-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.06496662646532059,-7.611856937408447,7.546890310943127,bird
+ostrich|green iguana|La2-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.11356548219919205,-7.683558464050293,7.569992981851101,bird
+ostrich|green iguana|La2-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.06414733827114105,-8.19215202331543,8.128004685044289,bird
+ostrich|green iguana|La2-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.06406628340482712,-8.042963981628418,7.978897698223591,bird
+ostrich|green iguana|La2-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.05711962282657623,-8.07193660736084,8.014816984534264,bird
+ostrich|green iguana|La2-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.12691839039325714,-7.717807769775391,7.5908893793821335,bird
+ostrich|green iguana|La2-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.059176795184612274,-6.843979358673096,6.784802563488483,bird
+ostrich|green iguana|La2-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.06698945164680481,-6.222470283508301,6.155480831861496,bird
+ostrich|green iguana|La2-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.05336352437734604,-7.059528350830078,7.006164826452732,bird
+ostrich|green iguana|La2-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.11758995056152344,-5.998690128326416,5.881100177764893,bird
+ostrich|boa constrictor|La0-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.15452955663204193,-5.1661505699157715,5.0116210132837296,ratite
+ostrich|boa constrictor|La0-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.12690545618534088,-5.178812503814697,5.051907047629356,ratite
+ostrich|boa constrictor|La0-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.20926932990550995,-4.890172481536865,4.680903151631355,ratite
+ostrich|boa constrictor|La0-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.20420144498348236,-4.99100923538208,4.786807790398598,ratite
+ostrich|boa constrictor|La0-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.15315647423267365,-6.09250545501709,5.939348980784416,ratite
+ostrich|boa constrictor|La0-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.10180632025003433,-6.196497440338135,6.0946911200881,ratite
+ostrich|boa constrictor|La0-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.16936983168125153,-6.108323574066162,5.938953742384911,ratite
+ostrich|boa constrictor|La0-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.1855449080467224,-5.937373161315918,5.751828253269196,ratite
+ostrich|boa constrictor|La0-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.16953514516353607,-4.857699394226074,4.688164249062538,ratite
+ostrich|boa constrictor|La0-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.1270395666360855,-5.096378803253174,4.969339236617088,ratite
+ostrich|boa constrictor|La0-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.20832596719264984,-5.052692413330078,4.844366446137428,ratite
+ostrich|boa constrictor|La0-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.1873023509979248,-4.750410556793213,4.563108205795288,ratite
+ostrich|boa constrictor|La1-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.026560187339782715,-5.729607105255127,5.703046917915344,flightless bird
+ostrich|boa constrictor|La1-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.019025789573788643,-5.667714595794678,5.648688806220889,flightless bird
+ostrich|boa constrictor|La1-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.04661315679550171,-5.603559970855713,5.556946814060211,flightless bird
+ostrich|boa constrictor|La1-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.0237115491181612,-5.57979154586792,5.556079996749759,flightless bird
+ostrich|boa constrictor|La1-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.012448080815374851,-8.197035789489746,8.184587708674371,flightless bird
+ostrich|boa constrictor|La1-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.008916033431887627,-7.985325813293457,7.976409779861569,flightless bird
+ostrich|boa constrictor|La1-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.018345383927226067,-8.205073356628418,8.186727972701192,flightless bird
+ostrich|boa constrictor|La1-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.012894857674837112,-7.837021350860596,7.824126493185759,flightless bird
+ostrich|boa constrictor|La1-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.012499178759753704,-6.98930549621582,6.976806317456067,flightless bird
+ostrich|boa constrictor|La1-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.009589762426912785,-5.827947616577148,5.818357854150236,flightless bird
+ostrich|boa constrictor|La1-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.023411909118294716,-7.473905563354492,7.4504936542361975,flightless bird
+ostrich|boa constrictor|La1-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.013500929810106754,-5.990376949310303,5.976876019500196,flightless bird
+ostrich|boa constrictor|La2-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.07250787317752838,-5.807819843292236,5.735311970114708,bird
+ostrich|boa constrictor|La2-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.07427648454904556,-5.713840961456299,5.639564476907253,bird
+ostrich|boa constrictor|La2-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.06558096408843994,-5.773822784423828,5.708241820335388,bird
+ostrich|boa constrictor|La2-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.12902845442295074,-5.743476867675781,5.6144484132528305,bird
+ostrich|boa constrictor|La2-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.06317911297082901,-7.773055076599121,7.709875963628292,bird
+ostrich|boa constrictor|La2-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.05037219449877739,-7.811203956604004,7.7608317621052265,bird
+ostrich|boa constrictor|La2-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.05089223384857178,-7.780930995941162,7.73003876209259,bird
+ostrich|boa constrictor|La2-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.11105762422084808,-7.642062664031982,7.531005039811134,bird
+ostrich|boa constrictor|La2-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.059176795184612274,-6.843979358673096,6.784802563488483,bird
+ostrich|boa constrictor|La2-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.06698945164680481,-6.222470283508301,6.155480831861496,bird
+ostrich|boa constrictor|La2-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.05336352437734604,-7.059528350830078,7.006164826452732,bird
+ostrich|boa constrictor|La2-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.11758995056152344,-5.998690128326416,5.881100177764893,bird
+ostrich|cello|La0-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.09197159856557846,-7.9527459144592285,7.86077431589365,ratite
+ostrich|cello|La0-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.06126803532242775,-7.982616424560547,7.921348389238119,ratite
+ostrich|cello|La0-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.10138402134180069,-8.021028518676758,7.919644497334957,ratite
+ostrich|cello|La0-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.12242741882801056,-8.01655101776123,7.89412359893322,ratite
+ostrich|cello|La0-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.07489508390426636,-8.548592567443848,8.473697483539581,ratite
+ostrich|cello|La0-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.05422298610210419,-8.636881828308105,8.582658842206001,ratite
+ostrich|cello|La0-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.08103031665086746,-8.46309757232666,8.382067255675793,ratite
+ostrich|cello|La0-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.10954863578081131,-8.530904769897461,8.42135613411665,ratite
+ostrich|cello|La0-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.06539338082075119,-5.285465717315674,5.220072336494923,ratite
+ostrich|cello|La0-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.04333358630537987,-5.257754802703857,5.2144212163984776,ratite
+ostrich|cello|La0-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.08060160279273987,-5.170192241668701,5.089590638875961,ratite
+ostrich|cello|La0-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.0878508910536766,-5.259974002838135,5.172123111784458,ratite
+ostrich|cello|La1-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.015424441546201706,-7.769347667694092,7.75392322614789,flightless bird
+ostrich|cello|La1-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.012681418098509312,-7.637044429779053,7.624363011680543,flightless bird
+ostrich|cello|La1-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.027376839891076088,-7.808260917663574,7.780884077772498,flightless bird
+ostrich|cello|La1-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.017803190276026726,-7.7247633934021,7.706960203126073,flightless bird
+ostrich|cello|La1-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.015637747943401337,-8.102670669555664,8.087032921612263,flightless bird
+ostrich|cello|La1-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.012487705796957016,-7.965521335601807,7.95303362980485,flightless bird
+ostrich|cello|La1-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.02038288675248623,-7.898672103881836,7.87828921712935,flightless bird
+ostrich|cello|La1-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.016949009150266647,-7.843305587768555,7.826356578618288,flightless bird
+ostrich|cello|La1-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.012128562666475773,-5.812628269195557,5.800499706529081,flightless bird
+ostrich|cello|La1-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.009923809207975864,-5.658956527709961,5.649032718501985,flightless bird
+ostrich|cello|La1-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.02132677286863327,-5.596264362335205,5.574937589466572,flightless bird
+ostrich|cello|La1-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.013710101135075092,-5.658023357391357,5.644313256256282,flightless bird
+ostrich|cello|La2-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.03572425991296768,-8.10140323638916,8.065678976476192,bird
+ostrich|cello|La2-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.03551707789301872,-8.01782512664795,7.9823080487549305,bird
+ostrich|cello|La2-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.028831101953983307,-8.11335277557373,8.084521673619747,bird
+ostrich|cello|La2-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.062389716506004333,-8.198882102966309,8.136492386460304,bird
+ostrich|cello|La2-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.036321986466646194,-7.904294490814209,7.867972504347563,bird
+ostrich|cello|La2-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.04077480733394623,-7.881360054016113,7.840585246682167,bird
+ostrich|cello|La2-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.03344346210360527,-7.625132083892822,7.591688621789217,bird
+ostrich|cello|La2-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.07955382764339447,-7.973995685577393,7.894441857933998,bird
+ostrich|cello|La2-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.03996064513921738,-5.531801700592041,5.491841055452824,bird
+ostrich|cello|La2-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.03602224960923195,-5.4521355628967285,5.416113313287497,bird
+ostrich|cello|La2-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.03277767822146416,-5.452311038970947,5.419533360749483,bird
+ostrich|cello|La2-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.07084430754184723,-5.485509395599365,5.414665088057518,bird
+ostrich|marimba|La0-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.12579955160617828,-4.420665264129639,4.29486571252346,ratite
+ostrich|marimba|La0-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.10177750885486603,-4.758597373962402,4.656819865107536,ratite
+ostrich|marimba|La0-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.16971486806869507,-3.804311752319336,3.634596884250641,ratite
+ostrich|marimba|La0-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.16750863194465637,-4.386597633361816,4.21908900141716,ratite
+ostrich|marimba|La0-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.10096406191587448,-6.618043422698975,6.5170793607831,ratite
+ostrich|marimba|La0-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.07450196892023087,-6.5531463623046875,6.478644393384457,ratite
+ostrich|marimba|La0-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.12548664212226868,-6.305935382843018,6.180448740720749,ratite
+ostrich|marimba|La0-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.14968593418598175,-6.483140468597412,6.33345453441143,ratite
+ostrich|marimba|La0-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.06539338082075119,-5.285465717315674,5.220072336494923,ratite
+ostrich|marimba|La0-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.04333358630537987,-5.257754802703857,5.2144212163984776,ratite
+ostrich|marimba|La0-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.08060160279273987,-5.170192241668701,5.089590638875961,ratite
+ostrich|marimba|La0-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.0878508910536766,-5.259974002838135,5.172123111784458,ratite
+ostrich|marimba|La1-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.019123634323477745,-5.2613348960876465,5.242211261764169,flightless bird
+ostrich|marimba|La1-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.012842793017625809,-5.2861714363098145,5.273328643292189,flightless bird
+ostrich|marimba|La1-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.04223412275314331,-4.4401068687438965,4.397872745990753,flightless bird
+ostrich|marimba|La1-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.021692954003810883,-4.920034885406494,4.898341931402683,flightless bird
+ostrich|marimba|La1-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.017704658210277557,-6.6892313957214355,6.671526737511158,flightless bird
+ostrich|marimba|La1-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.012670616619288921,-6.49485445022583,6.482183833606541,flightless bird
+ostrich|marimba|La1-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.027053000405430794,-6.510733127593994,6.483680127188563,flightless bird
+ostrich|marimba|La1-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.02273167110979557,-6.460965633392334,6.438233962282538,flightless bird
+ostrich|marimba|La1-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.012128562666475773,-5.812628269195557,5.800499706529081,flightless bird
+ostrich|marimba|La1-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.009923809207975864,-5.658956527709961,5.649032718501985,flightless bird
+ostrich|marimba|La1-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.02132677286863327,-5.596264362335205,5.574937589466572,flightless bird
+ostrich|marimba|La1-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.013710101135075092,-5.658023357391357,5.644313256256282,flightless bird
+ostrich|marimba|La2-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.051472246646881104,-5.251288414001465,5.199816167354584,bird
+ostrich|marimba|La2-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.058485545217990875,-5.284255027770996,5.225769482553005,bird
+ostrich|marimba|La2-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.05966195836663246,-4.826752662658691,4.767090704292059,bird
+ostrich|marimba|La2-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.11385764926671982,-5.190263271331787,5.076405622065067,bird
+ostrich|marimba|La2-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.04485335573554039,-6.350082874298096,6.305229518562555,bird
+ostrich|marimba|La2-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.04063471406698227,-6.222931385040283,6.182296670973301,bird
+ostrich|marimba|La2-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.036650825291872025,-6.1281962394714355,6.0915454141795635,bird
+ostrich|marimba|La2-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.07922900468111038,-6.300228595733643,6.220999591052532,bird
+ostrich|marimba|La2-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.03996064513921738,-5.531801700592041,5.491841055452824,bird
+ostrich|marimba|La2-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.03602224960923195,-5.4521355628967285,5.416113313287497,bird
+ostrich|marimba|La2-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.03277767822146416,-5.452311038970947,5.419533360749483,bird
+ostrich|marimba|La2-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.07084430754184723,-5.485509395599365,5.414665088057518,bird
+green iguana|junco|La0-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.01587635464966297,-4.845412254333496,4.829535899683833,iguana
+green iguana|junco|La0-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.01004278939217329,-5.038339138031006,5.028296348638833,iguana
+green iguana|junco|La0-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.014786641113460064,-4.856288433074951,4.841501791961491,iguana
+green iguana|junco|La0-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.013738921843469143,-4.907175540924072,4.893436619080603,iguana
+green iguana|junco|La0-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.014458299614489079,-8.985450744628906,8.970992445014417,iguana
+green iguana|junco|La0-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.00987277552485466,-8.841384887695312,8.831512112170458,iguana
+green iguana|junco|La0-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.013812475837767124,-8.719402313232422,8.705589837394655,iguana
+green iguana|junco|La0-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.014049313962459564,-9.110095024108887,9.096045710146427,iguana
+green iguana|junco|La0-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.010946963913738728,-15.834171295166016,15.823224331252277,iguana
+green iguana|junco|La0-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.008490068838000298,-14.672809600830078,14.664319531992078,iguana
+green iguana|junco|La0-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.010597286745905876,-15.489579200744629,15.478981913998723,iguana
+green iguana|junco|La0-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.012357868254184723,-16.430686950683594,16.41832908242941,iguana
+green iguana|junco|La1-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.05621678754687309,-4.627957820892334,4.571741033345461,lizard
+green iguana|junco|La1-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.06186646595597267,-4.530804634094238,4.468938168138266,lizard
+green iguana|junco|La1-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.06854400783777237,-4.616602420806885,4.548058412969112,lizard
+green iguana|junco|La1-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.038888975977897644,-4.785644054412842,4.746755078434944,lizard
+green iguana|junco|La1-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.05575396865606308,-7.369680404663086,7.313926436007023,lizard
+green iguana|junco|La1-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.06155802309513092,-6.941510200500488,6.879952177405357,lizard
+green iguana|junco|La1-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.06129777058959007,-7.0318803787231445,6.9705826081335545,lizard
+green iguana|junco|La1-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.038858428597450256,-7.806987762451172,7.768129333853722,lizard
+green iguana|junco|La1-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.045365869998931885,-11.585270881652832,11.5399050116539,lizard
+green iguana|junco|La1-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.05653691291809082,-9.169971466064453,9.113434553146362,lizard
+green iguana|junco|La1-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.06205766275525093,-12.056130409240723,11.994072746485472,lizard
+green iguana|junco|La1-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.04396634176373482,-13.896116256713867,13.852149914950132,lizard
+green iguana|junco|La2-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.10883813351392746,-5.018880844116211,4.9100427106022835,reptile
+green iguana|junco|La2-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.09557146579027176,-5.06608247756958,4.970511011779308,reptile
+green iguana|junco|La2-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.0795115977525711,-5.069626808166504,4.990115210413933,reptile
+green iguana|junco|La2-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.10151594877243042,-5.201394557952881,5.09987860918045,reptile
+green iguana|junco|La2-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.10005797445774078,-8.86789321899414,8.7678352445364,reptile
+green iguana|junco|La2-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.07459520548582077,-9.047704696655273,8.973109491169453,reptile
+green iguana|junco|La2-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.07771754264831543,-9.0176420211792,8.939924478530884,reptile
+green iguana|junco|La2-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.1066732257604599,-9.217974662780762,9.111301437020302,reptile
+green iguana|junco|La2-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.09294174611568451,-13.685386657714844,13.59244491159916,reptile
+green iguana|junco|La2-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.06897226721048355,-12.699728012084961,12.630755744874477,reptile
+green iguana|junco|La2-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.05662626773118973,-14.050247192382812,13.993620924651623,reptile
+green iguana|junco|La2-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.09478464722633362,-15.220318794250488,15.125534147024155,reptile
+green iguana|ostrich|La0-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.018508218228816986,-6.878911972045898,6.8604037538170815,iguana
+green iguana|ostrich|La0-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.020075757056474686,-6.208917140960693,6.188841383904219,iguana
+green iguana|ostrich|La0-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.02325945906341076,-6.571030139923096,6.547770680859685,iguana
+green iguana|ostrich|La0-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.02075319178402424,-7.146285057067871,7.125531865283847,iguana
+green iguana|ostrich|La0-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.011972321197390556,-6.026377201080322,6.014404879882932,iguana
+green iguana|ostrich|La0-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.008656909689307213,-6.10798978805542,6.099332878366113,iguana
+green iguana|ostrich|La0-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.012053578160703182,-5.890658855438232,5.878605277277529,iguana
+green iguana|ostrich|La0-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.012243648059666157,-5.953487873077393,5.941244225017726,iguana
+green iguana|ostrich|La0-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.010946963913738728,-15.834171295166016,15.823224331252277,iguana
+green iguana|ostrich|La0-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.008490068838000298,-14.672809600830078,14.664319531992078,iguana
+green iguana|ostrich|La0-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.010597286745905876,-15.489579200744629,15.478981913998723,iguana
+green iguana|ostrich|La0-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.012357868254184723,-16.430686950683594,16.41832908242941,iguana
+green iguana|ostrich|La1-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.06322269141674042,-6.9370222091674805,6.87379951775074,lizard
+green iguana|ostrich|La1-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.09747859835624695,-5.909262180328369,5.811783581972122,lizard
+green iguana|ostrich|La1-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.07733837515115738,-6.764260768890381,6.6869223937392235,lizard
+green iguana|ostrich|La1-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.0549088679254055,-6.89787483215332,6.842965964227915,lizard
+green iguana|ostrich|La1-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.041518449783325195,-4.853898525238037,4.812380075454712,lizard
+green iguana|ostrich|La1-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.05619262158870697,-4.9603753089904785,4.9041826874017715,lizard
+green iguana|ostrich|La1-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.049879468977451324,-5.152762413024902,5.102882944047451,lizard
+green iguana|ostrich|La1-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.03151815012097359,-5.097667694091797,5.066149543970823,lizard
+green iguana|ostrich|La1-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.045365869998931885,-11.585270881652832,11.5399050116539,lizard
+green iguana|ostrich|La1-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.05653691291809082,-9.169971466064453,9.113434553146362,lizard
+green iguana|ostrich|La1-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.06205766275525093,-12.056130409240723,11.994072746485472,lizard
+green iguana|ostrich|La1-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.04396634176373482,-13.896116256713867,13.852149914950132,lizard
+green iguana|ostrich|La2-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.13700011372566223,-6.669791221618652,6.53279110789299,reptile
+green iguana|ostrich|La2-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.11670340597629547,-6.524860858917236,6.408157452940941,reptile
+green iguana|ostrich|La2-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.0995279923081398,-6.601058483123779,6.5015304908156395,reptile
+green iguana|ostrich|La2-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.1447805017232895,-6.677093505859375,6.5323130041360855,reptile
+green iguana|ostrich|La2-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.11929799616336823,-5.459788799285889,5.3404908031225204,reptile
+green iguana|ostrich|La2-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.08714497834444046,-5.647573947906494,5.560428969562054,reptile
+green iguana|ostrich|La2-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.09352114051580429,-5.693188190460205,5.599667049944401,reptile
+green iguana|ostrich|La2-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.10975179076194763,-5.525180816650391,5.415429025888443,reptile
+green iguana|ostrich|La2-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.09294174611568451,-13.685386657714844,13.59244491159916,reptile
+green iguana|ostrich|La2-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.06897226721048355,-12.699728012084961,12.630755744874477,reptile
+green iguana|ostrich|La2-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.05662626773118973,-14.050247192382812,13.993620924651623,reptile
+green iguana|ostrich|La2-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.09478464722633362,-15.220318794250488,15.125534147024155,reptile
+green iguana|boa constrictor|La0-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.015685154125094414,-4.657092571258545,4.6414074171334505,iguana
+green iguana|boa constrictor|La0-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.014126862399280071,-4.552245616912842,4.538118754513562,iguana
+green iguana|boa constrictor|La0-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.01648583635687828,-4.376344203948975,4.359858367592096,iguana
+green iguana|boa constrictor|La0-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.017179809510707855,-4.678762912750244,4.661583103239536,iguana
+green iguana|boa constrictor|La0-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.012614446692168713,-6.920051574707031,6.9074371280148625,iguana
+green iguana|boa constrictor|La0-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.012000830844044685,-6.3569793701171875,6.344978539273143,iguana
+green iguana|boa constrictor|La0-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.013183068484067917,-4.359556198120117,4.346373129636049,iguana
+green iguana|boa constrictor|La0-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.01799274981021881,-6.394150257110596,6.376157507300377,iguana
+green iguana|boa constrictor|La1-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.06344428658485413,-4.771229267120361,4.707784980535507,lizard
+green iguana|boa constrictor|La1-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.08716821670532227,-4.620816707611084,4.533648490905762,lizard
+green iguana|boa constrictor|La1-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.06954771280288696,-4.504376411437988,4.434828698635101,lizard
+green iguana|boa constrictor|La1-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.06156408414244652,-4.863928318023682,4.802364233881235,lizard
+green iguana|boa constrictor|La1-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.06378387659788132,-5.844982624053955,5.781198747456074,lizard
+green iguana|boa constrictor|La1-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.09773259609937668,-5.223922252655029,5.126189656555653,lizard
+green iguana|boa constrictor|La1-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.08880557119846344,-2.966557264328003,2.8777516931295395,lizard
+green iguana|boa constrictor|La1-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.06167147681117058,-5.187910079956055,5.126238603144884,lizard
+green iguana|cello|La0-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.01633264310657978,-6.9561638832092285,6.939831240102649,iguana
+green iguana|cello|La0-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.010648217983543873,-6.884390354156494,6.87374213617295,iguana
+green iguana|cello|La0-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.012755545787513256,-7.185483455657959,7.172727909870446,iguana
+green iguana|cello|La0-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.013057966716587543,-7.322577953338623,7.3095199866220355,iguana
+green iguana|cello|La0-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.009859072975814342,-9.540549278259277,9.530690205283463,iguana
+green iguana|cello|La0-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.006552254315465689,-9.657785415649414,9.651233161333948,iguana
+green iguana|cello|La0-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.0095247533172369,-9.610444068908691,9.600919315591455,iguana
+green iguana|cello|La0-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.010011624544858932,-9.61462116241455,9.604609537869692,iguana
+green iguana|cello|La0-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.011769975535571575,-6.258340358734131,6.246570383198559,iguana
+green iguana|cello|La0-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.008402738720178604,-6.133500576019287,6.1250978372991085,iguana
+green iguana|cello|La0-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.012273854576051235,-6.206902980804443,6.194629126228392,iguana
+green iguana|cello|La0-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.011299023404717445,-6.209475994110107,6.19817697070539,iguana
+green iguana|cello|La1-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.041123755276203156,-6.559571743011475,6.5184479877352715,lizard
+green iguana|cello|La1-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.049773894250392914,-6.543173313140869,6.493399418890476,lizard
+green iguana|cello|La1-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.04414565861225128,-6.779246807098389,6.735101148486137,lizard
+green iguana|cello|La1-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.031427524983882904,-6.849757671356201,6.818330146372318,lizard
+green iguana|cello|La1-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.036376021802425385,-8.553046226501465,8.51667020469904,lizard
+green iguana|cello|La1-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.04412759467959404,-8.544129371643066,8.500001776963472,lizard
+green iguana|cello|La1-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.039724696427583694,-8.807698249816895,8.76797355338931,lizard
+green iguana|cello|La1-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.027942147105932236,-8.76512622833252,8.737184081226587,lizard
+green iguana|cello|La1-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.0404360294342041,-5.53814697265625,5.497710943222046,lizard
+green iguana|cello|La1-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.04927827790379524,-5.24946928024292,5.200191002339125,lizard
+green iguana|cello|La1-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.04419269785284996,-5.523557186126709,5.479364488273859,lizard
+green iguana|cello|La1-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.02794450707733631,-5.593318939208984,5.565374432131648,lizard
+green iguana|cello|La2-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.10402821004390717,-7.211157321929932,7.1071291118860245,reptile
+green iguana|cello|La2-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.07292645424604416,-7.602397918701172,7.529471464455128,reptile
+green iguana|cello|La2-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.06676683574914932,-7.418951511383057,7.352184675633907,reptile
+green iguana|cello|La2-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.08978892862796783,-7.51863431930542,7.428845390677452,reptile
+green iguana|cello|La2-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.09142305701971054,-9.549491882324219,9.458068825304508,reptile
+green iguana|cello|La2-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.0659453496336937,-9.686107635498047,9.620162285864353,reptile
+green iguana|cello|La2-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.059345491230487823,-9.747668266296387,9.688322775065899,reptile
+green iguana|cello|La2-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.07177434861660004,-9.62366008758545,9.55188573896885,reptile
+green iguana|cello|La2-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.08745502680540085,-5.645803451538086,5.558348424732685,reptile
+green iguana|cello|La2-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.06779211759567261,-5.676276683807373,5.6084845662117,reptile
+green iguana|cello|La2-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.06294744461774826,-5.745889663696289,5.682942219078541,reptile
+green iguana|cello|La2-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.08027584850788116,-5.772209167480469,5.691933318972588,reptile
+green iguana|marimba|La0-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.01749570295214653,-5.037240505218506,5.019744802266359,iguana
+green iguana|marimba|La0-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.011740505695343018,-5.189759731292725,5.178019225597382,iguana
+green iguana|marimba|La0-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.019469156861305237,-4.402401924133301,4.3829327672719955,iguana
+green iguana|marimba|La0-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.018272537738084793,-5.076998233795166,5.058725696057081,iguana
+green iguana|marimba|La0-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.01307262945920229,-6.617738246917725,6.604665617458522,iguana
+green iguana|marimba|La0-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.009035976603627205,-6.61371374130249,6.604677764698863,iguana
+green iguana|marimba|La0-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.011297223158180714,-6.722553253173828,6.711256030015647,iguana
+green iguana|marimba|La0-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.01147292647510767,-6.791433334350586,6.779960407875478,iguana
+green iguana|marimba|La0-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.011769975535571575,-6.258340358734131,6.246570383198559,iguana
+green iguana|marimba|La0-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.008402738720178604,-6.133500576019287,6.1250978372991085,iguana
+green iguana|marimba|La0-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.012273854576051235,-6.206902980804443,6.194629126228392,iguana
+green iguana|marimba|La0-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.011299023404717445,-6.209475994110107,6.19817697070539,iguana
+green iguana|marimba|La1-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.05783110857009888,-4.5610833168029785,4.50325220823288,lizard
+green iguana|marimba|La1-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.06267886608839035,-4.940194606781006,4.8775157406926155,lizard
+green iguana|marimba|La1-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.0631781592965126,-4.48109245300293,4.417914293706417,lizard
+green iguana|marimba|La1-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.0396488718688488,-5.2575154304504395,5.217866558581591,lizard
+green iguana|marimba|La1-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.04066001996397972,-6.2529296875,6.21226966753602,lizard
+green iguana|marimba|La1-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.04957977682352066,-6.15989351272583,6.110313735902309,lizard
+green iguana|marimba|La1-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.049472201615571976,-6.361380100250244,6.311907898634672,lizard
+green iguana|marimba|La1-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.028223926201462746,-6.550991535186768,6.522767608985305,lizard
+green iguana|marimba|La1-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.0404360294342041,-5.53814697265625,5.497710943222046,lizard
+green iguana|marimba|La1-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.04927827790379524,-5.24946928024292,5.200191002339125,lizard
+green iguana|marimba|La1-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.04419269785284996,-5.523557186126709,5.479364488273859,lizard
+green iguana|marimba|La1-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.02794450707733631,-5.593318939208984,5.565374432131648,lizard
+green iguana|marimba|La2-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.14244432747364044,-4.903027534484863,4.760583207011223,reptile
+green iguana|marimba|La2-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.11402656137943268,-5.095860958099365,4.981834396719933,reptile
+green iguana|marimba|La2-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.09061909466981888,-5.013186454772949,4.92256736010313,reptile
+green iguana|marimba|La2-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.1309169977903366,-5.2589335441589355,5.128016546368599,reptile
+green iguana|marimba|La2-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.11357240378856659,-6.372430801391602,6.258858397603035,reptile
+green iguana|marimba|La2-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.08548270910978317,-6.383956432342529,6.298473723232746,reptile
+green iguana|marimba|La2-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.07632630318403244,-6.519636154174805,6.443309850990772,reptile
+green iguana|marimba|La2-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.09067802876234055,-6.6341233253479,6.54344529658556,reptile
+green iguana|marimba|La2-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.08745502680540085,-5.645803451538086,5.558348424732685,reptile
+green iguana|marimba|La2-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.06779211759567261,-5.676276683807373,5.6084845662117,reptile
+green iguana|marimba|La2-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.06294744461774826,-5.745889663696289,5.682942219078541,reptile
+green iguana|marimba|La2-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.08027584850788116,-5.772209167480469,5.691933318972588,reptile
+boa constrictor|junco|La0-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.06341862678527832,-3.9071645736694336,3.8437459468841553,constrictor
+boa constrictor|junco|La0-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.04746834561228752,-3.477437734603882,3.4299693889915943,constrictor
+boa constrictor|junco|La0-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.09866521507501602,-3.5034358501434326,3.4047706350684166,constrictor
+boa constrictor|junco|La0-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.04044489189982414,-4.181526184082031,4.141081292182207,constrictor
+boa constrictor|junco|La0-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.07084091007709503,-6.483789443969727,6.4129485338926315,constrictor
+boa constrictor|junco|La0-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.047629520297050476,-6.328761577606201,6.281132057309151,constrictor
+boa constrictor|junco|La0-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.0882057473063469,-4.977929592132568,4.8897238448262215,constrictor
+boa constrictor|junco|La0-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.04070683941245079,-7.408186912536621,7.36748007312417,constrictor
+boa constrictor|junco|La0-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.07149122655391693,-10.150429725646973,10.078938499093056,constrictor
+boa constrictor|junco|La0-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.05421210825443268,-9.34704875946045,9.292836651206017,constrictor
+boa constrictor|junco|La0-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.09056264162063599,-6.207938194274902,6.117375552654266,constrictor
+boa constrictor|junco|La0-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.0464022271335125,-11.012707710266113,10.9663054831326,constrictor
+boa constrictor|junco|La1-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.014060179702937603,-4.858760833740234,4.844700654037297,snake
+boa constrictor|junco|La1-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.01620081253349781,-4.046104907989502,4.029904095456004,snake
+boa constrictor|junco|La1-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.013712579384446144,-4.66800594329834,4.654293363913894,snake
+boa constrictor|junco|La1-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.00941407773643732,-5.207098484039307,5.197684406302869,snake
+boa constrictor|junco|La1-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.014025924727320671,-6.154937744140625,6.140911819413304,snake
+boa constrictor|junco|La1-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.018761616200208664,-6.0610551834106445,6.042293567210436,snake
+boa constrictor|junco|La1-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.015986640006303787,-6.365221977233887,6.349235337227583,snake
+boa constrictor|junco|La1-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.012095620855689049,-6.4271626472473145,6.415067026391625,snake
+boa constrictor|junco|La1-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.013039633631706238,-13.774063110351562,13.761023476719856,snake
+boa constrictor|junco|La1-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.0150999054312706,-12.529020309448242,12.513920404016972,snake
+boa constrictor|junco|La1-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.013699050061404705,-13.713422775268555,13.69972372520715,snake
+boa constrictor|junco|La1-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.00941647682338953,-13.83056640625,13.82114992942661,snake
+boa constrictor|junco|La2-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.06547918170690536,-4.961150646209717,4.895671464502811,reptile
+boa constrictor|junco|La2-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.08368051052093506,-4.580861568450928,4.497181057929993,reptile
+boa constrictor|junco|La2-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.06848440319299698,-5.015375137329102,4.946890734136105,reptile
+boa constrictor|junco|La2-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.07836757600307465,-4.960167407989502,4.881799831986427,reptile
+boa constrictor|junco|La2-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.06767909973859787,-8.664274215698242,8.596595115959644,reptile
+boa constrictor|junco|La2-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.0805559903383255,-8.3865327835083,8.305976793169975,reptile
+boa constrictor|junco|La2-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.06964168697595596,-8.915596008300781,8.845954321324825,reptile
+boa constrictor|junco|La2-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.09180254489183426,-8.797964096069336,8.706161551177502,reptile
+boa constrictor|junco|La2-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.05229238420724869,-13.416359901428223,13.364067517220974,reptile
+boa constrictor|junco|La2-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.06601378321647644,-13.193528175354004,13.127514392137527,reptile
+boa constrictor|junco|La2-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.06181826815009117,-13.6856050491333,13.62378678098321,reptile
+boa constrictor|junco|La2-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.0646686777472496,-14.066146850585938,14.001478172838688,reptile
+boa constrictor|ostrich|La0-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.134738489985466,-5.234622001647949,5.099883511662483,constrictor
+boa constrictor|ostrich|La0-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.07344996184110641,-5.612911224365234,5.539461262524128,constrictor
+boa constrictor|ostrich|La0-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.2639901340007782,-3.834535598754883,3.5705454647541046,constrictor
+boa constrictor|ostrich|La0-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.07952404022216797,-5.435059070587158,5.35553503036499,constrictor
+boa constrictor|ostrich|La0-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.05918838456273079,-4.352493762969971,4.29330537840724,constrictor
+boa constrictor|ostrich|La0-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.051047563552856445,-4.074195384979248,4.023147821426392,constrictor
+boa constrictor|ostrich|La0-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.0720219612121582,-2.322723150253296,2.2507011890411377,constrictor
+boa constrictor|ostrich|La0-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.03798675909638405,-4.497973918914795,4.459987159818411,constrictor
+boa constrictor|ostrich|La0-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.07149122655391693,-10.150429725646973,10.078938499093056,constrictor
+boa constrictor|ostrich|La0-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.05421210825443268,-9.34704875946045,9.292836651206017,constrictor
+boa constrictor|ostrich|La0-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.09056264162063599,-6.207938194274902,6.117375552654266,constrictor
+boa constrictor|ostrich|La0-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.0464022271335125,-11.012707710266113,10.9663054831326,constrictor
+boa constrictor|ostrich|La1-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.016937680542469025,-6.705471515655518,6.6885338351130486,snake
+boa constrictor|ostrich|La1-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.017944460734725,-6.240608215332031,6.222663754597306,snake
+boa constrictor|ostrich|La1-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.016823938116431236,-7.111467361450195,7.094643423333764,snake
+boa constrictor|ostrich|La1-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.011373430490493774,-7.325724124908447,7.3143506944179535,snake
+boa constrictor|ostrich|La1-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.014646594412624836,-5.567677021026611,5.5530304266139865,snake
+boa constrictor|ostrich|La1-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.014639054425060749,-5.246741771697998,5.232102717272937,snake
+boa constrictor|ostrich|La1-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.012821978889405727,-5.649850368499756,5.63702838961035,snake
+boa constrictor|ostrich|La1-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.009383969008922577,-5.804460525512695,5.795076556503773,snake
+boa constrictor|ostrich|La1-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.013039633631706238,-13.774063110351562,13.761023476719856,snake
+boa constrictor|ostrich|La1-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.0150999054312706,-12.529020309448242,12.513920404016972,snake
+boa constrictor|ostrich|La1-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.013699050061404705,-13.713422775268555,13.69972372520715,snake
+boa constrictor|ostrich|La1-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.00941647682338953,-13.83056640625,13.82114992942661,snake
+boa constrictor|ostrich|La2-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.07695925980806351,-6.297580242156982,6.220620982348919,reptile
+boa constrictor|ostrich|La2-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.0875915065407753,-6.026401042938232,5.938809536397457,reptile
+boa constrictor|ostrich|La2-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.08557143807411194,-6.367981910705566,6.2824104726314545,reptile
+boa constrictor|ostrich|La2-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.11341605335474014,-6.395732879638672,6.282316826283932,reptile
+boa constrictor|ostrich|La2-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.05980360507965088,-5.567326068878174,5.507522463798523,reptile
+boa constrictor|ostrich|La2-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.06806998699903488,-5.519690036773682,5.451620049774647,reptile
+boa constrictor|ostrich|La2-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.06332652270793915,-5.736658096313477,5.673331573605537,reptile
+boa constrictor|ostrich|La2-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.08624978363513947,-5.7294464111328125,5.643196627497673,reptile
+boa constrictor|ostrich|La2-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.05229238420724869,-13.416359901428223,13.364067517220974,reptile
+boa constrictor|ostrich|La2-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.06601378321647644,-13.193528175354004,13.127514392137527,reptile
+boa constrictor|ostrich|La2-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.06181826815009117,-13.6856050491333,13.62378678098321,reptile
+boa constrictor|ostrich|La2-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.0646686777472496,-14.066146850585938,14.001478172838688,reptile
+boa constrictor|green iguana|La0-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.11044970899820328,-3.509347438812256,3.3988977298140526,constrictor
+boa constrictor|green iguana|La0-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.07159576565027237,-4.732443809509277,4.660848043859005,constrictor
+boa constrictor|green iguana|La0-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.1871282011270523,-1.1554862260818481,0.9683580249547958,constrictor
+boa constrictor|green iguana|La0-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.04996931552886963,-7.747338771820068,7.697369456291199,constrictor
+boa constrictor|green iguana|La0-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.11445465683937073,-3.2424721717834473,3.1280175149440765,constrictor
+boa constrictor|green iguana|La0-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.05415112152695656,-5.431369781494141,5.377218659967184,constrictor
+boa constrictor|green iguana|La0-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.9116910099983215,-0.2458670437335968,-0.6658239662647247,lizard
+boa constrictor|green iguana|La0-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.05261366069316864,-6.521692276000977,6.469078615307808,constrictor
+boa constrictor|green iguana|La1-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.06292612850666046,-3.2199230194091797,3.1569968909025192,snake
+boa constrictor|green iguana|La1-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.06807465851306915,-3.476426601409912,3.408351942896843,snake
+boa constrictor|green iguana|La1-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.06197221577167511,-3.6250698566436768,3.5630976408720016,snake
+boa constrictor|green iguana|La1-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.026891600340604782,-6.747030735015869,6.720139134675264,snake
+boa constrictor|green iguana|La1-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.03390917181968689,-4.951529502868652,4.9176203310489655,snake
+boa constrictor|green iguana|La1-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.0344877764582634,-6.483985900878906,6.449498124420643,snake
+boa constrictor|green iguana|La1-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.05014127492904663,-2.8439455032348633,2.7938042283058167,snake
+boa constrictor|green iguana|La1-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.016841817647218704,-7.9632568359375,7.946415018290281,snake
+boa constrictor|cello|La0-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.0980239287018776,-4.6824774742126465,4.584453545510769,constrictor
+boa constrictor|cello|La0-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.05880863964557648,-5.098308086395264,5.039499446749687,constrictor
+boa constrictor|cello|La0-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.18586432933807373,-3.7953805923461914,3.6095162630081177,constrictor
+boa constrictor|cello|La0-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.05153336003422737,-4.51326847076416,4.461735110729933,constrictor
+boa constrictor|cello|La0-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.05687940493226051,-7.053041934967041,6.9961625300347805,constrictor
+boa constrictor|cello|La0-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.03815454617142677,-7.028290748596191,6.990136202424765,constrictor
+boa constrictor|cello|La0-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.09998798370361328,-7.000881671905518,6.900893688201904,constrictor
+boa constrictor|cello|La0-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.03643294423818588,-7.507261276245117,7.470828332006931,constrictor
+boa constrictor|cello|La0-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.05067643150687218,-4.169155120849609,4.118478689342737,constrictor
+boa constrictor|cello|La0-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.046476688235998154,-3.7615928649902344,3.715116176754236,constrictor
+boa constrictor|cello|La0-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.08960959315299988,-3.3954200744628906,3.3058104813098907,constrictor
+boa constrictor|cello|La0-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.04566054046154022,-3.416151762008667,3.3704912215471268,constrictor
+boa constrictor|cello|La1-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.008456927724182606,-8.037269592285156,8.028812664560974,snake
+boa constrictor|cello|La1-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.008483142592012882,-7.552806377410889,7.544323234818876,snake
+boa constrictor|cello|La1-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.008677748031914234,-7.738104343414307,7.729426595382392,snake
+boa constrictor|cello|La1-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.007565809413790703,-7.419149875640869,7.411584066227078,snake
+boa constrictor|cello|La1-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.012372825294733047,-8.322138786315918,8.309765961021185,snake
+boa constrictor|cello|La1-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.012738611549139023,-7.9022698402404785,7.8895312286913395,snake
+boa constrictor|cello|La1-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.011707030236721039,-8.085108757019043,8.073401726782322,snake
+boa constrictor|cello|La1-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.008770002983510494,-7.993734359741211,7.9849643567577,snake
+boa constrictor|cello|La1-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.011485076509416103,-5.334244251251221,5.322759174741805,snake
+boa constrictor|cello|La1-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.013649900443851948,-5.163093566894531,5.149443666450679,snake
+boa constrictor|cello|La1-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.011429290287196636,-5.431854248046875,5.420424957759678,snake
+boa constrictor|cello|La1-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.00972211454063654,-5.323299407958984,5.313577293418348,snake
+boa constrictor|cello|La2-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.05779141187667847,-7.502337455749512,7.444546043872833,reptile
+boa constrictor|cello|La2-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.06947530806064606,-7.2810139656066895,7.211538657546043,reptile
+boa constrictor|cello|La2-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.060143474489450455,-7.283700942993164,7.223557468503714,reptile
+boa constrictor|cello|La2-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.06673478335142136,-6.9902472496032715,6.92351246625185,reptile
+boa constrictor|cello|La2-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.05366230756044388,-9.603367805480957,9.549705497920513,reptile
+boa constrictor|cello|La2-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.0642237514257431,-9.12759017944336,9.063366428017616,reptile
+boa constrictor|cello|La2-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.052797798067331314,-9.552759170532227,9.499961372464895,reptile
+boa constrictor|cello|La2-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.05613115057349205,-9.376791000366211,9.320659849792719,reptile
+boa constrictor|cello|La2-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.059234220534563065,-5.796237945556641,5.737003725022078,reptile
+boa constrictor|cello|La2-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.07090417295694351,-5.578850269317627,5.507946096360683,reptile
+boa constrictor|cello|La2-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.06296586990356445,-5.732391357421875,5.6694254875183105,reptile
+boa constrictor|cello|La2-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.06198560446500778,-5.683438777923584,5.621453173458576,reptile
+boa constrictor|marimba|La0-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.11300317198038101,-2.698399782180786,2.585396610200405,constrictor
+boa constrictor|marimba|La0-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.05299481377005577,-4.3699727058410645,4.316977892071009,constrictor
+boa constrictor|marimba|La0-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.13867606222629547,-3.4542181491851807,3.315542086958885,constrictor
+boa constrictor|marimba|La0-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.0649358257651329,-4.192745685577393,4.12780985981226,constrictor
+boa constrictor|marimba|La0-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.07071704417467117,-6.048552989959717,5.977835945785046,constrictor
+boa constrictor|marimba|La0-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.04679262265563011,-5.612175464630127,5.565382841974497,constrictor
+boa constrictor|marimba|La0-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.18254025280475616,-5.580464839935303,5.397924587130547,constrictor
+boa constrictor|marimba|La0-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.04055215045809746,-6.15935754776001,6.118805397301912,constrictor
+boa constrictor|marimba|La0-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.05067643150687218,-4.169155120849609,4.118478689342737,constrictor
+boa constrictor|marimba|La0-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.046476688235998154,-3.7615928649902344,3.715116176754236,constrictor
+boa constrictor|marimba|La0-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.08960959315299988,-3.3954200744628906,3.3058104813098907,constrictor
+boa constrictor|marimba|La0-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.04566054046154022,-3.416151762008667,3.3704912215471268,constrictor
+boa constrictor|marimba|La1-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.018420176580548286,-5.568695545196533,5.550275368615985,snake
+boa constrictor|marimba|La1-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.016430510208010674,-5.74666166305542,5.730231152847409,snake
+boa constrictor|marimba|La1-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.01482226513326168,-5.742650508880615,5.7278282437473536,snake
+boa constrictor|marimba|La1-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.012130754068493843,-5.855197906494141,5.843067152425647,snake
+boa constrictor|marimba|La1-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.01162283681333065,-6.775473117828369,6.7638502810150385,snake
+boa constrictor|marimba|La1-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.01427809614688158,-6.072551727294922,6.05827363114804,snake
+boa constrictor|marimba|La1-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.011676915921270847,-6.802740573883057,6.791063657961786,snake
+boa constrictor|marimba|La1-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.009980590082705021,-6.700273513793945,6.69029292371124,snake
+boa constrictor|marimba|La1-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.011485076509416103,-5.334244251251221,5.322759174741805,snake
+boa constrictor|marimba|La1-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.013649900443851948,-5.163093566894531,5.149443666450679,snake
+boa constrictor|marimba|La1-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.011429290287196636,-5.431854248046875,5.420424957759678,snake
+boa constrictor|marimba|La1-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.00972211454063654,-5.323299407958984,5.313577293418348,snake
+boa constrictor|marimba|La2-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.07748405635356903,-4.682983875274658,4.605499818921089,reptile
+boa constrictor|marimba|La2-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.10647397488355637,-5.354952335357666,5.24847836047411,reptile
+boa constrictor|marimba|La2-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.0819711908698082,-5.3106913566589355,5.228720165789127,reptile
+boa constrictor|marimba|La2-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.10431601852178574,-5.0553083419799805,4.950992323458195,reptile
+boa constrictor|marimba|La2-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.06942521780729294,-6.465356349945068,6.395931132137775,reptile
+boa constrictor|marimba|La2-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.08557111769914627,-6.137486934661865,6.051915816962719,reptile
+boa constrictor|marimba|La2-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.07698290050029755,-6.493852615356445,6.416869714856148,reptile
+boa constrictor|marimba|La2-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.07311733067035675,-6.4161200523376465,6.34300272166729,reptile
+boa constrictor|marimba|La2-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.059234220534563065,-5.796237945556641,5.737003725022078,reptile
+boa constrictor|marimba|La2-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.07090417295694351,-5.578850269317627,5.507946096360683,reptile
+boa constrictor|marimba|La2-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.06296586990356445,-5.732391357421875,5.6694254875183105,reptile
+boa constrictor|marimba|La2-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.06198560446500778,-5.683438777923584,5.621453173458576,reptile
+cello|junco|La0-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.02863454446196556,-4.628928184509277,4.600293640047312,cello
+cello|junco|La0-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.025623945519328117,-4.426672458648682,4.4010485131293535,cello
+cello|junco|La0-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.029870646074414253,-4.472511291503906,4.442640645429492,cello
+cello|junco|La0-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.041865572333335876,-3.849695920944214,3.807830348610878,cello
+cello|junco|La0-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.04388592392206192,-8.74892807006836,8.705042146146297,cello
+cello|junco|La0-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.042497895658016205,-8.823606491088867,8.781108595430851,cello
+cello|junco|La0-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.04099458083510399,-8.385537147521973,8.344542566686869,cello
+cello|junco|La0-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.07175096124410629,-7.462001323699951,7.390250362455845,cello
+cello|junco|La0-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.028467023745179176,-16.74186897277832,16.71340194903314,cello
+cello|junco|La0-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.027817798778414726,-17.4576358795166,17.429818080738187,cello
+cello|junco|La0-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.029995238408446312,-16.900365829467773,16.870370591059327,cello
+cello|junco|La0-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.05166737362742424,-13.91142749786377,13.859760124236345,cello
+cello|junco|La1-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.008784864097833633,-5.147477149963379,5.138692285865545,string instrument
+cello|junco|La1-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.011940611526370049,-4.569736957550049,4.557796346023679,string instrument
+cello|junco|La1-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.015192782506346703,-4.478318214416504,4.463125431910157,string instrument
+cello|junco|La1-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.011671002954244614,-4.240545749664307,4.228874746710062,string instrument
+cello|junco|La1-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.010553967207670212,-7.086521148681641,7.07596718147397,string instrument
+cello|junco|La1-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.014273327775299549,-7.365692138671875,7.3514188108965755,string instrument
+cello|junco|La1-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.018251385539770126,-6.835080146789551,6.816828761249781,string instrument
+cello|junco|La1-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.016897331923246384,-6.550825595855713,6.5339282639324665,string instrument
+cello|junco|La1-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.009411904960870743,-17.574216842651367,17.564804937690496,string instrument
+cello|junco|La1-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.01577751524746418,-17.021194458007812,17.00541694276035,string instrument
+cello|junco|La1-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.016875701025128365,-16.553421020507812,16.536545319482684,string instrument
+cello|junco|La1-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.016062820330262184,-14.144761085510254,14.128698265179992,string instrument
+cello|junco|La2-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.00647595152258873,-5.181314468383789,5.1748385168612,musical instrument
+cello|junco|La2-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.004196979571133852,-5.023159027099609,5.0189620475284755,musical instrument
+cello|junco|La2-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.005772240459918976,-4.7200727462768555,4.7143005058169365,musical instrument
+cello|junco|La2-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.00656210957095027,-4.556637287139893,4.550075177568942,musical instrument
+cello|junco|La2-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.007207357790321112,-8.167966842651367,8.160759484861046,musical instrument
+cello|junco|La2-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.005091532599180937,-8.350943565368652,8.345852032769471,musical instrument
+cello|junco|La2-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.0077886939980089664,-7.618675231933594,7.610886537935585,musical instrument
+cello|junco|La2-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.00902521051466465,-7.135315895080566,7.126290684565902,musical instrument
+cello|junco|La2-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.006280960980802774,-17.539873123168945,17.533592162188143,musical instrument
+cello|junco|La2-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.004127760883420706,-18.161283493041992,18.15715573215857,musical instrument
+cello|junco|La2-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.006488193292170763,-16.79079818725586,16.78430999396369,musical instrument
+cello|junco|La2-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.007195460144430399,-15.416236877441406,15.409041417296976,musical instrument
+cello|ostrich|La0-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.05046774446964264,-9.539575576782227,9.489107832312584,cello
+cello|ostrich|La0-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.03926848620176315,-9.485843658447266,9.446575172245502,cello
+cello|ostrich|La0-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.04283912852406502,-9.184782981872559,9.141943853348494,cello
+cello|ostrich|La0-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.08186359703540802,-7.583006381988525,7.501142784953117,cello
+cello|ostrich|La0-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.03211880102753639,-6.151382923126221,6.119264122098684,cello
+cello|ostrich|La0-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.02593163400888443,-6.3593292236328125,6.333397589623928,cello
+cello|ostrich|La0-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.0337764136493206,-6.323362827301025,6.289586413651705,cello
+cello|ostrich|La0-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.04638282582163811,-5.355676651000977,5.3092938251793385,cello
+cello|ostrich|La0-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.028467023745179176,-16.74186897277832,16.71340194903314,cello
+cello|ostrich|La0-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.027817798778414726,-17.4576358795166,17.429818080738187,cello
+cello|ostrich|La0-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.029995238408446312,-16.900365829467773,16.870370591059327,cello
+cello|ostrich|La0-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.05166737362742424,-13.91142749786377,13.859760124236345,cello
+cello|ostrich|La1-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.013257117010653019,-9.91554069519043,9.902283578179777,string instrument
+cello|ostrich|La1-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.0167220626026392,-9.824294090270996,9.807572027668357,string instrument
+cello|ostrich|La1-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.023721951991319656,-9.65278434753418,9.62906239554286,string instrument
+cello|ostrich|La1-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.018025361001491547,-8.992022514343262,8.97399715334177,string instrument
+cello|ostrich|La1-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.008351889438927174,-6.2045745849609375,6.19622269552201,string instrument
+cello|ostrich|La1-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.012494975700974464,-6.123388767242432,6.110893791541457,string instrument
+cello|ostrich|La1-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.015536617487668991,-5.781012058258057,5.765475440770388,string instrument
+cello|ostrich|La1-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.011117305606603622,-5.278331279754639,5.267213974148035,string instrument
+cello|ostrich|La1-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.009411904960870743,-17.574216842651367,17.564804937690496,string instrument
+cello|ostrich|La1-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.01577751524746418,-17.021194458007812,17.00541694276035,string instrument
+cello|ostrich|La1-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.016875701025128365,-16.553421020507812,16.536545319482684,string instrument
+cello|ostrich|La1-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.016062820330262184,-14.144761085510254,14.128698265179992,string instrument
+cello|ostrich|La2-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.00793673750013113,-8.557259559631348,8.549322822131217,musical instrument
+cello|ostrich|La2-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.005509051028639078,-8.789082527160645,8.783573476132005,musical instrument
+cello|ostrich|La2-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.007357465103268623,-8.369010925292969,8.3616534601897,musical instrument
+cello|ostrich|La2-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.008937034755945206,-7.839816570281982,7.830879535526037,musical instrument
+cello|ostrich|La2-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.0060417670756578445,-6.287050724029541,6.281008956953883,musical instrument
+cello|ostrich|La2-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.0038880317006260157,-6.47290563583374,6.469017604133114,musical instrument
+cello|ostrich|La2-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.00624011131003499,-6.026355743408203,6.020115632098168,musical instrument
+cello|ostrich|La2-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.00687157129868865,-5.370229721069336,5.363358149770647,musical instrument
+cello|ostrich|La2-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.006280960980802774,-17.539873123168945,17.533592162188143,musical instrument
+cello|ostrich|La2-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.004127760883420706,-18.161283493041992,18.15715573215857,musical instrument
+cello|ostrich|La2-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.006488193292170763,-16.79079818725586,16.78430999396369,musical instrument
+cello|ostrich|La2-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.007195460144430399,-15.416236877441406,15.409041417296976,musical instrument
+cello|green iguana|La0-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.03936801850795746,-8.00781536102295,7.968447342514992,cello
+cello|green iguana|La0-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.04596644267439842,-7.498800277709961,7.4528338350355625,cello
+cello|green iguana|La0-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.05059994012117386,-7.315733432769775,7.2651334926486015,cello
+cello|green iguana|La0-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.07936598360538483,-6.547910213470459,6.468544229865074,cello
+cello|green iguana|La0-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.031908370554447174,-7.222334861755371,7.190426491200924,cello
+cello|green iguana|La0-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.03365530073642731,-7.188904762268066,7.155249461531639,cello
+cello|green iguana|La0-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.04610305279493332,-7.063812732696533,7.0177096799016,cello
+cello|green iguana|La0-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.05157625302672386,-5.939200401306152,5.8876241482794285,cello
+cello|green iguana|La0-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.03979475051164627,-9.480572700500488,9.440777949988842,cello
+cello|green iguana|La0-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.04223795235157013,-9.599869728088379,9.557631775736809,cello
+cello|green iguana|La0-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.051553044468164444,-9.662609100341797,9.611056055873632,cello
+cello|green iguana|La0-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.06423278152942657,-8.651512145996094,8.587279364466667,cello
+cello|green iguana|La1-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.012453645467758179,-10.393545150756836,10.381091505289078,string instrument
+cello|green iguana|La1-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.015917744487524033,-9.278251647949219,9.262333903461695,string instrument
+cello|green iguana|La1-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.02254859358072281,-9.261574745178223,9.2390261515975,string instrument
+cello|green iguana|La1-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.01587275229394436,-8.590577125549316,8.574704373255372,string instrument
+cello|green iguana|La1-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.010428507812321186,-8.986501693725586,8.976073185913265,string instrument
+cello|green iguana|La1-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.013459177687764168,-8.48193359375,8.468474416062236,string instrument
+cello|green iguana|La1-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.02123427204787731,-8.228231430053711,8.206997158005834,string instrument
+cello|green iguana|La1-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.014531883411109447,-7.662135601043701,7.647603717632592,string instrument
+cello|green iguana|La1-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.01135206688195467,-9.400762557983398,9.389410491101444,string instrument
+cello|green iguana|La1-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.01496913656592369,-9.309653282165527,9.294684145599604,string instrument
+cello|green iguana|La1-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.019198276102542877,-9.438051223754883,9.41885294765234,string instrument
+cello|green iguana|La1-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.01499144360423088,-8.605712890625,8.59072144702077,string instrument
+cello|green iguana|La2-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.006151735782623291,-10.81010913848877,10.803957402706146,musical instrument
+cello|green iguana|La2-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.004169757477939129,-10.81608772277832,10.811917965300381,musical instrument
+cello|green iguana|La2-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.006712188944220543,-10.494882583618164,10.488170394673944,musical instrument
+cello|green iguana|La2-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.007104193326085806,-10.05309772491455,10.045993531588465,musical instrument
+cello|green iguana|La2-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.006503463257104158,-8.29356575012207,8.287062286864966,musical instrument
+cello|green iguana|La2-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.004546577576547861,-8.419461250305176,8.414914672728628,musical instrument
+cello|green iguana|La2-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.006752371322363615,-7.893782615661621,7.8870302443392575,musical instrument
+cello|green iguana|La2-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.006895333528518677,-7.650725841522217,7.643830507993698,musical instrument
+cello|green iguana|La2-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.006763579789549112,-9.242061614990234,9.235298035200685,musical instrument
+cello|green iguana|La2-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.004702975507825613,-9.41232967376709,9.407626698259264,musical instrument
+cello|green iguana|La2-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.0077039822936058044,-9.61016845703125,9.602464474737644,musical instrument
+cello|green iguana|La2-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.0075556430965662,-8.758465766906738,8.750910123810172,musical instrument
+cello|boa constrictor|La0-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.04941975697875023,-5.477205276489258,5.427785519510508,cello
+cello|boa constrictor|La0-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.05718633532524109,-5.3357062339782715,5.27851989865303,cello
+cello|boa constrictor|La0-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.06316889077425003,-5.3891377449035645,5.325968854129314,cello
+cello|boa constrictor|La0-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.08770747482776642,-5.147289276123047,5.0595818012952805,cello
+cello|boa constrictor|La0-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.035509444773197174,-8.851576805114746,8.816067360341549,cello
+cello|boa constrictor|La0-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.034281715750694275,-8.375472068786621,8.341190353035927,cello
+cello|boa constrictor|La0-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.04647740349173546,-8.064597129821777,8.018119726330042,cello
+cello|boa constrictor|La0-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.09049704670906067,-5.227579116821289,5.137082070112228,cello
+cello|boa constrictor|La0-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.03979475051164627,-9.480572700500488,9.440777949988842,cello
+cello|boa constrictor|La0-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.04223795235157013,-9.599869728088379,9.557631775736809,cello
+cello|boa constrictor|La0-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.051553044468164444,-9.662609100341797,9.611056055873632,cello
+cello|boa constrictor|La0-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.06423278152942657,-8.651512145996094,8.587279364466667,cello
+cello|boa constrictor|La1-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.011196504347026348,-5.908123016357422,5.8969265120103955,string instrument
+cello|boa constrictor|La1-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.01554189994931221,-5.482574462890625,5.467032562941313,string instrument
+cello|boa constrictor|La1-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.019356150180101395,-5.389471530914307,5.370115380734205,string instrument
+cello|boa constrictor|La1-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.014382196590304375,-5.355560779571533,5.341178582981229,string instrument
+cello|boa constrictor|La1-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.012971924617886543,-9.214432716369629,9.201460791751742,string instrument
+cello|boa constrictor|La1-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.016148654744029045,-8.59116268157959,8.57501402683556,string instrument
+cello|boa constrictor|La1-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.01982496678829193,-8.374188423156738,8.354363456368446,string instrument
+cello|boa constrictor|La1-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.022231917828321457,-5.87648344039917,5.8542515225708485,string instrument
+cello|boa constrictor|La1-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.01135206688195467,-9.400762557983398,9.389410491101444,string instrument
+cello|boa constrictor|La1-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.01496913656592369,-9.309653282165527,9.294684145599604,string instrument
+cello|boa constrictor|La1-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.019198276102542877,-9.438051223754883,9.41885294765234,string instrument
+cello|boa constrictor|La1-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.01499144360423088,-8.605712890625,8.59072144702077,string instrument
+cello|boa constrictor|La2-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.005705872550606728,-5.902985095977783,5.8972792234271765,musical instrument
+cello|boa constrictor|La2-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.004295902792364359,-5.806567668914795,5.802271766122431,musical instrument
+cello|boa constrictor|La2-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.006965784355998039,-5.391199588775635,5.384233804419637,musical instrument
+cello|boa constrictor|La2-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.007017197553068399,-5.381038188934326,5.374020991381258,musical instrument
+cello|boa constrictor|La2-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.007673773914575577,-9.2991361618042,9.291462387889624,musical instrument
+cello|boa constrictor|La2-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.004405615851283073,-9.15536880493164,9.150963189080358,musical instrument
+cello|boa constrictor|La2-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.0071517243050038815,-8.24556827545166,8.238416551146656,musical instrument
+cello|boa constrictor|La2-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.00826205313205719,-6.848878383636475,6.840616330504417,musical instrument
+cello|boa constrictor|La2-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.006763579789549112,-9.242061614990234,9.235298035200685,musical instrument
+cello|boa constrictor|La2-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.004702975507825613,-9.41232967376709,9.407626698259264,musical instrument
+cello|boa constrictor|La2-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.0077039822936058044,-9.61016845703125,9.602464474737644,musical instrument
+cello|boa constrictor|La2-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.0075556430965662,-8.758465766906738,8.750910123810172,musical instrument
+cello|marimba|La0-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.055227093398571014,-5.508823394775391,5.45359630137682,cello
+cello|marimba|La0-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.04803359508514404,-5.231229305267334,5.18319571018219,cello
+cello|marimba|La0-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.05721908435225487,-5.571449279785156,5.514230195432901,cello
+cello|marimba|La0-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.15901103615760803,-1.9622985124588013,1.8032874763011932,cello
+cello|marimba|La0-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.02828224003314972,-4.889726161956787,4.861443921923637,cello
+cello|marimba|La0-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.036114487797021866,-4.324845790863037,4.288731303066015,cello
+cello|marimba|La0-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.03825121745467186,-4.4720258712768555,4.433774653822184,cello
+cello|marimba|La0-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.10373996943235397,-2.9305131435394287,2.8267731741070747,cello
+cello|marimba|La1-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.013920348137617111,-6.551565647125244,6.537645298987627,string instrument
+cello|marimba|La1-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.023252489045262337,-5.337095737457275,5.313843248412013,string instrument
+cello|marimba|La1-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.031679458916187286,-5.665910720825195,5.634231261909008,string instrument
+cello|marimba|La1-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.0388575978577137,-2.5474116802215576,2.508554082363844,string instrument
+cello|marimba|La1-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.012184022925794125,-5.398944854736328,5.386760831810534,string instrument
+cello|marimba|La1-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.027283087372779846,-3.254595994949341,3.227312907576561,string instrument
+cello|marimba|La1-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.032672517001628876,-2.9430735111236572,2.9104009941220284,string instrument
+cello|marimba|La1-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.04768308252096176,-2.3490476608276367,2.301364578306675,string instrument
+marimba|junco|La0-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.030881831422448158,-3.936194658279419,3.905312826856971,marimba
+marimba|junco|La0-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.08366893976926804,-2.2477171421051025,2.1640482023358345,marimba
+marimba|junco|La0-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.02459573559463024,-3.7031633853912354,3.678567649796605,marimba
+marimba|junco|La0-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.02549383044242859,-4.261384963989258,4.235891133546829,marimba
+marimba|junco|La0-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.038795724511146545,-7.9015936851501465,7.862797960639,marimba
+marimba|junco|La0-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.10534010082483292,-4.428580284118652,4.323240183293819,marimba
+marimba|junco|La0-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.02932315319776535,-7.684999942779541,7.655676789581776,marimba
+marimba|junco|La0-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.035925816744565964,-7.819737911224365,7.783812094479799,marimba
+marimba|junco|La0-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.03917321935296059,-13.363418579101562,13.324245359748602,marimba
+marimba|junco|La0-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.10510355234146118,-6.037123680114746,5.932020127773285,marimba
+marimba|junco|La0-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.03352655842900276,-12.97217845916748,12.938651900738478,marimba
+marimba|junco|La0-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.036862485110759735,-13.60796070098877,13.57109821587801,marimba
+marimba|junco|La1-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.02099471539258957,-5.292360305786133,5.271365590393543,percussion instrument
+marimba|junco|La1-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.023312896490097046,-4.673374652862549,4.650061756372452,percussion instrument
+marimba|junco|La1-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.03598705679178238,-4.659056186676025,4.623069129884243,percussion instrument
+marimba|junco|La1-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.032767221331596375,-5.176183700561523,5.143416479229927,percussion instrument
+marimba|junco|La1-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.021950216963887215,-9.260452270507812,9.238502053543925,percussion instrument
+marimba|junco|La1-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.03336525335907936,-7.611778736114502,7.578413482755423,percussion instrument
+marimba|junco|La1-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.038575902581214905,-8.65147590637207,8.612900003790855,percussion instrument
+marimba|junco|La1-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.04095477983355522,-9.000536918640137,8.959582138806581,percussion instrument
+marimba|junco|La1-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.02561368979513645,-16.82119369506836,16.795580005273223,percussion instrument
+marimba|junco|La1-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.03569185361266136,-13.534769058227539,13.499077204614878,percussion instrument
+marimba|junco|La1-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.04391263425350189,-15.873589515686035,15.829676881432533,percussion instrument
+marimba|junco|La1-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.03427224978804588,-16.503965377807617,16.46969312801957,percussion instrument
+marimba|junco|La2-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.007963812910020351,-5.08321475982666,5.07525094691664,musical instrument
+marimba|junco|La2-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.0101694380864501,-4.217611312866211,4.207441874779761,musical instrument
+marimba|junco|La2-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.007733460050076246,-4.850047588348389,4.842314128298312,musical instrument
+marimba|junco|La2-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.0077227321453392506,-4.725784778594971,4.7180620464496315,musical instrument
+marimba|junco|La2-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.009145413525402546,-7.824896812438965,7.815751398913562,musical instrument
+marimba|junco|La2-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.016481099650263786,-5.922582149505615,5.9061010498553514,musical instrument
+marimba|junco|La2-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.009586382657289505,-7.5904221534729,7.580835770815611,musical instrument
+marimba|junco|La2-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.009855917654931545,-7.451170444488525,7.441314526833594,musical instrument
+marimba|junco|La2-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.008896460756659508,-16.63521385192871,16.62631739117205,musical instrument
+marimba|junco|La2-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.014105267822742462,-13.641919136047363,13.62781386822462,musical instrument
+marimba|junco|La2-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.008977246470749378,-16.541942596435547,16.532965349964797,musical instrument
+marimba|junco|La2-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.009728016331791878,-16.325550079345703,16.31582206301391,musical instrument
+marimba|ostrich|La0-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.05985444411635399,-6.813694477081299,6.753840032964945,marimba
+marimba|ostrich|La0-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.13444732129573822,-2.069916248321533,1.935468927025795,marimba
+marimba|ostrich|La0-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.04546458646655083,-6.884788990020752,6.839324403554201,marimba
+marimba|ostrich|La0-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.0525430291891098,-6.769731521606445,6.7171884924173355,marimba
+marimba|ostrich|La0-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.03172086924314499,-5.565117359161377,5.533396489918232,marimba
+marimba|ostrich|La0-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.0774475485086441,-3.33970046043396,3.262252911925316,marimba
+marimba|ostrich|La0-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.028636634349822998,-5.614577770233154,5.585941135883331,marimba
+marimba|ostrich|La0-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.024359844624996185,-5.578231334686279,5.553871490061283,marimba
+marimba|ostrich|La0-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.03917321935296059,-13.363418579101562,13.324245359748602,marimba
+marimba|ostrich|La0-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.10510355234146118,-6.037123680114746,5.932020127773285,marimba
+marimba|ostrich|La0-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.03352655842900276,-12.97217845916748,12.938651900738478,marimba
+marimba|ostrich|La0-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.036862485110759735,-13.60796070098877,13.57109821587801,marimba
+marimba|ostrich|La1-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.02582290582358837,-8.688783645629883,8.662960739806294,percussion instrument
+marimba|ostrich|La1-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.030470123514533043,-7.782780170440674,7.752310046926141,percussion instrument
+marimba|ostrich|La1-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.04097437486052513,-7.985565662384033,7.944591287523508,percussion instrument
+marimba|ostrich|La1-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.039288509637117386,-8.561810493469238,8.522521983832121,percussion instrument
+marimba|ostrich|La1-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.020982764661312103,-5.723300933837891,5.7023181691765785,percussion instrument
+marimba|ostrich|La1-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.028863176703453064,-4.936618328094482,4.907755151391029,percussion instrument
+marimba|ostrich|La1-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.04690535366535187,-5.341537952423096,5.294632598757744,percussion instrument
+marimba|ostrich|La1-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.04380165413022041,-5.764469146728516,5.720667492598295,percussion instrument
+marimba|ostrich|La1-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.02561368979513645,-16.82119369506836,16.795580005273223,percussion instrument
+marimba|ostrich|La1-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.03569185361266136,-13.534769058227539,13.499077204614878,percussion instrument
+marimba|ostrich|La1-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.04391263425350189,-15.873589515686035,15.829676881432533,percussion instrument
+marimba|ostrich|La1-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.03427224978804588,-16.503965377807617,16.46969312801957,percussion instrument
+marimba|ostrich|La2-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.01056345459073782,-8.152078628540039,8.141515173949301,musical instrument
+marimba|ostrich|La2-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.01950816437602043,-7.598459243774414,7.578951079398394,musical instrument
+marimba|ostrich|La2-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.010994956828653812,-8.042983055114746,8.031988098286092,musical instrument
+marimba|ostrich|La2-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.010805644094944,-7.980462551116943,7.969656907021999,musical instrument
+marimba|ostrich|La2-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.007554557174444199,-5.68364953994751,5.676094982773066,musical instrument
+marimba|ostrich|La2-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.008729252964258194,-4.528684139251709,4.519954886287451,musical instrument
+marimba|ostrich|La2-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.008392584510147572,-5.767612457275391,5.759219872765243,musical instrument
+marimba|ostrich|La2-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.0083570322021842,-5.6733012199401855,5.664944187738001,musical instrument
+marimba|ostrich|La2-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.008896460756659508,-16.63521385192871,16.62631739117205,musical instrument
+marimba|ostrich|La2-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.014105267822742462,-13.641919136047363,13.62781386822462,musical instrument
+marimba|ostrich|La2-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.008977246470749378,-16.541942596435547,16.532965349964797,musical instrument
+marimba|ostrich|La2-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.009728016331791878,-16.325550079345703,16.31582206301391,musical instrument
+marimba|green iguana|La0-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.03295838460326195,-8.361413955688477,8.328455571085215,marimba
+marimba|green iguana|La0-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.08694522827863693,-2.7474052906036377,2.6604600623250008,marimba
+marimba|green iguana|La0-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.03214043006300926,-8.20423412322998,8.172093693166971,marimba
+marimba|green iguana|La0-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.03830207139253616,-8.495012283325195,8.45671021193266,marimba
+marimba|green iguana|La0-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.03177538141608238,-7.0219573974609375,6.990182016044855,marimba
+marimba|green iguana|La0-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.06981954723596573,-3.7532055377960205,3.683385990560055,marimba
+marimba|green iguana|La0-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.028685688972473145,-6.365352153778076,6.336666464805603,marimba
+marimba|green iguana|La0-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.031238457188010216,-6.6139984130859375,6.582759955897927,marimba
+marimba|green iguana|La0-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.046179961413145065,-8.603209495544434,8.557029534131289,marimba
+marimba|green iguana|La0-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.07116374373435974,-5.190945148468018,5.119781404733658,marimba
+marimba|green iguana|La0-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.03284454718232155,-8.81676197052002,8.783917423337698,marimba
+marimba|green iguana|La0-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.040465325117111206,-8.814517974853516,8.774052649736404,marimba
+marimba|green iguana|La1-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.021364033222198486,-9.256667137145996,9.235303103923798,percussion instrument
+marimba|green iguana|La1-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.06670156866312027,-6.253634929656982,6.186933360993862,percussion instrument
+marimba|green iguana|La1-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.043713703751564026,-8.328624725341797,8.284911021590233,percussion instrument
+marimba|green iguana|La1-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.048805687576532364,-8.368486404418945,8.319680716842413,percussion instrument
+marimba|green iguana|La1-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.020118363201618195,-9.345727920532227,9.325609557330608,percussion instrument
+marimba|green iguana|La1-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.024314647540450096,-8.187189102172852,8.162874454632401,percussion instrument
+marimba|green iguana|La1-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.03274752199649811,-8.400014877319336,8.367267355322838,percussion instrument
+marimba|green iguana|La1-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.03178026154637337,-9.058676719665527,9.026896458119154,percussion instrument
+marimba|green iguana|La1-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.024313529953360558,-9.293951988220215,9.269638458266854,percussion instrument
+marimba|green iguana|La1-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.026139788329601288,-9.37339973449707,9.347259946167469,percussion instrument
+marimba|green iguana|La1-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.04021844640374184,-9.511799812316895,9.471581365913153,percussion instrument
+marimba|green iguana|La1-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.03893756866455078,-9.426321983337402,9.387384414672852,percussion instrument
+marimba|green iguana|La2-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.00795972440391779,-10.576286315917969,10.568326591514051,musical instrument
+marimba|green iguana|La2-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.011869165115058422,-9.79006290435791,9.778193739242852,musical instrument
+marimba|green iguana|La2-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.0076151746325194836,-10.666257858276367,10.658642683643848,musical instrument
+marimba|green iguana|La2-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.007674285676330328,-10.57708740234375,10.56941311666742,musical instrument
+marimba|green iguana|La2-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.00850722286850214,-8.500598907470703,8.492091684602201,musical instrument
+marimba|green iguana|La2-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.011988945305347443,-7.172486305236816,7.160497359931469,musical instrument
+marimba|green iguana|La2-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.008397855795919895,-8.251794815063477,8.243396959267557,musical instrument
+marimba|green iguana|La2-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.009292656555771828,-7.923452854156494,7.914160197600722,musical instrument
+marimba|green iguana|La2-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.008973945863544941,-9.039839744567871,9.030865798704326,musical instrument
+marimba|green iguana|La2-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.016426878049969673,-8.749878883361816,8.733452005311847,musical instrument
+marimba|green iguana|La2-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.009077988564968109,-9.243000984191895,9.233922995626926,musical instrument
+marimba|green iguana|La2-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.008784088306128979,-9.19707202911377,9.18828794080764,musical instrument
+marimba|boa constrictor|La0-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.044319894164800644,-5.180570602416992,5.1362507082521915,marimba
+marimba|boa constrictor|La0-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.0746438205242157,-3.235544204711914,3.1609003841876984,marimba
+marimba|boa constrictor|La0-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.03994753211736679,-4.780456066131592,4.740508534014225,marimba
+marimba|boa constrictor|La0-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.041213829070329666,-5.062806129455566,5.021592300385237,marimba
+marimba|boa constrictor|La0-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.0429547019302845,-7.3431854248046875,7.300230722874403,marimba
+marimba|boa constrictor|La0-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.07929591834545135,-3.3169217109680176,3.2376257926225662,marimba
+marimba|boa constrictor|La0-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.036624688655138016,-7.687636375427246,7.651011686772108,marimba
+marimba|boa constrictor|La0-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.041300978511571884,-7.131302833557129,7.090001855045557,marimba
+marimba|boa constrictor|La0-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.046179961413145065,-8.603209495544434,8.557029534131289,marimba
+marimba|boa constrictor|La0-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.07116374373435974,-5.190945148468018,5.119781404733658,marimba
+marimba|boa constrictor|La0-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.03284454718232155,-8.81676197052002,8.783917423337698,marimba
+marimba|boa constrictor|La0-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.040465325117111206,-8.814517974853516,8.774052649736404,marimba
+marimba|boa constrictor|La1-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.025346877053380013,-5.786667346954346,5.761320469900966,percussion instrument
+marimba|boa constrictor|La1-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.028135383501648903,-5.379304885864258,5.351169502362609,percussion instrument
+marimba|boa constrictor|La1-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.041806045919656754,-5.191612720489502,5.149806674569845,percussion instrument
+marimba|boa constrictor|La1-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.04453766345977783,-5.6655354499816895,5.620997786521912,percussion instrument
+marimba|boa constrictor|La1-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.021875938400626183,-8.510125160217285,8.488249221816659,percussion instrument
+marimba|boa constrictor|La1-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.028783047571778297,-6.351543426513672,6.322760378941894,percussion instrument
+marimba|boa constrictor|La1-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.034533653408288956,-7.078622341156006,7.044088687747717,percussion instrument
+marimba|boa constrictor|La1-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.034798312932252884,-8.105483055114746,8.070684742182493,percussion instrument
+marimba|boa constrictor|La1-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.024313529953360558,-9.293951988220215,9.269638458266854,percussion instrument
+marimba|boa constrictor|La1-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.026139788329601288,-9.37339973449707,9.347259946167469,percussion instrument
+marimba|boa constrictor|La1-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.04021844640374184,-9.511799812316895,9.471581365913153,percussion instrument
+marimba|boa constrictor|La1-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.03893756866455078,-9.426321983337402,9.387384414672852,percussion instrument
+marimba|boa constrictor|La2-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.006852004211395979,-5.901889801025391,5.895037796813995,musical instrument
+marimba|boa constrictor|La2-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.01281036902219057,-5.759956359863281,5.747145990841091,musical instrument
+marimba|boa constrictor|La2-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.007104883436113596,-5.797914505004883,5.790809621568769,musical instrument
+marimba|boa constrictor|La2-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.007563378196209669,-5.797945499420166,5.790382121223956,musical instrument
+marimba|boa constrictor|La2-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.007755734492093325,-9.002165794372559,8.994410059880465,musical instrument
+marimba|boa constrictor|La2-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.016027240082621574,-7.272083282470703,7.2560560423880816,musical instrument
+marimba|boa constrictor|La2-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.00897954124957323,-8.906006813049316,8.897027271799743,musical instrument
+marimba|boa constrictor|La2-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.00891624204814434,-8.602296829223633,8.593380587175488,musical instrument
+marimba|boa constrictor|La2-Lt2|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.008973945863544941,-9.039839744567871,9.030865798704326,musical instrument
+marimba|boa constrictor|La2-Lt2|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.016426878049969673,-8.749878883361816,8.733452005311847,musical instrument
+marimba|boa constrictor|La2-Lt2|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.009077988564968109,-9.243000984191895,9.233922995626926,musical instrument
+marimba|boa constrictor|La2-Lt2|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.008784088306128979,-9.19707202911377,9.18828794080764,musical instrument
+marimba|cello|La0-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.06885366886854172,-3.1743361949920654,3.1054825261235237,marimba
+marimba|cello|La0-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.2784506678581238,-0.9146974682807922,0.6362468004226685,marimba
+marimba|cello|La0-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.055229660123586655,-2.397486686706543,2.3422570265829563,marimba
+marimba|cello|La0-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.0649106428027153,-3.386474609375,3.3215639665722847,marimba
+marimba|cello|La0-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.04284865781664848,-5.888783931732178,5.845935273915529,marimba
+marimba|cello|La0-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.39396798610687256,-0.45558345317840576,0.0616154670715332,marimba
+marimba|cello|La0-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.05306662619113922,-4.152225971221924,4.099159345030785,marimba
+marimba|cello|La0-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.04508331045508385,-6.582355499267578,6.537272188812494,marimba
+marimba|cello|La1-Lt0|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.01968025602400303,-8.408414840698242,8.38873458467424,percussion instrument
+marimba|cello|La1-Lt0|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.02266467921435833,-5.571651935577393,5.548987256363034,percussion instrument
+marimba|cello|La1-Lt0|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.03725099936127663,-5.621767044067383,5.584516044706106,percussion instrument
+marimba|cello|La1-Lt0|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.03286944702267647,-7.65452766418457,7.621658217161894,percussion instrument
+marimba|cello|La1-Lt1|p0,mistralai/Ministral-3-3B-Instruct-2512,-0.026644667610526085,-7.243866443634033,7.217221776023507,percussion instrument
+marimba|cello|La1-Lt1|p1,mistralai/Ministral-3-3B-Instruct-2512,-0.08768424391746521,-2.101449489593506,2.0137652456760406,percussion instrument
+marimba|cello|La1-Lt1|p2,mistralai/Ministral-3-3B-Instruct-2512,-0.055780816823244095,-3.4959676265716553,3.440186809748411,percussion instrument
+marimba|cello|La1-Lt1|p3,mistralai/Ministral-3-3B-Instruct-2512,-0.05281484127044678,-7.3324103355407715,7.279595494270325,percussion instrument

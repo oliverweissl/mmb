@@ -130,7 +130,13 @@ class VLMScorer(ABC):
             model_kwargs["quantization_config"] = BitsAndBytesConfig(load_in_8bit=True)
             model_kwargs["device_map"] = device_str
         elif load_in_4bit:
-            model_kwargs["quantization_config"] = BitsAndBytesConfig(load_in_4bit=True)
+            # NF4 weight-only quantisation, bf16 compute: activations are not
+            # quantised, so a token's score cannot depend on other tokens in
+            # the batch/sequence (unlike LLM.int8 outlier decomposition).
+            model_kwargs["quantization_config"] = BitsAndBytesConfig(
+                load_in_4bit=True, bnb_4bit_quant_type="nf4",
+                bnb_4bit_compute_dtype=torch.bfloat16, bnb_4bit_use_double_quant=False,
+            )
             model_kwargs["device_map"] = device_str
         else:
             model_kwargs["torch_dtype"] = dtype or torch.float16
@@ -336,10 +342,13 @@ class VLMScorer(ABC):
             )[label_ids[0]].item()
 
             if n_tokens > 1:
+                import copy as _copy
                 with torch.no_grad():
                     cont_out = self._model(
                         input_ids=label_ids[:-1].unsqueeze(0),
-                        past_key_values=prefix_kvs,
+                        # deep copy: Cache objects are updated in place, and
+                        # the next candidate must see the bare prefix again.
+                        past_key_values=_copy.deepcopy(prefix_kvs),
                     )
                 for i in range(n_tokens - 1):
                     lp = F.log_softmax(
@@ -372,6 +381,11 @@ class VLMScorer(ABC):
         :returns: Tensor of shape ``(len(categories),)`` with
             log_prob_norm values in input order.
         """
+        if thinking_ids is None:
+            # Full-sequence teacher forcing: every candidate is scored on an
+            # untouched prefix (the KV-cache loop below reuses one mutable
+            # cache across candidates, so later candidates saw earlier ones).
+            return self.score_batch_tensor([image], [prompt], list(categories))[0]
         scored = self.score_categories(
             image, prompt, categories, thinking_ids=thinking_ids
         )
@@ -380,6 +394,90 @@ class VLMScorer(ABC):
         return torch.tensor(
             [lp_by_label[cat] for cat in categories], dtype=torch.float32
         )
+
+    # ------------------------------------------------------------------
+    # Batched teacher-forced scoring (one forward per candidate x chunk)
+    # ------------------------------------------------------------------
+
+    batch_chunk: int = 16
+
+    @torch.no_grad()
+    def score_batch_tensor(
+        self,
+        images: list,
+        prompts: list[str],
+        categories: list[str] | tuple[str, ...],
+    ) -> torch.Tensor:
+        """Batched equivalent of :meth:score_categories_tensor.
+
+        For each candidate label the full sequence prompt_ids + label_ids is
+        built per row (label ids appended to the row's unpadded prompt ids,
+        exactly the ids the sequential KV-cache path force-decodes), rows
+        are right-padded (causal attention: padding after the scored tokens
+        cannot influence them) and one forward per chunk reads the
+        length-normalised log-likelihood of the label tokens. Returns a
+        (len(images), len(categories)) float32 tensor in input order.
+        """
+        n = len(images)
+        out = torch.empty((n, len(categories)), dtype=torch.float32)
+        label_ids = [self.tokenizer.encode(c, add_special_tokens=False) for c in categories]
+        for start in range(0, n, self.batch_chunk):
+            sl = slice(start, min(n, start + self.batch_chunk))
+            base = [self._prepare_inputs(im, pr, enable_thinking=False)
+                    for im, pr in zip(images[sl], prompts[sl])]
+            for j, lab in enumerate(label_ids):
+                if not lab:
+                    out[sl, j] = float("-inf")
+                    continue
+                out[sl, j] = self._score_label_rows(base, lab)
+        return out
+
+    def _score_label_rows(self, base: list[dict], lab: list[int]) -> torch.Tensor:
+        dev = self._device
+        lab_t = torch.tensor(lab, device=dev)
+        rows = [b["input_ids"][0] for b in base]
+        plen = [int(r.shape[0]) for r in rows]
+        full = [torch.cat([r, lab_t]) for r in rows]
+        L = max(int(f.shape[0]) for f in full)
+        pad_id = self.tokenizer.pad_token_id
+        if pad_id is None:
+            pad_id = self.tokenizer.eos_token_id or 0
+        B = len(rows)
+        ids = torch.full((B, L), pad_id, dtype=rows[0].dtype, device=dev)
+        att = torch.zeros((B, L), dtype=torch.long, device=dev)
+        for i, f in enumerate(full):
+            ids[i, : f.shape[0]] = f
+            att[i, : f.shape[0]] = 1
+        batch = {"input_ids": ids, "attention_mask": att}
+        # Per-token side inputs of shape (1, prompt_len): extend with zeros.
+        for key in base[0]:
+            if key in ("input_ids", "attention_mask"):
+                continue
+            v0 = base[0][key]
+            if torch.is_tensor(v0) and v0.dim() == 2 and v0.shape[1] == plen[0] and v0.shape[0] == 1:
+                t = torch.zeros((B, L), dtype=v0.dtype, device=dev)
+                for i, b in enumerate(base):
+                    t[i, : plen[i]] = b[key][0]
+                batch[key] = t
+            elif torch.is_tensor(v0):
+                batch[key] = torch.cat([b[key] for b in base], dim=0)
+            else:
+                batch[key] = v0
+        keep = L - min(plen) + 1
+        try:
+            res = self._model(**batch, use_cache=False, logits_to_keep=keep)
+            offset = L - res.logits.shape[1]
+        except TypeError:
+            res = self._model(**batch, use_cache=False)
+            offset = 0
+        logits = res.logits
+        n_tok = len(lab)
+        vals = torch.empty(B, dtype=torch.float32)
+        for i in range(B):
+            pos = torch.arange(plen[i] - 1, plen[i] - 1 + n_tok, device=dev) - offset
+            lp = F.log_softmax(logits[i, pos, :].float(), dim=-1)
+            vals[i] = lp.gather(1, lab_t[:, None]).sum().item() / n_tok
+        return vals
 
     # ------------------------------------------------------------------
     # Per-slot chain scoring (Exp-105 steps 5/6)
@@ -764,6 +862,14 @@ class ChatTemplateScorer(LlavaScorer):
     """
 
     def _create_model(self, model_id, dtype, load_in_8bit, load_in_4bit, ov_device):
+        if "ministral" in model_id.lower() and not (load_in_8bit or load_in_4bit):
+            # Released as FP8 with dynamic activation quantisation, which makes a
+            # row's score depend on the other rows of a batch. Dequantise to bf16.
+            from transformers import FineGrainedFP8Config
+            return AutoModelForImageTextToText.from_pretrained(
+                model_id, dtype=torch.bfloat16, device_map=str(self._device),
+                quantization_config=FineGrainedFP8Config(dequantize=True),
+            )
         return super()._create_model(
             model_id, dtype or torch.bfloat16, load_in_8bit, load_in_4bit, ov_device,
         )
@@ -885,6 +991,7 @@ _FAMILY_PATTERNS: tuple[tuple[str, str], ...] = (
     ("internvl", "chat"),
     ("smolvlm", "chat"),
     ("gemma-3", "chat"),
+    ("ministral", "chat"),
 )
 
 # Keyed by (family, backend).

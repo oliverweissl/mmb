@@ -20,14 +20,19 @@ from make_arm_configs import ARMS, merge  # noqa: E402
 ROOT = Path(__file__).resolve().parents[1]
 
 SUTS = {
-    "llava": {"model_id": "llava-hf/llava-v1.6-mistral-7b-hf", "backend": "torch", "load_in_8bit": True},
+    "llava": {"model_id": "llava-hf/llava-v1.6-mistral-7b-hf", "backend": "torch", "load_in_4bit": True},
     "qwen": {"model_id": "Qwen/Qwen3.5-4B", "backend": "torch"},
     "internvl": {"model_id": "OpenGVLab/InternVL3_5-4B-HF", "backend": "torch"},
+    "ministral": {"model_id": "mistralai/Ministral-3-3B-Instruct-2512", "backend": "torch"},
+}
+for _s in SUTS.values():
+    _s.update({"batched_scoring": True, "batch_chunk": 15})
+_UNUSED = {
 }
 
 TASKS = {
     "imagenet": {"base": "configs/paper/e1/base.yaml", "cells": "cells/imagenet_cells.yaml",
-                 "cone": True},
+                 "cone": False},
     "pope": {"base": "configs/paper/e1/base.yaml", "cells": "cells/pope_cells.yaml",
              "cone": False},
 }

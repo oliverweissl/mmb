@@ -74,6 +74,8 @@ class SUTConfig:
     max_pixels: int | None = None
     load_in_8bit: bool = False        # torch-only (bitsandbytes)
     load_in_4bit: bool = False        # torch-only (bitsandbytes)
+    batched_scoring: bool = False     # one forward per candidate x chunk (see scorer.score_batch_tensor)
+    batch_chunk: int = 16
     redis_url: str = "redis://localhost:6379"
 
 

@@ -850,16 +850,22 @@ class VLMBoundaryTester(SMOO):
                 unit="call",
                 leave=False,
             )
-        with distlock.lock(self._sut.device_str):
-            for img, txt in iterator:
-                logits_list.append(
-                    self._sut.process_input(
-                        img, text=txt + answer_suffix, categories=categories,
-                    )
+        if getattr(self._config.sut, "batched_scoring", False) and hasattr(self._sut, "process_batch"):
+            with distlock.lock(self._sut.device_str):
+                logits = self._sut.process_batch(
+                    images, [t + answer_suffix for t in texts], tuple(categories),
                 )
-                cache_hits.append(self._sut.last_call_cached)
-
-        logits = torch.stack(logits_list)
+            cache_hits = [False] * len(texts)
+        else:
+            with distlock.lock(self._sut.device_str):
+                for img, txt in iterator:
+                    logits_list.append(
+                        self._sut.process_input(
+                            img, text=txt + answer_suffix, categories=categories,
+                        )
+                    )
+                    cache_hits.append(self._sut.last_call_cached)
+            logits = torch.stack(logits_list)
         self._maybe_save_first_cross(gen, genotypes, images, texts, logits, target_classes)
 
         # -- Tensor conversion for MatrixDistance -------------------------

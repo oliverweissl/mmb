@@ -139,7 +139,7 @@ def pool_pope(n: int, seed: int) -> list[dict]:
 
 
 # -------------------------------------------------------------------------- score
-def score(pool_path: Path, sut: str, int8: bool, device: str) -> Path:
+def score(pool_path: Path, sut: str, int8: bool, device: str, nf4: bool = False) -> Path:
     """g = l(a) - l(b) of the VQGAN-f8 reconstruction (what the search sees at
     genotype 0) for every pool item, with the exact prompt + answer suffix."""
     from PIL import Image
@@ -150,7 +150,7 @@ def score(pool_path: Path, sut: str, int8: bool, device: str) -> Path:
 
     items = yaml.safe_load(pool_path.read_text())["items"]
     codec = VQGANCodec(load_vqgan("f8-16384"), device=device)
-    sc = create_scorer(sut, device, enable_thinking=False, load_in_8bit=int8)
+    sc = create_scorer(sut, device, enable_thinking=False, load_in_8bit=int8, load_in_4bit=nf4)
     out = pool_path.with_name(pool_path.stem + f".scores.{_safe(sut)}.csv")
     cache: dict[str, Image.Image] = {}
     with open(out, "w", newline="") as fh:
@@ -163,7 +163,8 @@ def score(pool_path: Path, sut: str, int8: bool, device: str) -> Path:
             img = cache[it["image"]]
             cands = it["fillers"]
             prompt = it["prompt"] + ANSWER_FORMAT.format(categories=", ".join(cands))
-            res = {lbl: lpn for (lbl, _lp, lpn, _n) in sc.score_categories(img, prompt, cands)}
+            t = sc.score_batch_tensor([img], [prompt], cands)[0].tolist()
+            res = dict(zip(cands, t))
             a, b = it["pair"]
             w.writerow([it["meta"]["cell_key"], sut, res[a], res[b], res[a] - res[b],
                         max(res, key=res.get)])
@@ -222,6 +223,7 @@ def main() -> None:
     s.add_argument("pool", type=Path)
     s.add_argument("--sut", required=True)
     s.add_argument("--int8", action="store_true")
+    s.add_argument("--nf4", action="store_true")
     s.add_argument("--device", default="cuda")
     q = sub.add_parser("select")
     q.add_argument("pool", type=Path)
@@ -236,7 +238,7 @@ def main() -> None:
         a.out.write_text(yaml.safe_dump({"items": items}, sort_keys=False, allow_unicode=True))
         print(f"wrote {len(items)} pool items to {a.out}")
     elif a.cmd == "score":
-        print(score(a.pool, a.sut, a.int8, a.device))
+        print(score(a.pool, a.sut, a.int8, a.device, a.nf4))
     else:
         select(a.pool, a.k, a.tau, a.seed, a.out)
 

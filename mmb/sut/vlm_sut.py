@@ -111,6 +111,8 @@ class VLMSUT(SUT):
             )
         else:
             self._scorer = scorer
+        if hasattr(self._scorer, "batch_chunk"):
+            self._scorer.batch_chunk = getattr(self._config.sut, "batch_chunk", 16)
         self._prompt = (
             self._config.prompt_template
             + self._config.answer_format.format(
@@ -206,6 +208,21 @@ class VLMSUT(SUT):
             self._cache_set(key, json.dumps(result.tolist()))
 
         return result
+
+    def process_batch(
+        self,
+        images: list,
+        texts: list[str],
+        categories: tuple[str, ...],
+    ) -> Tensor:
+        """Batched :meth:process_input (no Redis cache, no PMI): returns a
+        (len(images), len(categories)) tensor. Used by the evolutionary
+        tester when sut.batched_scoring is on; equivalence with the
+        sequential path is checked by scripts/check_batched_scoring.py."""
+        res = self._scorer.score_batch_tensor(list(images), list(texts), list(categories))
+        self._cache_misses += len(images)
+        self._last_call_cached = False
+        return res
 
     # ------------------------------------------------------------------
     # Fault-tolerant inference cache
