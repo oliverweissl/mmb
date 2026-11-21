@@ -90,6 +90,21 @@ def _configure_distlock(workers: int) -> None:
         logger.info("Device locks enabled (workers=%d)", workers)
 
 
+def _disable_hub_kernels() -> None:
+    """Hub kernels (the 'kernels' package, needed for Ministral's FP8 checkpoint)
+    make transformers swap in JIT-compiled kernels for other families (e.g.
+    Qwen3.5 linear attention) whose NVRTC compilation segfaults on this stack.
+    Use the reference implementations for every other SUT. Must run before the
+    model is loaded (decorators read the flag when the modeling module imports)."""
+    os.environ["USE_HUB_KERNELS"] = "NO"
+    try:
+        import transformers.integrations.hub_kernels as _hk
+        _hk._TRANSFORMERS_USE_HUB_KERNELS = "NO"
+        _hk._kernels_enabled = False
+    except ImportError:
+        pass
+
+
 def _warm_up_numba() -> None:
     """Compile pymoo's numba (llvmlite) helpers before any SUT is loaded.
 
@@ -141,6 +156,8 @@ def run_experiment(
     """
     exp = load_config(cfg)
     exp = apply_modality(exp)
+    if "ministral" not in exp.sut.model_id.lower():
+        _disable_hub_kernels()
     if exp.optimizer.algorithm in ("agemoea2",):
         _warm_up_numba()
     _configure_distlock(exp.parallel.workers)
