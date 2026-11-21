@@ -12,6 +12,7 @@ Usage:
 
 from __future__ import annotations
 
+
 import argparse
 import logging
 import os
@@ -89,6 +90,27 @@ def _configure_distlock(workers: int) -> None:
         logger.info("Device locks enabled (workers=%d)", workers)
 
 
+def _warm_up_numba() -> None:
+    """Compile pymoo's numba (llvmlite) helpers before any SUT is loaded.
+
+    AGE-MOEA-II/AGE-MOEA JIT-compile their survival helpers on first use.
+    llvmlite can segfault when it compiles after another LLVM (triton, pulled in
+    by some SUT stacks) has been loaded into the process; compiling them here,
+    on a toy problem with the same array types, means no compilation happens
+    later in the run.
+    """
+    from mmb.optimizer import DiscretePymooOptimizer
+
+    rng = np.random.default_rng(0)
+    for n_obj in (3, 2):
+        opt = DiscretePymooOptimizer(np.full(40, 8), n_obj, pop_size=30,
+                                     algorithm="agemoea2", seed=0)
+        for _ in range(4):
+            x = opt.get_x_current()
+            opt.assign_fitness([rng.random(len(x)) for _ in range(n_obj)])
+            opt.update()
+
+
 def run_experiment(
     cfg: dict,
     preflight: bool = False,
@@ -119,6 +141,8 @@ def run_experiment(
     """
     exp = load_config(cfg)
     exp = apply_modality(exp)
+    if exp.optimizer.algorithm in ("agemoea2",):
+        _warm_up_numba()
     _configure_distlock(exp.parallel.workers)
 
     # -- Resolve categories from data source (before any component sees them)
