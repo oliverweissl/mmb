@@ -12,7 +12,7 @@ for cfg in $(ls "$dir"/*.yaml | sort); do
   [ -f "$logdir/$name.done" ] && continue
   for attempt in 1 2 3; do
     echo "[$(date +%F' '%T)] start $name (attempt $attempt)"
-    if $PY -m mmb.runners.run_boundary_test "$cfg" --device cuda --resume >> "$logdir/$name.log" 2>&1; then
+    if $PY -m mmb.runners.run_boundary_test "$cfg" --device cuda --resume --clean-partials >> "$logdir/$name.log" 2>&1; then
       touch "$logdir/$name.done"; echo "[$(date +%F' '%T)] done  $name"; break
     fi
     echo "[$(date +%F' '%T)] FAIL  $name attempt $attempt (see $logdir/$name.log)"
