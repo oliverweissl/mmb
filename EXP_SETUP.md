@@ -83,3 +83,8 @@ first was scored with the earlier candidates' tokens in context (order-dependent
 multi-token labels, e.g. 'reptile' -5.49 vs -2.23 nats on Qwen3.5-4B). Fixed in e3c86f6. All MAIN numbers
 use the fixed scorer. The thesis' OpenVINO path issues the same calls and is very likely affected; this
 could not be verified here (no OpenVINO stack). Thesis-era numbers are therefore not re-used as evidence.
+
+## 10. Campaign log
+- 2026-11-20 18:17: MAIN queue started (session-bound). Died ~19:40 when the session ended; 30 runs done.
+- 2026-11-21 16:32: restarted as user systemd unit `mmb-queue` (stop: `systemctl --user stop mmb-queue`), with --clean-partials.
+- 2026-11-21 16:53: L1 ministral a0 crashed 3x (SIGSEGV/SIGFPE in llvmlite while pymoo JIT-compiled AGE-MOEA-II helpers after triton's LLVM was loaded by the Ministral stack). Fix: compile pymoo's numba helpers before the SUT loads (run_boundary_test._warm_up_numba). Same arithmetic, so no effect on results. Unit `mmb-queue-retry` re-runs failed configs after the main pass (up to 3 passes).
