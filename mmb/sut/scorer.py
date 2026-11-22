@@ -381,11 +381,6 @@ class VLMScorer(ABC):
         :returns: Tensor of shape ``(len(categories),)`` with
             log_prob_norm values in input order.
         """
-        if thinking_ids is None:
-            # Full-sequence teacher forcing: every candidate is scored on an
-            # untouched prefix (the KV-cache loop below reuses one mutable
-            # cache across candidates, so later candidates saw earlier ones).
-            return self.score_batch_tensor([image], [prompt], list(categories))[0]
         scored = self.score_categories(
             image, prompt, categories, thinking_ids=thinking_ids
         )

@@ -552,27 +552,21 @@ class TestMergeGuard:
 # TestScoreCategoriesUnchanged -- the refactor must be behaviour-neutral
 # =========================================================================
 
-# Golden values captured by running score_categories from git HEAD (the
-# pre-refactor scorer.py) against this same seeded FakeModel + CharTokenizer,
-# and verified bit-for-bit identical against the post-refactor code.  Any
-# behavioural drift in the shared prefix pass moves these.
-#
-# They are tied to this exact category LIST, not just to the labels: the
-# prefix KV cache is reused across labels and grows in place (FakeCache
-# mirrors transformers' DynamicCache), so a label's continuation is
-# conditioned on the labels scored before it.  Pre-existing behaviour --
-# pinned here, deliberately unchanged by this work.
+# Golden values for this seeded FakeModel + CharTokenizer. Every label is scored
+# on the bare prompt prefix (the prefix KV cache is copied per label), so a
+# label's score does NOT depend on the other labels in the list or their order;
+# TestScoreCategoriesUnchanged.test_order_independent pins that property.
 _GOLDEN_CATEGORIES: list[str] = ["cat", "dog", "bird", ""]
 _GOLDEN_SCORE_CATEGORIES: dict[str, tuple[float, float, int]] = {
     "cat": (-19.079808235168457, -6.359936078389485, 3),
-    "dog": (-17.800814151763916, -5.933604717254639, 3),
-    "bird": (-23.87961769104004, -5.96990442276001, 4),
+    "dog": (-14.532793045043945, -4.8442643483479815, 3),
+    "bird": (-33.56596660614014, -8.391491651535034, 4),
     "": (float("-inf"), float("-inf"), 0),
 }
 # Same capture, for the tuple used by the tensor-wrapper test.
 _GOLDEN_TENSOR_CATEGORIES: tuple[str, ...] = ("bird", "cat", "dog")
 _GOLDEN_TENSOR: list[float] = [
-    -8.391491889953613, -5.739893436431885, -5.116476058959961,
+    -8.391491889953613, -6.359936237335205, -4.844264507293701,
 ]
 
 
@@ -595,6 +589,15 @@ class TestScoreCategoriesUnchanged:
             else:
                 assert g_lp == pytest.approx(lp, abs=1e-6)
                 assert g_norm == pytest.approx(norm, abs=1e-6)
+
+    def test_order_independent(self) -> None:
+        """A label's score must not depend on which labels precede it."""
+        fwd = {l: lp for l, lp, _, _ in ChainFakeScorer().score_categories(
+            _dummy_image(), "p", ["cat", "dog", "bird"])}
+        rev = {l: lp for l, lp, _, _ in ChainFakeScorer().score_categories(
+            _dummy_image(), "p", ["bird", "dog", "cat"])}
+        for lbl in fwd:
+            assert fwd[lbl] == pytest.approx(rev[lbl], abs=1e-6)
 
     def test_sorted_descending_by_norm(self) -> None:
         scorer = ChainFakeScorer()
