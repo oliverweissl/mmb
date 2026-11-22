@@ -95,3 +95,4 @@ could not be verified here (no OpenVINO stack). Thesis-era numbers are therefore
 - 2026-11-22 00:38-03:10: no crashes after E-core pinning.
 - 2026-11-22 08:10: archived L1 imagenet/internvl/a0 s0 (run before the diagnostic magnitude columns existed); the retry pass re-runs it so every arm has diag_* magnitudes.
 - 2026-11-22 10:34: queue restarted as `mmb-queue2` (scripts/run_queue_passes.sh, 3 passes, from L1) so the missing seed-0 directed/random configs run first; the DeepJanus layer was renamed L10 -> L9z so it sorts after L9. Order: L1 remainder, L2-L8, L9, L9z.
+- 2026-11-22 12:07: E-core-only pinning slowed runs ~1.8x (InternVL 5.7 vs 3.1 s/gen). Re-pinned to CPUs 0-3,8-31 (all except the two favoured 5.8 GHz P-cores, CPUs 4-7): 3.9 s/gen. Revert to 16-31 if crashes return (PIN_CPUS env of unit mmb-pin).
