@@ -17,6 +17,17 @@ def test_head_arrows_follow_the_direction_map():
         assert tf.DIRECTION[key] == tf.DOWN
 
 
+def test_generation_zero_and_budget_30_are_neutral():
+    assert "gen0" not in tf.DIRECTION and tf.head("Gen.0", "gen0") == "Gen.0"
+    curve = pd.DataFrame([dict(arm=a, budget=b, share=s, boot_lo=s, boot_hi=s)
+                          for a, s in (("a0_directed", 0.9), ("a1_random_tiered", 0.4)) for b in (30, 100)])
+    tex = st.budgets_tex(curve, [30, 100])
+    header = [l for l in tex.splitlines() if l.startswith("Arm")][0]
+    assert header.count("uparrow") == 1 and header.split("&")[1].count("uparrow") == 0   # arrow only on the larger budget
+    row = [l for l in tex.splitlines() if l.startswith("Directed")][0]
+    assert row.split("&")[1].count("textbf") == 0 and row.split("&")[2].count("textbf") == 1
+
+
 def test_best_indices_ties_and_degenerate_groups():
     assert tf.best_indices([0.5, 0.7, 0.7], "crossed") == {1, 2}              # ties: all tied values
     assert tf.best_indices([10, 4, 4], "floor") == {1, 2}                      # lower is better

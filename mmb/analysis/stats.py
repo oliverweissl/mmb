@@ -329,6 +329,13 @@ def summary_tex(s: pd.DataFrame) -> str:
     return _booktabs("lrrrrrr", SUMMARY_HEADER, summary_rows(s))
 
 
+GEN0_BUDGET = 30     # budget of the initial population: descriptive, neutral in the tables
+
+
+def _budget_key(b: int) -> str | None:
+    return None if b <= GEN0_BUDGET else "budget_share"
+
+
 def budgets_tex(curve: pd.DataFrame, budgets: Sequence[int]) -> str:
     arms = list(dict.fromkeys(curve["arm"]))
     cols = []
@@ -338,9 +345,9 @@ def budgets_tex(curve: pd.DataFrame, budgets: Sequence[int]) -> str:
         for a in arms:
             r = curve[(curve["arm"] == a) & (curve["budget"] == b)].iloc[0]
             cells.append(f"{100 * r['share']:.1f} [{100 * r['boot_lo']:.0f}--{100 * r['boot_hi']:.0f}]")
-        cols.append(tf.bold_best(cells, vals, "budget_share", [f"{100 * v:.1f}" for v in vals]))
+        cols.append(tf.bold_best(cells, vals, _budget_key(b), [f"{100 * v:.1f}" for v in vals]))
     rows = [[tex_escape(arm_label(a))] + [cols[j][i] for j in range(len(budgets))] for i, a in enumerate(arms)]
-    return _booktabs("l" + "r" * len(budgets), ["Arm"] + [tf.head(f"{b}", "budget_share") for b in budgets], rows)
+    return _booktabs("l" + "r" * len(budgets), ["Arm"] + [tf.head(f"{b}", _budget_key(b)) for b in budgets], rows)
 
 
 def paired_tex(p: pd.DataFrame) -> str:

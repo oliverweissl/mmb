@@ -19,8 +19,9 @@ ARROW = {UP: r" $\uparrow$", DOWN: r" $\downarrow$"}
 ALPHA = 0.05
 
 DIRECTION: dict[str, str] = {
-    # effectiveness
-    "crossed": UP, "gen0": UP, "band": UP, "label_flip": UP, "budget_share": UP,
+    # effectiveness (the generation-0 share and the budget-30 share are descriptive: every arm draws generation 0 from
+    # the same sampler, so they are not in this map and stay neutral)
+    "crossed": UP, "band": UP, "label_flip": UP, "budget_share": UP,
     # efficiency
     "first_cross_eval": DOWN, "evals": DOWN, "floor": DOWN, "min_edits": DOWN, "hv_edits": UP,
     "img_mag": DOWN, "txt_mag": DOWN, "wall": DOWN, "hv_mag": UP, "chardist": DOWN,
