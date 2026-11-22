@@ -28,6 +28,7 @@ import pandas as pd
 from PIL import Image
 
 from mmb.analysis.collect import _load_config, resolve_meta
+from mmb.analysis.crossing_files import robust_first_crossing
 from mmb.validity.proxies import ProxyModels, image_proxies, text_proxies
 
 logger = logging.getLogger(__name__)
@@ -115,7 +116,7 @@ def min_edit_crossing(run_dir: Path) -> dict | None:
     anchor_argmax = cats.index(a) if isinstance(a, str) and a in cats else (a if isinstance(a, int) else None)
     res = evaluate_trace(lp, df["generation"].to_numpy(), target_classes=(int(tc[0]), int(tc[1])), anchor_row=anchor_row,
                          anchor_g=stats.get("anchor_g"), anchor_argmax=anchor_argmax)
-    cross = np.asarray(res["_crossing"], dtype=bool)
+    cross = np.asarray(res["_crossing_robust"], dtype=bool)        # robust crossings only
     arch = {}
     for jf in sorted(run_dir.glob("pareto_*.json")):
         try:
@@ -144,11 +145,15 @@ def min_edit_crossing(run_dir: Path) -> dict | None:
 def score_run(run_dir: Path, models: ProxyModels, root: Path | None = None, defaults: dict | None = None) -> dict:
     run_dir = Path(run_dir)
     stats = json.loads((run_dir / "stats.json").read_text())
-    fc = json.loads((run_dir / "first_cross.json").read_text())
+    found = robust_first_crossing(run_dir)
+    if found is None:
+        return []                                  # no robust crossing input stored for this run
+    cross_png, cross_json = found
+    fc = json.loads(cross_json.read_text())
     cfg = _load_config(run_dir, stats, Path(root) if root else run_dir)
     meta = resolve_meta(stats, cfg, defaults)
     seed_img, ref_kind = anchor_reference(run_dir)
-    cross_img = Image.open(run_dir / "first_cross.png").convert("RGB")
+    cross_img = Image.open(cross_png).convert("RGB")
     row = {
         "item_id": run_dir.name, "run_dir": str(run_dir),
         **{k: meta.get(k) for k in ("cell_id", "arm", "sut", "task", "rng_seed")},

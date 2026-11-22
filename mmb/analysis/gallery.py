@@ -35,6 +35,7 @@ import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
 from PIL import Image  # noqa: E402
 
+from mmb.analysis.crossing_files import robust_first_crossing  # noqa: E402
 from mmb.analysis.stats import load_results  # noqa: E402
 
 SUT_LABELS = {"qwen": "Qwen3.5-4B", "internvl": "InternVL3.5-4B", "ministral": "Ministral-3-3B",
@@ -128,7 +129,10 @@ def _load(run_dir: Path, runs_root: Path | None, fail: bool = False):
         raw = Image.open(p / "origin.png").convert("RGB")
         side = min(raw.size)
         o = raw.crop(((raw.width - side) // 2, (raw.height - side) // 2, (raw.width + side) // 2, (raw.height + side) // 2))
-    c = Image.open(p / "first_cross.png").convert("RGB") if (p / "first_cross.png").exists() else None
+    found = robust_first_crossing(p)                  # first ROBUST crossing input (|g| >= 0.15 nats)
+    c = Image.open(found[0]).convert("RGB") if found else None
+    if found:
+        fc = json.loads(found[1].read_text())
     if fail:
         png, j = _closest_pareto(p)
         fc = {"text": j.get("text"), "min_abs_g": (j.get("fitness") or [None])[0]}

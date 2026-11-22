@@ -21,6 +21,11 @@ Definitions
   then individual) counting cache hits; a run that never crosses is censored at its budget
   (``generations * pop_size``, else the number of evaluations). ``first_cross_eval_nocache``
   counts only evaluations with ``cache_hit == False``.
+* *Robust crossing* (primary definition of the paper): sign reversal with ``|g| >= ROBUST_TAU`` (0.15 nats).
+  ``crossed_robust``, ``first_cross_eval_robust`` (censored at the budget) and ``crossed_robust_at_gen0``; the
+  cost-of-crossing columns and the magnitudes at the crossing refer to robust crossings. The plain sign
+  flip stays in ``crossed``/``first_cross_eval``; ``mmb.analysis.stats.load_results`` makes the robust columns primary
+  and keeps the plain ones as ``*_sign``.
 * ``floor_nats = min |g|`` over all evaluations, ``reached_band = floor_nats <= epsilon``.
 * ``label_flip``: the argmax over *all scored candidates* differs from the anchor's argmax in
   some evaluation.
@@ -45,6 +50,8 @@ from mmb.analysis.cost import cost_of_crossing  # noqa: E402
 logger = logging.getLogger(__name__)
 
 EPSILON = 1e-2
+#: robust crossing: the contrast reverses by at least this many nats (above the batched-scoring tolerance)
+ROBUST_TAU = 0.15
 
 #: Per-row magnitude diagnostics logged for EVERY arm (not optimised): RMS pixel difference to the origin at
 #: codec resolution ([0, 1]) and the SUT text-embedding cosine distance to the original question. They are the
@@ -74,6 +81,7 @@ CORE_COLUMNS = [
 EXTRA_COLUMNS = [
     "first_cross_gen", "first_cross_eval_nocache", "n_cross_evals",
     "budget", "complete", "anchor_source", "seed_idx",
+    "crossed_robust", "crossed_robust_at_gen0", "first_cross_eval_robust",
     # predictors of E2b (see mmb.analysis.predictors)
     "anchor_g", "prior_g", "probe_gen0", "min_gen0", "answer_words_a", "answer_words_b",
 ]
@@ -106,6 +114,7 @@ def evaluate_trace(
     anchor_argmax: int | None = None,
     cache_hit: np.ndarray | None = None,
     epsilon: float = EPSILON,
+    tau: float = ROBUST_TAU,
 ) -> dict[str, Any]:
     """Crossing statistics of one run from rows already in evaluation order.
 
@@ -141,6 +150,8 @@ def evaluate_trace(
     with np.errstate(invalid="ignore"):
         crossing = (np.sign(g) * anchor_sign) < 0          # NaN -> False
     flips = np.argmax(lp, axis=1) != anchor_arg
+    with np.errstate(invalid="ignore"):
+        robust = crossing & (np.abs(g) >= tau)
 
     g0 = np.abs(g[gen == 0]) if len(gen) else np.zeros(0)
     g0 = g0[~np.isnan(g0)]
@@ -152,6 +163,11 @@ def evaluate_trace(
         "label_flip": bool(flips.any()),
         "floor_nats": float(np.nanmin(np.abs(g))) if len(g) and not np.all(np.isnan(g)) else float("nan"),
         "n_cross_evals": int(crossing.sum()),
+        "crossed_robust": bool(robust.any()),
+        "crossed_robust_at_gen0": bool(robust[gen == 0].any()),
+        "first_cross_eval_robust": int(np.argmax(robust)) + 1 if robust.any() else None,
+        "cross_index_robust": int(np.argmax(robust)) if robust.any() else None,
+        "_crossing_robust": robust,
         "anchor_source": source,
         "anchor_g": anchor_g_val if source != "assumed_class_a" else float("nan"),
         "cross_index": None,
@@ -401,9 +417,9 @@ def load_run(
 
     def mag(prefix: str) -> float:
         c = _mag_name("img" if "Matrix" in prefix else "txt", df.columns, fit_cols)
-        if res["cross_index"] is None or c is None:
+        if res["cross_index_robust"] is None or c is None:
             return float("nan")
-        return float(df[c].iloc[res["cross_index"]])
+        return float(df[c].iloc[res["cross_index_robust"]])
 
     def mag_col(kind: str):
         c = _mag_name(kind, df.columns, fit_cols)
@@ -411,7 +427,7 @@ def load_run(
 
     seed_text = (stats.get("seed_metadata") or {}).get("prompt_template") or stats.get("prompt_template")
     cost = cost_of_crossing(
-        res["_crossing"], list(df["genotype"]) if "genotype" in df else [],
+        res["_crossing_robust"], list(df["genotype"]) if "genotype" in df else [],
         int(stats.get("image_dim") or 0), int(stats.get("text_dim") or 0),
         img_mag=mag_col("img"), txt_mag=mag_col("txt"),
         texts=list(df["decoded_text"]) if "decoded_text" in df else None, seed_text=seed_text,
@@ -436,6 +452,9 @@ def load_run(
         "first_cross_gen": res["first_cross_gen"],
         "first_cross_eval_nocache": res["first_cross_eval_nocache"],
         "n_cross_evals": res["n_cross_evals"],
+        "crossed_robust": res["crossed_robust"],
+        "crossed_robust_at_gen0": res["crossed_robust_at_gen0"],
+        "first_cross_eval_robust": res["first_cross_eval_robust"] if res["crossed_robust"] else budget,
         "budget": budget,
         # complete = all configured generations are in the trace (a generation can hold fewer than
         # pop_size rows when the optimizer drops duplicates) or the run stopped early on purpose

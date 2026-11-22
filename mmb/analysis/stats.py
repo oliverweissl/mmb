@@ -50,9 +50,27 @@ METRICS = ("crossed", "first_cross_eval", "floor")
 
 def load_results(paths: Sequence[Path | str]) -> pd.DataFrame:
     df = pd.concat([pd.read_csv(p) for p in paths], ignore_index=True)
-    for c in ("crossed", "crossed_at_gen0", "label_flip", "reached_band", "complete"):
+    for c in ("crossed", "crossed_at_gen0", "label_flip", "reached_band", "complete", "crossed_robust", "crossed_robust_at_gen0"):
         if c in df:
             df[c] = df[c].astype(str).str.lower().isin(("true", "1", "1.0"))
+    return use_robust_crossing(df)
+
+
+def use_robust_crossing(df: pd.DataFrame) -> pd.DataFrame:
+    """Make the robust crossing (sign reversal with |g| >= 0.15 nats) the primary one: crossed, crossed_at_gen0 and
+    first_cross_eval take the robust values, the plain sign flip moves to *_sign. A no-op for tables without the
+    robust columns or when it was applied already."""
+    if "crossed_robust" not in df or "crossed_sign" in df:
+        return df
+    df = df.copy()
+    for plain, rob in (("crossed", "crossed_robust"), ("crossed_at_gen0", "crossed_robust_at_gen0"),
+                       ("first_cross_eval", "first_cross_eval_robust")):
+        if plain in df and rob in df and df[rob].notna().any():
+            df[plain + "_sign"] = df[plain]
+            df[plain] = df[rob].astype(bool) if plain != "first_cross_eval" else df[rob].astype(float)
+    for c in ("crossed", "crossed_at_gen0", "crossed_sign", "crossed_at_gen0_sign"):
+        if c in df:
+            df[c] = df[c].astype(bool)
     return df
 
 

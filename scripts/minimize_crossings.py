@@ -125,12 +125,25 @@ def main() -> None:
             G = np.asarray(robust[0]["genotype"], dtype=np.int64)
             n0 = int((G != 0).sum())
 
+            def save_input(Gv, stem, extra=None):
+                """Render a genotype and store it as <stem>.png/.json (same fields as first_cross.json)."""
+                imgs, txts = man.manipulate(candidates=None, weights=np.vstack([Gv, Gv]))
+                imgs[0].save(d / f"{stem}.png")
+                gv = float(g_of(Gv)[0])
+                (d / f"{stem}.json").write_text(json.dumps(dict(
+                    text=txts[0], full_prompt=txts[0] + suffix, g=gv, genotype=[int(x) for x in Gv], **(extra or {}))))
+
             def is_cross(gv):
                 return np.sign(gv) == -sign0 and abs(gv) >= a.tau
 
             if not is_cross(g_of(G)[0]):   # does not re-verify as a robust crossing
                 rows.append({"run_dir": str(d), "task": task, "sut": a.sut, "arm": st["run_meta"]["arm"],
                              "verified": False, "n_genes_first": n0}); continue
+            # the first ROBUST crossing input: the validity proxies and the gallery read it when the first sign flip was weaker
+            fcj = d / "first_cross.json"
+            if not (fcj.exists() and abs(json.loads(fcj.read_text()).get("g", 0.0)) >= a.tau):
+                idx_r = next(i for i, r in enumerate(tr) if r["genotype"] == robust[0]["genotype"])
+                save_input(G, "first_cross_robust", dict(eval_idx=idx_r + 1))
             active = list(np.nonzero(G)[0]); chunk = max(1, len(active) // 2)
             while chunk >= 1 and calls < a.max_calls and active:
                 groups = [active[i:i + chunk] for i in range(0, len(active), chunk)]
@@ -151,6 +164,7 @@ def main() -> None:
                 else:
                     chunk //= 2
             gmin = float(g_of(G)[0])
+            save_input(G, "minimal_cross")
             n_img_dim = man.image_dim
             img_idx = [int(i) for i in np.nonzero(G[:n_img_dim])[0]]
             txt = man.manipulate(candidates=None, weights=np.vstack([G, G]))[1][0]

@@ -584,6 +584,36 @@ def add_cost_numbers(num: Numbers, sut: str, task: str, s: pd.DataFrame) -> None
             num.add(["ECost", "MedTxtMag"] + tail, f_num(r.med_txt_mag, 2), "median best text cosine among crossing runs; " + d)
 
 
+def sign_flip_tex(df: pd.DataFrame) -> str | None:
+    """Supplement: crossing rate with the plain sign flip next to the robust crossing of the main text."""
+    if "crossed_sign" not in df:
+        return None
+    rows = []
+    for arm, g in df.groupby("arm", sort=True):
+        rows.append([st.tex_escape(st.arm_label(arm)), str(len(g)), f"{100 * g['crossed'].mean():.0f}",
+                     f"{100 * g['crossed_sign'].mean():.0f}"])
+    return st._booktabs("lrrr", ["Arm", "Runs", r"Robust crossing (\%)", r"Sign flip only (\%)"], rows)
+
+
+def add_failure_numbers(num: Numbers, minimal: pd.DataFrame) -> None:
+    """Macros of the failure-type study: per (SUT, task) scope and arm group the number of reduced crossings, the share
+    that re-verified, the median genes before and after the reduction and the share of each failure type."""
+    from mmb.analysis import failure_types as ft
+
+    for r in ft.summary(minimal).itertuples():
+        tail = [{"directed": "Directed", "others": "Others"}[r.group], camel(r.sut), camel(r.task)]
+        d = f"{r.group} arms, {r.sut}, {r.task}"
+        num.add(["EFail", "N"] + tail, str(int(r.n)), "robust first crossings submitted to the minimiser; " + d)
+        num.add(["EFail", "Verified"] + tail, f_pct(r.verified_share, 0), "share re-verified as a robust crossing (%); " + d)
+        num.add(["EFail", "MedGenesFirst"] + tail, f_num(r.med_genes_first, 0), "median changed genes of the first robust crossing; " + d)
+        num.add(["EFail", "MedGenesMin"] + tail, f_num(r.med_genes_min, 0), "median changed genes after the reduction; " + d)
+        num.add(["EFail", "MedImgMin"] + tail, f_num(r.med_img_min, 0), "median image genes of the minimal flip; " + d)
+        num.add(["EFail", "MedTxtMin"] + tail, f_num(r.med_txt_min, 0), "median text genes of the minimal flip; " + d)
+        num.add(["EFail", "OneGene"] + tail, f_pct(r.one_gene_share, 0), "share of minimal flips that need a single gene (%); " + d)
+        for k in ft.TYPE_KEYS:
+            num.add(["EFail", "Share", ft.TYPE_WORDS[k]] + tail, f_pct(getattr(r, "share_" + k), 0), f"share of minimal flips of type {k} (%); " + d)
+
+
 def add_wall_numbers(num: Numbers, sc: dict) -> None:
     """Median wall-clock minutes per run: per arm in every (SUT, task) scope, and pooled over arms."""
     for (sut, task), d in sc.items():
@@ -685,7 +715,7 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
            validity: Path | None = None, runs_root: Path | None = None, n_boot: int = st.N_BOOT,
            figures: bool = True, agree: list[Path] | None = None,
            transfer: list[Path] | None = None, human: Path | None = None,
-           planned: Path | None = None) -> Numbers:
+           planned: Path | None = None, minimal: list[Path] | None = None) -> Numbers:
     from mmb.analysis import gallery, plots
 
     gen = Path(paper) / "generated"
@@ -724,6 +754,9 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
                 if len(ct):
                     write_tex(tabs / "e1_cluster.tex", cluster_table_tex(ct))
                 write_tex(tabs / "cost.tex", cost_tex(cs_))
+                sf = sign_flip_tex(d)
+                if sf:
+                    write_tex(tabs / "sign_flip.tex", sf)
                 for a in sorted(arms - {ref}):
                     add_mixed_numbers(num, pr.mixed_model(d.assign(cell_id=d["cluster_id"]), ref, a))
         if "paired" in res:
@@ -852,6 +885,14 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
                 gallery.plot_gallery(picks, figs / "gallery.pdf", runs_root=runs_root)
             except FileNotFoundError as e:
                 logger.warning("gallery skipped: %s", e)
+    if minimal:
+        from mmb.analysis import failure_types as ft
+        mdf = ft.load_minimal(minimal)
+        if len(mdf):
+            add_failure_numbers(num, mdf)
+            if figures:
+                ft.figure(mdf, figs / "failure-types.pdf", sut_names={k: v.split(" (")[0] for k, v in SUT_NAMES.items()},
+                          task_names=TASK_NAMES)
     num.write(gen)
     return num
 
@@ -876,6 +917,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--agree", type=Path, nargs="*", default=[], help="agreement_replay CSVs (one per SUT)")
     ap.add_argument("--transfer", type=Path, nargs="*", default=[], help="cross-SUT replay CSVs")
     ap.add_argument("--human-validity", type=Path, default=None, help="analyze_ratings.py output CSV")
+    ap.add_argument("--minimal", type=Path, nargs="*", default=[], help="minimize_crossings.py CSVs (failure types)")
     ap.add_argument("--planned", type=Path, default=None, help="configs/generated/MAIN: planned configurations (data status)")
     ap.add_argument("--n-boot", type=int, default=st.N_BOOT)
     ap.add_argument("--no-figures", action="store_true")
@@ -884,7 +926,7 @@ def main(argv: list[str] | None = None) -> int:
     num = export(args.csv, args.paper, ref=args.ref, grid_suts=args.grid_suts.split(","),
                  validity=args.validity, runs_root=args.runs_root, n_boot=args.n_boot,
                  figures=not args.no_figures, agree=args.agree or None, transfer=args.transfer or None, human=args.human_validity,
-                 planned=args.planned)
+                 planned=args.planned, minimal=args.minimal or None)
     logger.info("wrote %d macros to %s", len(num.rows), args.paper / "generated")
     return 0
 

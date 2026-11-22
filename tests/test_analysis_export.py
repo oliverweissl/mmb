@@ -116,8 +116,8 @@ class TestExport:
         df = pd.read_csv(csv)
         d = df[(df.arm == "a0_directed") & (df.sut == "qwen") & (df.task == "imagenet")]
         assert int(m["EOneRunsAZeroQwenImagenet"]) == len(d)
-        assert int(m["EOneCrossedAZeroQwenImagenet"]) == int(d.crossed.sum())
-        assert m["EOneCrossShareAZeroQwenImagenet"] == f"{100 * d.crossed.mean():.1f}"
+        assert int(m["EOneCrossedAZeroQwenImagenet"]) == int(d.crossed_robust.sum())
+        assert m["EOneCrossShareAZeroQwenImagenet"] == f"{100 * d.crossed_robust.mean():.1f}"
         grid = df[df.sut.isin(["qwen", "internvl", "ministral"]) & (df.arm == "a1_random_tiered")]
         assert int(m["EOneRunsAOneAllAll"]) == len(grid)
         assert "EOnePHolmCrossedAOneAllAll" in m.index and "EOnePHolmEvalsAThreeAllAll" in m.index

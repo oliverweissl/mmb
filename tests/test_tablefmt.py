@@ -140,3 +140,63 @@ def test_crossing_only_edit_metrics_use_pairs_where_both_arms_crossed():
     assert len(pf) == 3 and set(pf["ref"]) == {10.0, 12.0, 14.0}                # censored 300s never enter
     t = pr.paired_table(df, "a0_directed", ("min_edits_x", "min_edits"), n_boot=50)
     assert int(t[t.metric == "min_edits_x"].iloc[0].n_pairs) == 3 and int(t[t.metric == "min_edits"].iloc[0].n_pairs) == 8
+
+
+def test_robust_crossing_needs_a_margin_of_tau_and_becomes_primary():
+    from mmb.analysis import collect as co
+    lp = np.array([[-1.0, -2.0], [-1.55, -1.5], [-1.9, -1.0], [-1.0, -1.2]])      # g = +1, -0.05, -0.9, +0.2
+    out = co.evaluate_trace(lp, np.array([0, 0, 1, 1]), anchor_g=1.0)
+    assert out["crossed"] and out["first_cross_eval"] == 2                         # plain sign flip: row 1 (g = -0.05)
+    assert out["crossed_robust"] and out["first_cross_eval_robust"] == 3           # robust: |g| >= 0.15 at row 2
+    assert not out["crossed_robust_at_gen0"] and out["n_cross_evals"] == 2
+    weak = co.evaluate_trace(lp[:2], np.array([0, 0]), anchor_g=1.0)
+    assert weak["crossed"] and not weak["crossed_robust"] and weak["first_cross_eval_robust"] is None
+    df = pd.DataFrame(dict(crossed=["True", "True"], crossed_at_gen0=["False", "False"], first_cross_eval=[2, 2],
+                           crossed_robust=["True", "False"], crossed_robust_at_gen0=["False", "False"],
+                           first_cross_eval_robust=[3, 1500]))
+    from mmb.analysis import stats as st
+    df = df.assign(crossed=True, crossed_at_gen0=False, crossed_robust=[True, False], crossed_robust_at_gen0=False)
+    p = st.use_robust_crossing(df)
+    assert list(p["crossed"]) == [True, False] and list(p["crossed_sign"]) == [True, True]
+    assert list(p["first_cross_eval"]) == [3, 1500] and list(p["first_cross_eval_sign"]) == [2, 2]
+
+
+def _synthetic_minimal(tmp_path):
+    rows = []
+    def add(arm, sut, task, ver, n0, img, txt, **ops):
+        rows.append(dict(run_dir=f"r{len(rows)}", task=task, sut=sut, arm=arm, rng_seed=0, verified=ver, n_genes_first=n0,
+                         n_genes_min=img + txt, img_genes_min=img, txt_genes_min=txt, txt_zero_width=ops.get("zw", 0),
+                         txt_homoglyph=ops.get("hg", 0), txt_typo_words=ops.get("ty", 0), txt_synonym_words=ops.get("sy", 0)))
+    add("a0_directed", "internvl", "imagenet", True, 25, 0, 1, ty=1)        # one typo
+    add("a0_directed", "internvl", "imagenet", True, 90, 68, 0)              # image only, 50+ patches
+    add("a0_directed", "internvl", "imagenet", True, 30, 3, 0)               # image only, few patches
+    add("a0_directed", "internvl", "imagenet", False, 40, 0, 0)              # did not re-verify
+    add("a1_random_tiered", "internvl", "imagenet", True, 6, 0, 2, sy=2)
+    add("a1_random_tiered", "internvl", "imagenet", True, 8, 1, 1)
+    add("a1_random_tiered", "qwen", "pope", True, 5, 0, 1, hg=1)
+    add("a1_random_tiered", "qwen", "pope", True, 5, 0, 1, zw=1)
+    p = tmp_path / "minimal.csv"
+    pd.DataFrame(rows).to_csv(p, index=False)
+    return p
+
+
+def test_failure_types_classify_summarise_and_plot(tmp_path):
+    from mmb.analysis import failure_types as ft
+    df = ft.load_minimal([_synthetic_minimal(tmp_path)])
+    assert list(df["ftype"].dropna()) == ["text_typo", "image_many", "image_few", "text_synonym", "joint", "text_homoglyph",
+                                          "text_zero_width"]
+    s = ft.summary(df)
+    top = s[(s.sut == "All") & (s.task == "All") & (s.group == "directed")].iloc[0]
+    assert top.n == 4 and top.n_verified == 3 and abs(top.verified_share - 0.75) < 1e-9
+    assert top.med_genes_min == 3 and abs(top.share_text_typo - 1 / 3) < 1e-9 and abs(top.one_gene_share - 1 / 3) < 1e-9
+    assert ft.figure(df, tmp_path / "f.pdf", {"internvl": "InternVL3.5-4B"}, {"imagenet": "ImageNet"}) and (tmp_path / "f.pdf").exists()
+
+
+def test_failure_numbers_are_digit_free_macros(tmp_path):
+    from mmb.analysis import export as ex
+    from mmb.analysis import failure_types as ft
+    num = ex.Numbers()
+    ex.add_failure_numbers(num, ft.load_minimal([_synthetic_minimal(tmp_path)]))
+    names = {r["macro"]: r["value"] for r in num.rows}
+    assert names["EFailShareTextTypoDirectedInternvlImagenet"] == "33"
+    assert names["EFailVerifiedDirectedAllAll"] == "75" and names["EFailMedGenesMinDirectedAllAll"] == "3"
