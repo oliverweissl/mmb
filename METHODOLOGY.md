@@ -160,3 +160,14 @@ Let D = the pooled a0 minus a1 crossing-share difference with its cell-cluster i
 - Decision: for POPE the object noun(s) and "image" are protected from text edits (seed metadata protect_words, passed to the text operators' exclude_words; verified: object kept in 300/300 random genotypes vs 109/300 before). ImageNet prompts contain no class words and are unchanged.
 - Paper wording (2026-11-22): described as part of the task definition (protected object and image reference, every input still asks the same question), section 4 "Task 2" and the text-channel paragraph of section 3.
 - Consequence: all POPE runs made before this change are archived (runs/archive/MAIN_pope_unprotected_20261122) and are re-run with the same cells, seeds and budget. Balanced design is preserved (every POPE run uses the protected operator).
+
+## Change 2026-11-22 07:12 UTC — descriptive validity reading: fixed thresholds (decided before looking at any number)
+
+The validity proxies are uncalibrated and descriptive (no human calibration of them exists for the main study). To make a per-arm reading comparable and not shaped by the data, the following are fixed now, before any proxy table of the main study is inspected:
+
+- Unit: the first crossing input of each run that crossed (the input that is rendered and scored by `mmb.validity.score`).
+- Image distance: LPIPS (AlexNet) between the crossing image and the codec reconstruction of the seed; "small image distance" is LPIPS < 0.2.
+- Text distance: cosine distance of sentence embeddings, 1 - txt_minilm_cos, between the manipulated and the seed prompt; "small text distance" is < 0.1.
+- Reported per arm (and per task): the share of crossings under each threshold alone and under both, the median LPIPS and text distance, and the share of all runs of the arm that crossed under both thresholds ("conservative crossing share"; the denominator is every run of the arm, so non-crossing runs count as failures).
+- Cost against validity: Spearman rank correlation, per arm, between evaluations to first crossing and LPIPS / text distance of that crossing, over crossed runs.
+- The thresholds are not tuned afterwards; any other value is reported as a sensitivity row and labelled so. No claim of equivalence or of validity follows from them: they describe how far an input moved, not whether a human still reads it as the same item.
