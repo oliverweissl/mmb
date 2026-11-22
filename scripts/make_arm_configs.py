@@ -10,14 +10,14 @@ from pathlib import Path
 import yaml
 
 ARMS = {
-    "a0_directed": {},
+    "a0_directed": {"optimizer": {"algorithm": "mmba", "proximity_only": True}},
     "a1_random_tiered": {"optimizer": {"algorithm": "random"}},
     "a2_random_uniform": {"optimizer": {"algorithm": "random", "sampling": {"mode": "uniform"}}},
     "a3_ga_single": {"optimizer": {"algorithm": "ga", "proximity_only": True}},
     "a4_nsga2": {"optimizer": {"algorithm": "nsga2"}},
     "a5_mimicry_objective": {"optimizer": {"boundary_objective": "softmax_balance"}},
     "a6_text_only": {"modality": "text_only"},
-    "a7_image_only": {"modality": "image_only"},
+    "a7_image_only": {"modality": "image_only", "optimizer": {"algorithm": "mmba", "proximity_only": True}},
     "a8_hillclimb": {"optimizer": {"algorithm": "hillclimb", "proximity_only": True}},
     "a9_deepjanus": {"optimizer": {"algorithm": "deepjanus", "proximity_only": True}},
 }

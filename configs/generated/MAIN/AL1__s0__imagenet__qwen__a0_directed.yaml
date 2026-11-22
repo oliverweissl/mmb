@@ -1,6 +1,6 @@
-name: MAIN_imagenet_ministral_a0_directed_s0
+name: MAIN_imagenet_qwen_a0_directed_s0
 device: cuda
-save_dir: runs/MAIN/imagenet/ministral/a0_directed/s0
+save_dir: runs/MAIN/imagenet/qwen/a0_directed/s0
 cache_dirs:
 - ~/.cache/imagenet
 categories:
@@ -14,7 +14,7 @@ generations: 50
 pop_size: 30
 seed: 0
 sut:
-  model_id: mistralai/Ministral-3-3B-Instruct-2512
+  model_id: Qwen/Qwen3.5-4B
   backend: torch
   batched_scoring: true
   batch_chunk: 15
@@ -592,7 +592,7 @@ text:
   composite:
     profile: minimal
 optimizer:
-  algorithm: agemoea2
+  algorithm: mmba
   sampling:
     mode: sparse_multitier
     zero_anchor_fraction: 0.05
@@ -609,8 +609,9 @@ optimizer:
       fraction: 0.1
   early_stop:
     enable: false
+  proximity_only: true
 tags:
   exp_id: MAIN
   task: imagenet
-  sut: ministral
+  sut: qwen
   arm: a0_directed

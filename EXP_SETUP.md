@@ -98,3 +98,4 @@ could not be verified here (no OpenVINO stack). Thesis-era numbers are therefore
 - 2026-11-22 12:07: E-core-only pinning slowed runs ~1.8x (InternVL 5.7 vs 3.1 s/gen). Re-pinned to CPUs 0-3,8-31 (all except the two favoured 5.8 GHz P-cores, CPUs 4-7): 3.9 s/gen. Revert to 16-31 if crashes return (PIN_CPUS env of unit mmb-pin).
 - 2026-11-22 12:40: MAIN v2 (minimal text profile + protected key words, METHODOLOGY 12:40). v1 runs archived; configs regenerated (100); queue restarted as `mmb-queue3` from L1.
 - 2026-11-22 16:37: pending directed (a0) and image-only (a7) configs renamed with prefix Z so they run after all baselines; the directed search is under redesign (pending decision), and baseline runs remain valid whatever the redesign is.
+- 2026-11-22 21:40: MMBA redesign frozen (METHODOLOGY 21:40). a0 configs renamed A* (run first), a7 configs Z* (run last); old v2 a0/a7 runs archived. Pilot runs in runs/PILOT (held-out cells).
