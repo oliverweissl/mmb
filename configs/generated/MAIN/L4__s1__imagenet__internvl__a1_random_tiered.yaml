@@ -50,6 +50,9 @@ seeds:
           mistralai_ministral_3_3b_instruct_2512: 4.29330537840724
           opengvlab_internvl3_5_4b_hf: 6.7187323570251465
           qwen_qwen3_5_4b: 1.4374591489322484
+        protect_words:
+        - subject
+        - image
     - image: ~/data/cells/imagenet/cello_03.png
       prompt: What is the main subject in this image?
       template: '{slot}'
@@ -78,6 +81,9 @@ seeds:
           mistralai_ministral_3_3b_instruct_2512: 15.409041417296976
           opengvlab_internvl3_5_4b_hf: 19.122512340545654
           qwen_qwen3_5_4b: 3.3215186409652233
+        protect_words:
+        - subject
+        - image
     - image: ~/data/cells/imagenet/green_iguana_03.png
       prompt: What is the main subject in this image?
       template: '{slot}'
@@ -106,6 +112,9 @@ seeds:
           mistralai_ministral_3_3b_instruct_2512: 7.3095199866220355
           opengvlab_internvl3_5_4b_hf: 7.3914830684661865
           qwen_qwen3_5_4b: 2.2109726555645466
+        protect_words:
+        - subject
+        - image
     - image: ~/data/cells/imagenet/junco_02.png
       prompt: What is the main subject in this image?
       template: '{slot}'
@@ -134,6 +143,9 @@ seeds:
           mistralai_ministral_3_3b_instruct_2512: 6.183052163571119
           opengvlab_internvl3_5_4b_hf: 4.111845970153809
           qwen_qwen3_5_4b: 4.4264294151216745
+        protect_words:
+        - subject
+        - image
     - image: ~/data/cells/imagenet/marimba_03.png
       prompt: What is the main subject in this image?
       template: '{slot}'
@@ -162,6 +174,9 @@ seeds:
           mistralai_ministral_3_3b_instruct_2512: 9.18828794080764
           opengvlab_internvl3_5_4b_hf: 4.458355247974396
           qwen_qwen3_5_4b: 2.4375030542432796
+        protect_words:
+        - subject
+        - image
     - image: ~/data/cells/imagenet/ostrich_00.png
       prompt: What is the main subject in this image?
       template: '{slot}'
@@ -190,6 +205,9 @@ seeds:
           mistralai_ministral_3_3b_instruct_2512: 6.305229518562555
           opengvlab_internvl3_5_4b_hf: 2.346902370452881
           qwen_qwen3_5_4b: 2.973741018155124
+        protect_words:
+        - subject
+        - image
     - image: ~/data/cells/imagenet/boa_constrictor_01.png
       prompt: What is the main subject in this image?
       template: '{slot}'
@@ -218,6 +236,9 @@ seeds:
           mistralai_ministral_3_3b_instruct_2512: 5.149443666450679
           opengvlab_internvl3_5_4b_hf: 2.343435525894165
           qwen_qwen3_5_4b: 2.055465077748522
+        protect_words:
+        - subject
+        - image
     - image: ~/data/cells/imagenet/cello_02.png
       prompt: What is the main subject in this image?
       template: '{slot}'
@@ -246,6 +267,9 @@ seeds:
           mistralai_ministral_3_3b_instruct_2512: 16.870370591059327
           opengvlab_internvl3_5_4b_hf: 16.58784556388855
           qwen_qwen3_5_4b: 2.59971621632576
+        protect_words:
+        - subject
+        - image
     - image: ~/data/cells/imagenet/green_iguana_01.png
       prompt: What is the main subject in this image?
       template: '{slot}'
@@ -274,6 +298,9 @@ seeds:
           mistralai_ministral_3_3b_instruct_2512: 6.110313735902309
           opengvlab_internvl3_5_4b_hf: 6.62103271484375
           qwen_qwen3_5_4b: 2.5204229371156543
+        protect_words:
+        - subject
+        - image
     - image: ~/data/cells/imagenet/junco_01.png
       prompt: What is the main subject in this image?
       template: '{slot}'
@@ -302,6 +329,9 @@ seeds:
           mistralai_ministral_3_3b_instruct_2512: 5.507486322894692
           opengvlab_internvl3_5_4b_hf: 2.9225106239318848
           qwen_qwen3_5_4b: 4.023370243405225
+        protect_words:
+        - subject
+        - image
     - image: ~/data/cells/imagenet/marimba_02.png
       prompt: What is the main subject in this image?
       template: '{slot}'
@@ -330,6 +360,9 @@ seeds:
           mistralai_ministral_3_3b_instruct_2512: 7.044088687747717
           opengvlab_internvl3_5_4b_hf: 14.813145160675049
           qwen_qwen3_5_4b: 8.61406509950757
+        protect_words:
+        - subject
+        - image
     - image: ~/data/cells/imagenet/ostrich_01.png
       prompt: What is the main subject in this image?
       template: '{slot}'
@@ -358,6 +391,9 @@ seeds:
           mistralai_ministral_3_3b_instruct_2512: 5.2144212163984776
           opengvlab_internvl3_5_4b_hf: 3.700406074523926
           qwen_qwen3_5_4b: 2.171366318129003
+        protect_words:
+        - subject
+        - image
     - image: ~/data/cells/imagenet/boa_constrictor_03.png
       prompt: What is the main subject in this image?
       template: '{slot}'
@@ -386,6 +422,9 @@ seeds:
           mistralai_ministral_3_3b_instruct_2512: 5.621453173458576
           opengvlab_internvl3_5_4b_hf: 4.999997615814209
           qwen_qwen3_5_4b: 2.7552185033418937
+        protect_words:
+        - subject
+        - image
     - image: ~/data/cells/imagenet/cello_03.png
       prompt: What is the main subject in this image?
       template: '{slot}'
@@ -414,6 +453,9 @@ seeds:
           mistralai_ministral_3_3b_instruct_2512: 4.550075177568942
           opengvlab_internvl3_5_4b_hf: 11.825121283531189
           qwen_qwen3_5_4b: 2.7982700921129435
+        protect_words:
+        - subject
+        - image
     - image: ~/data/cells/imagenet/green_iguana_03.png
       prompt: What is the main subject in this image?
       template: '{slot}'
@@ -442,6 +484,9 @@ seeds:
           mistralai_ministral_3_3b_instruct_2512: 6.779960407875478
           opengvlab_internvl3_5_4b_hf: 3.2047271728515625
           qwen_qwen3_5_4b: 1.7860578149557114
+        protect_words:
+        - subject
+        - image
     - image: ~/data/cells/imagenet/junco_01.png
       prompt: What is the main subject in this image?
       template: '{slot}'
@@ -470,6 +515,9 @@ seeds:
           mistralai_ministral_3_3b_instruct_2512: 8.073015592992306
           opengvlab_internvl3_5_4b_hf: 7.635982513427734
           qwen_qwen3_5_4b: 5.4541000514582265
+        protect_words:
+        - subject
+        - image
     - image: ~/data/cells/imagenet/marimba_00.png
       prompt: What is the main subject in this image?
       template: '{slot}'
@@ -498,6 +546,9 @@ seeds:
           mistralai_ministral_3_3b_instruct_2512: 16.62631739117205
           opengvlab_internvl3_5_4b_hf: 19.810772836208344
           qwen_qwen3_5_4b: 7.797302752253017
+        protect_words:
+        - subject
+        - image
     - image: ~/data/cells/imagenet/ostrich_00.png
       prompt: What is the main subject in this image?
       template: '{slot}'
@@ -526,6 +577,9 @@ seeds:
           mistralai_ministral_3_3b_instruct_2512: 8.128004685044289
           opengvlab_internvl3_5_4b_hf: 3.8419785499572754
           qwen_qwen3_5_4b: 4.085755105770659
+        protect_words:
+        - subject
+        - image
 image:
   backend: vqgan_codebook
   n_candidates: 16383
@@ -536,7 +590,7 @@ image:
 text:
   spacy_model: en_core_web_sm
   composite:
-    profile: full_stack
+    profile: minimal
 optimizer:
   algorithm: random
   sampling:

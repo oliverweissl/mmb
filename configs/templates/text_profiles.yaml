@@ -69,5 +69,13 @@ profiles:
   # Selected automatically by `modality: image_only` so the optimizer
   # searches only the image-gene block. Do not use directly unless you
   # know what you are doing; the modality flag is the user-facing API.
+  # Minimal, meaning-preserving text edits (MAIN v2, 2026-11-22): near synonyms only
+  # (top-3 masked-LM candidates), imperceptible character edits, single-letter typos;
+  # no word fragmentation.
+  minimal:
+    operators:
+      - {name: synonym, severity: 0.25, k_max: 3}
+      - {name: character_noise, severity: 0.25, modes: [homoglyph, zero_width]}
+      - {name: saliency, severity: 0.25}
   noop:
     operators: []

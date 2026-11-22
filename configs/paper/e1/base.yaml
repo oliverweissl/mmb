@@ -33,7 +33,7 @@ image:
 text:
   spacy_model: en_core_web_sm
   composite:
-    profile: full_stack
+    profile: minimal
 optimizer:
   algorithm: agemoea2
   sampling:
