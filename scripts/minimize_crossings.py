@@ -122,7 +122,9 @@ def main() -> None:
             if not robust:
                 rows.append({"run_dir": str(d), "task": task, "sut": a.sut, "arm": st["run_meta"]["arm"],
                              "verified": False, "robust_in_trace": False}); continue
-            G = np.asarray(robust[0]["genotype"], dtype=np.int64)
+            # start from the run's smallest crossing (MMBA: its final minimal crossing)
+            best = min(robust, key=lambda r: sum(1 for v in r["genotype"] if v))
+            G = np.asarray(best["genotype"], dtype=np.int64)
             n0 = int((G != 0).sum())
 
             def save_input(Gv, stem, extra=None):
