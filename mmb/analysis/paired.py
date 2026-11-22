@@ -36,6 +36,9 @@ METRICS = {
     "first_cross_eval": ("first_cross_eval", "num", None, -1),
     "floor": ("floor_nats", "num", "log10", -1),
     "min_edits": ("min_edits_cross", "num", None, -1),
+    "min_edits_x": ("min_edits_cross", "num", None, -1),      # crossing runs only: pairs where both arms crossed
+    "edits_img_x": ("edits_img_at_min", "num", None, -1),
+    "edits_txt_x": ("edits_txt_at_min", "num", None, -1),
     "hv_edits": ("hv_edits_cross", "num", None, +1),
     "hv_mag": ("hv_mag_cross", "num", None, +1),
     "img_mag": ("best_img_mag_cross", "num", None, -1),
@@ -43,7 +46,10 @@ METRICS = {
     "chardist": ("min_txt_chardist_cross", "num", None, -1),
 }
 MAG_METRICS = ("hv_mag", "img_mag", "txt_mag")
-DEFAULT_METRICS = ("crossed", "first_cross_eval", "floor", "min_edits", "hv_edits")
+#: edit counts exist only for runs that crossed; "min_edits" is the same count censored at all genes for the others
+CROSS_ONLY = ("min_edits_x", "edits_img_x", "edits_txt_x")
+MIN_PAIRS_CROSS_ONLY = 3
+DEFAULT_METRICS = ("crossed", "first_cross_eval", "floor", "min_edits_x", "edits_img_x", "edits_txt_x", "min_edits", "hv_edits")
 CLUSTER = "cluster_id"
 
 
@@ -65,6 +71,8 @@ def pair_frame(df: pd.DataFrame, ref: str, arm: str, metric: str) -> pd.DataFram
     parts = []
     for name, a in (("ref", ref), ("arm", arm)):
         s = df.loc[df["arm"] == a]
+        if metric in CROSS_ONLY:
+            s = s.assign(**{col: s[col].where(s["crossed"].astype(bool))})
         if s.duplicated(keys).any():
             raise ValueError(f"arm {a!r} has several runs per (cell_id, rng_seed)")
         cl = s[CLUSTER] if CLUSTER in s else s["cell_id"]
@@ -109,7 +117,7 @@ def paired_table(df: pd.DataFrame, ref: str, metrics: Sequence[str] = DEFAULT_ME
         for arm in arms:
             pf = pair_frame(df, ref, arm, metric)
             n = len(pf)
-            if n < min_pairs:
+            if n < (min(min_pairs, MIN_PAIRS_CROSS_ONLY) if metric in CROSS_ONLY else min_pairs):
                 continue
             point, lo, hi = cluster_ci(cell_differences(pf), kind, n_boot)
             if kind == "binary":

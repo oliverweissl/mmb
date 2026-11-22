@@ -208,7 +208,7 @@ def arm_main_tex(summary: pd.DataFrame, cost: pd.DataFrame, paired: pd.DataFrame
     cols = {
         "crossed": [100 * float(v) for v in summary.share_crossed],
         "first_cross_eval": [float(v) for v in summary.median_first_cross_eval],
-        "min_edits": [float(cost.loc[a, "med_min_edits"]) if a in cost.index else float("nan") for a in arms],
+        "min_edits_x": [float(cost.loc[a, "med_edits_x"]) if a in cost.index else float("nan") for a in arms],
     }
     cells, effects = {}, {}
     for k, vals in cols.items():
@@ -222,7 +222,7 @@ def arm_main_tex(summary: pd.DataFrame, cost: pd.DataFrame, paired: pd.DataFrame
             for i, (a, n) in enumerate(zip(arms, summary.n_runs))]
     return st._booktabs("lrrrrrrr", ["Arm", "Runs", tf.head(r"Crossing rate (\%)", "crossed"), r"vs directed (pp)",
                                      tf.head("Model calls to first crossing", "first_cross_eval"), r"vs directed ($d$)",
-                                     tf.head("Edits at crossing", "min_edits"), r"vs directed ($d$)"], rows)
+                                     tf.head("Edits at crossing", "min_edits_x"), r"vs directed ($d$)"], rows)
 
 
 def validity_main_tex(vct: pd.DataFrame, task_names: dict) -> str:
@@ -455,10 +455,12 @@ def agree_table(df: pd.DataFrame) -> str:
 
 
 PAIRED_METRIC_NAMES = {"crossed": "Crossed", "first_cross_eval": "Evals", "floor": "Floor", "min_edits": "MinEdits",
+                      "min_edits_x": "MinEditsX", "edits_img_x": "EditsImgX", "edits_txt_x": "EditsTxtX",
                       "hv_edits": "HvEdits", "hv_mag": "HvMag", "img_mag": "ImgMag", "txt_mag": "TxtMag",
                       "chardist": "CharDist"}
 METRIC_HEAD = {"crossed": "Crossing rate", "first_cross_eval": "Model calls to first crossing", "floor": "Closest approach",
-               "min_edits": "Edits at crossing", "hv_edits": "Edit hypervolume"}
+               "min_edits": "Edits, censored at all genes", "min_edits_x": "Edits at crossing",
+               "edits_img_x": "Image edits at crossing", "edits_txt_x": "Text edits at crossing", "hv_edits": "Edit hypervolume"}
 
 
 def _ci(v: float, lo: float, hi: float, d: int = 2) -> str:
@@ -536,7 +538,13 @@ def cost_summary(df: pd.DataFrame, n_boot: int) -> pd.DataFrame:
         c = g[g["crossed"].astype(bool)]
         if "mag_source" in c and (c["mag_source"] == "diag").any():
             c = c[c["mag_source"] == "diag"]            # never mix diagnostic and optimised-fitness magnitudes
+        cx = g[g["crossed"].astype(bool)]            # edit counts of crossing runs only (no censoring)
+        def _med(col):
+            return float(cx[col].median()) if col in cx and cx[col].notna().any() else np.nan
+        mx, xlo, xhi = (st.bootstrap_stat(cx["min_edits_cross"].to_numpy(float), n_boot=n_boot)
+                        if len(cx) and "min_edits_cross" in cx else (np.nan,) * 3)
         rows.append(dict(arm=arm, n_runs=len(g), n_crossed=len(c), med_min_edits=me, me_lo=lo, me_hi=hi,
+                         med_edits_x=mx, ex_lo=xlo, ex_hi=xhi, med_edits_img=_med("edits_img_at_min"), med_edits_txt=_med("edits_txt_at_min"),
                          med_hv=hv, hv_lo=hlo, hv_hi=hhi,
                          med_img_mag=float(c["best_img_mag_cross"].median()) if "best_img_mag_cross" in c and c["best_img_mag_cross"].notna().any() else np.nan,
                          med_txt_mag=float(c["best_txt_mag_cross"].median()) if "best_txt_mag_cross" in c and c["best_txt_mag_cross"].notna().any() else np.nan))
@@ -549,9 +557,12 @@ def cost_tex(s: pd.DataFrame) -> str:
     def col(vals, d, key):
         cells = [fmt(v, d) for v in vals]
         return tf.bold_best(cells, list(vals), key, cells)
-    cols = [col(s.med_min_edits, 0, "min_edits"), col(s.med_hv, 3, "hv_edits"), col(s.med_img_mag, 3, "img_mag"), col(s.med_txt_mag, 2, "txt_mag")]
-    rows = [[st.tex_escape(st.arm_label(r.arm)), str(int(r.n_runs))] + [cols[j][i] for j in range(4)] for i, r in enumerate(s.itertuples())]
-    return st._booktabs("lrrrrr", ["Arm", "Runs", tf.head("Edits at crossing", "min_edits"), tf.head("Edit hypervolume", "hv_edits"),
+    cols = [col(s.med_edits_x, 0, "min_edits_x"), col(s.med_edits_img, 0, "edits_img_x"), col(s.med_edits_txt, 0, "edits_txt_x"),
+            col(s.med_min_edits, 0, "min_edits"), col(s.med_hv, 3, "hv_edits"), col(s.med_img_mag, 3, "img_mag"), col(s.med_txt_mag, 2, "txt_mag")]
+    rows = [[st.tex_escape(st.arm_label(r.arm)), str(int(r.n_runs)), str(int(r.n_crossed))] + [cols[j][i] for j in range(7)] for i, r in enumerate(s.itertuples())]
+    return st._booktabs("lrrrrrrrrr", ["Arm", "Runs", "Crossed", tf.head("Edits at crossing", "min_edits_x"),
+                                   tf.head("Image edits", "edits_img_x"), tf.head("Text edits", "edits_txt_x"),
+                                   tf.head("Edits, censored at all genes", "min_edits"), tf.head("Edit hypervolume", "hv_edits"),
                                    tf.head("Smallest image change (RMS)", "img_mag"), tf.head("Smallest text change (cosine)", "txt_mag")], rows)
 
 
@@ -559,7 +570,11 @@ def add_cost_numbers(num: Numbers, sut: str, task: str, s: pd.DataFrame) -> None
     for _, r in s.iterrows():
         tail = [arm_short(r.arm), camel(sut), camel(task)]
         d = f"{r.arm}, {sut}, {task}"
-        num.add(["ECost", "MedMinEdits"] + tail, f_num(r.med_min_edits, 0), "median fewest active genes at a crossing (never-crossed runs censored at all genes); " + d)
+        num.add(["ECost", "MedEditsX"] + tail, f_num(r.med_edits_x, 0), "median fewest active genes at a crossing, crossing runs only; " + d)
+        num.add(["ECost", "MedEditsXCi"] + tail, f"[{r.ex_lo:.0f}--{r.ex_hi:.0f}]" if not pd.isna(r.ex_lo) else "--", "bootstrap 95% CI; " + d)
+        num.add(["ECost", "MedEditsImg"] + tail, f_num(r.med_edits_img, 0), "median image genes of the cheapest crossing input, crossing runs only; " + d)
+        num.add(["ECost", "MedEditsTxt"] + tail, f_num(r.med_edits_txt, 0), "median text genes of the cheapest crossing input, crossing runs only; " + d)
+        num.add(["ECost", "MedMinEdits"] + tail, f_num(r.med_min_edits, 0), "median fewest active genes, never-crossed runs censored at all genes; " + d)
         num.add(["ECost", "MedMinEditsCi"] + tail, f"[{r.me_lo:.0f}--{r.me_hi:.0f}]", "bootstrap 95% CI; " + d)
         num.add(["ECost", "MedHv"] + tail, f_num(r.med_hv, 3), "median edit hypervolume fraction (0 when never crossed); " + d)
         num.add(["ECost", "MedHvCi"] + tail, f"[{r.hv_lo:.3f}--{r.hv_hi:.3f}]", "bootstrap 95% CI; " + d)
@@ -699,6 +714,10 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
         if ref in arms:
             ct = pr.paired_table(d, ref, pr.DEFAULT_METRICS, n_boot=n_boot)
             add_cluster_numbers(num, sut, task, ct)
+            for a in sorted(arms - {ref}):
+                npair = len(pr.pair_frame(d, ref, a, "min_edits_x"))
+                num.add(["EOne", "PairsBothCrossed", arm_short(a), camel(sut), camel(task)], str(npair),
+                        f"matched (cell, seed) pairs in which {a} and {ref} both crossed; {sut}, {task}")
             cs_ = cost_summary(d, n_boot)
             add_cost_numbers(num, sut, task, cs_)
             if (sut, task) == ("All", "All"):

@@ -86,8 +86,8 @@ def test_arm_main_table_effects_bold_and_headers():
     from mmb.analysis import export as ex
     summary = pd.DataFrame(dict(arm=["a0_directed", "a1_random_tiered"], n_runs=[36, 36], share_crossed=[0.9, 0.5],
                                 median_first_cross_eval=[120.0, 600.0]))
-    cost = pd.DataFrame(dict(arm=["a0_directed", "a1_random_tiered"], med_min_edits=[20.0, 80.0]))
-    paired = pd.DataFrame(dict(arm=["a1_random_tiered"] * 3, metric=["crossed", "first_cross_eval", "min_edits"],
+    cost = pd.DataFrame(dict(arm=["a0_directed", "a1_random_tiered"], med_edits_x=[20.0, 80.0]))
+    paired = pd.DataFrame(dict(arm=["a1_random_tiered"] * 3, metric=["crossed", "first_cross_eval", "min_edits_x"],
                                diff=[-0.40, 5.0, 60.0], dz=[-1.3, 0.7, 0.2], p_holm=[0.004, 0.2, 0.03]))
     tex = ex.arm_main_tex(summary, cost, paired)
     rows = [l for l in tex.splitlines() if l.startswith(("Directed", "Random"))]
@@ -125,3 +125,18 @@ def test_data_status_partial_until_every_planned_config_has_all_cells(tmp_path):
     assert ex.data_status(pd.DataFrame(rows), cfg, tmp_path, n_cells=3)[0] == "partial"  # one run of b incomplete
     rows[-1]["complete"] = True
     assert ex.data_status(pd.DataFrame(rows), cfg, tmp_path, n_cells=3) == ("complete", 2, 2)
+
+
+def test_crossing_only_edit_metrics_use_pairs_where_both_arms_crossed():
+    from mmb.analysis import paired as pr
+    n = 8
+    base = dict(cell_id=[f"c{i}" for i in range(n)], rng_seed=[0] * n, task=["imagenet"] * n, sut=["x"] * n)
+    ref = pd.DataFrame(dict(base, arm="a0_directed", crossed=[True] * 4 + [False] * 4, min_edits_cross=[10, 12, 14, 16, 300, 300, 300, 300],
+                            edits_img_at_min=[10, 12, 14, 16] + [np.nan] * 4, edits_txt_at_min=[0] * 4 + [np.nan] * 4))
+    arm = pd.DataFrame(dict(base, arm="a1_random_tiered", crossed=[True, True, True, False] * 2, min_edits_cross=[2, 3, 2, 300] * 2,
+                            edits_img_at_min=[0, 0, 0, np.nan] * 2, edits_txt_at_min=[2, 3, 2, np.nan] * 2))
+    df = pd.concat([ref, arm], ignore_index=True)
+    pf = pr.pair_frame(df, "a0_directed", "a1_random_tiered", "min_edits_x")
+    assert len(pf) == 3 and set(pf["ref"]) == {10.0, 12.0, 14.0}                # censored 300s never enter
+    t = pr.paired_table(df, "a0_directed", ("min_edits_x", "min_edits"), n_boot=50)
+    assert int(t[t.metric == "min_edits_x"].iloc[0].n_pairs) == 3 and int(t[t.metric == "min_edits"].iloc[0].n_pairs) == 8
