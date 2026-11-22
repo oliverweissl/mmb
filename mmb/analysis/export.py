@@ -384,7 +384,7 @@ def cluster_table_tex(t: pd.DataFrame, metrics=pr.DEFAULT_METRICS) -> str:
             r = t[(t.arm == arm) & (t.metric == m)]
             row.append("--" if r.empty else f"{_ci(r.iloc[0]['diff'], r.iloc[0].diff_lo, r.iloc[0].diff_hi, 2 if m in ('crossed', 'floor', 'hv_edits') else 0)}; {f_p(r.iloc[0].p_holm)}")
         rows.append(row)
-    return st._booktabs("l" + "l" * len(metrics), ["Arm vs a0"] + [METRIC_HEAD.get(m, m) for m in metrics], rows)
+    return st._booktabs("l" + "l" * len(metrics), ["Arm vs directed"] + [METRIC_HEAD.get(m, m) for m in metrics], rows)
 
 
 def primary_tex(t: pd.DataFrame, short: str = "a1") -> str:
@@ -393,7 +393,7 @@ def primary_tex(t: pd.DataFrame, short: str = "a1") -> str:
         rows.append([st.tex_escape(TASK_NAMES.get(r.task, r.task)), st.tex_escape(SUT_NAMES.get(r.sut, r.sut)),
                      str(int(r.n_pairs)), f_pct(r.ref_value), f_pct(r.arm_value),
                      _ci(100 * r["diff"], 100 * r.diff_lo, 100 * r.diff_hi, 1), f_p(r.p), f_p(r.p_holm_strata)])
-    return st._booktabs("llrrrrrr", ["Task", "SUT", "Pairs", "a0 (\\%)", f"{short} (\\%)", f"{short} $-$ a0 (pp) [95\\% CI]", "$p$",
+    return st._booktabs("llrrrrrr", ["Task", "SUT", "Pairs", "Directed (\\%)", f"{st.arm_label(short)} (\\%)", f"{st.arm_label(short)} $-$ directed (pp) [95\\% CI]", "$p$",
                                      r"$p_{\text{Holm}}$"], rows)
 
 

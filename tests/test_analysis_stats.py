@@ -135,7 +135,7 @@ class TestTablesAndCli:
             assert (tmp_path / f).is_file(), f
         tex = (tmp_path / "paired.tex").read_text()
         assert r"\toprule" in tex and r"\midrule" in tex and r"\bottomrule" in tex
-        assert r"a1\_random\_tiered" in tex and "a1_random_tiered" not in tex.replace(r"\_", "")
+        assert "Random" in tex and "a1_random_tiered" not in tex.replace(r"\_", "")
         s = res["summary"].set_index("arm")
         assert s.loc["a0_directed", "n_crossed"] == 8 and s.loc["a1_random_tiered", "n_crossed"] == 3
         assert s.loc["a0_directed", "median_first_cross_eval"] == pytest.approx(30.0)   # sorted: 3,5,8,12,20,40,60,90,100,100 -> (20+40)/2
