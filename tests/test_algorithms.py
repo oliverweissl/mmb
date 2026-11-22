@@ -77,6 +77,6 @@ def test_mmba_crosses_then_minimises_to_key_edits():
         opt.assign_fitness([np.abs(m)])
         opt.update()
     best = opt.best_candidates[0].solution
-    assert margin(best[None])[0] <= -0.15
+    assert margin(best[None])[0] < 0
     assert set(np.nonzero(best)[0]) == set(key)      # 1-minimal: exactly the key edits
     assert opt.phase == 2

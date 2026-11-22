@@ -2,7 +2,7 @@
 
 Phase 1 (cross): generation 0 comes from the shared sparse multi-tier sampler. Each
 following generation keeps the individuals with the lowest signed margin
-m = sign(g_anchor) * g (m <= -tau is a robust crossing), mutates them (add / remove /
+m = sign(g_anchor) * g (m < 0: the predicted answer differs from the nominal one), mutates them (add / remove /
 change one edit) and adds a few fresh samples for exploration. Guidance is the margin
 only; edit size is not optimised in this phase.
 
@@ -10,7 +10,7 @@ Phase 2 (minimise): as soon as a robust crossing exists, the rest of the budget
 shrinks it. Candidates reset chunks of the current best crossing's edits to the
 unedited value (ddmin-style: chunk size halves when no chunk can be reset) or move one
 edit to another gene (escape local minima). A candidate replaces the incumbent if it
-still crosses robustly with fewer edits (ties: margin closer to the border). The
+still changes the answer with fewer edits (ties: margin closer to the border). The
 result is a 1-minimal crossing C; the non-crossing neighbours C minus one edit are
 evaluated along the way, so every run ends with a boundary pair in its trace.
 
@@ -28,7 +28,7 @@ from .discrete_pymoo_optimizer import DiscretePymooOptimizer
 
 
 class MMBAOptimizer(DiscretePymooOptimizer):
-    def __init__(self, *args, tau: float = 0.15, elite_frac: float = 0.34,
+    def __init__(self, *args, tau: float = 0.0, elite_frac: float = 0.34,
                  explore_frac: float = 0.2, move_frac: float = 0.25, **kwargs) -> None:
         kwargs["algorithm"] = "random"  # only used to draw generation 0 from the sampler
         self._tau = tau
@@ -108,7 +108,7 @@ class MMBAOptimizer(DiscretePymooOptimizer):
         x = self._x_current
         m = self._margin if self._margin is not None else np.asarray(self._fitness[0], dtype=float)
         n_edit = (x != 0).sum(axis=1)
-        crossed = m <= -self._tau
+        crossed = m < -self._tau  # behaviour change: the answer differs from the nominal one
         improved = False
         for i in np.nonzero(crossed)[0]:
             cand = (x[i].copy(), int(n_edit[i]), float(m[i]))

@@ -46,7 +46,7 @@ def main() -> None:
     ap.add_argument("--max-calls", type=int, default=400)
     ap.add_argument("--device", default="cuda")
     ap.add_argument("--limit", type=int, default=0)
-    ap.add_argument("--tau", type=float, default=0.15, help="robust crossing: |g| >= tau with reversed sign")
+    ap.add_argument("--tau", type=float, default=0.0, help="crossing: sign reversed and |g| > tau (default 0: any behaviour change)")
     a = ap.parse_args()
 
     from mmb.common.pipeline_bootstrap import init_shared_components, prepare_pipeline_seeds
@@ -118,7 +118,7 @@ def main() -> None:
             import pyarrow.parquet as pq
             tr = pq.read_table(d / "trace.parquet", columns=["genotype", "logprobs"]).to_pylist()
             robust = [r for r in tr if np.sign(r["logprobs"][ia] - r["logprobs"][ib]) == -sign0
-                      and abs(r["logprobs"][ia] - r["logprobs"][ib]) >= a.tau]
+                      and abs(r["logprobs"][ia] - r["logprobs"][ib]) > a.tau]
             if not robust:
                 rows.append({"run_dir": str(d), "task": task, "sut": a.sut, "arm": st["run_meta"]["arm"],
                              "verified": False, "robust_in_trace": False}); continue
@@ -134,7 +134,7 @@ def main() -> None:
                     text=txts[0], full_prompt=txts[0] + suffix, g=gv, genotype=[int(x) for x in Gv], **(extra or {}))))
 
             def is_cross(gv):
-                return np.sign(gv) == -sign0 and abs(gv) >= a.tau
+                return np.sign(gv) == -sign0 and abs(gv) > a.tau
 
             if not is_cross(g_of(G)[0]):   # does not re-verify as a robust crossing
                 rows.append({"run_dir": str(d), "task": task, "sut": a.sut, "arm": st["run_meta"]["arm"],
