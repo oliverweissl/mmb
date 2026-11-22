@@ -255,9 +255,24 @@ class TestGallery:
         picks = gallery.select_runs(df[df.sut.isin(export.GRID_SUTS)], "a0_directed", 2)
         assert set(picks.task) <= {"imagenet", "pope"} and picks.crossed.all()
         for _, t in picks.groupby("task"):
-            assert t.example.nunique() <= 2
+            assert t.example.nunique() <= 3                              # two by text distance, one image-dominated
             assert not t.duplicated(["example", "sut"]).any()
             assert t.groupby("example").cell_id.nunique().max() == 1      # a row compares SUTs on one cell
+
+    def test_selection_prefers_small_text_distance(self):
+        rows = []
+        for cell, (t0, t1) in {"c1": (0.30, 0.40), "c2": (0.02, 0.20), "c3": (0.04, 0.12), "c4": (0.50, 0.50)}.items():
+            for sut, tx in zip(("qwen", "internvl"), (t0, t1)):
+                rows.append(dict(arm="a0_directed", task="imagenet", sut=sut, cell_id=cell, crossed=True,
+                                 txt_mag_at_cross=tx, img_mag_at_cross=0.1, first_cross_eval=5, run_dir=f"{cell}{sut}",
+                                 mag_source="diag"))
+        rows.append(dict(rows[0], cell_id="c1", run_dir="garbled", txt_mag_at_cross=0.9))   # worse repeat in one (cell, SUT)
+        p = gallery.select_runs(pd.DataFrame(rows), "a0_directed", 1)
+        cross = p[p.kind == "cross"]
+        assert list(cross.sort_values("example").cell_id.unique()) == ["c3"]             # smallest mean text distance first
+        assert "garbled" not in set(p.run_dir)
+        img = p[p.kind == "img"]
+        assert len(img) and img.cell_id.iloc[0] in {"c2"} and (img.txt_mag_at_cross < 0.05).any()
 
     def test_failure_row(self, tree, tmp_path):
         import json as _json

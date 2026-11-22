@@ -13,9 +13,11 @@ resolution of first_cross.png (origin.png is resized to it, no cropping).
 With --failures an extra row per task shows a typical unsuccessful run: the run without a crossing whose floor
 is the median over such runs, the anchor beside the Pareto member closest to the boundary.
 
-Selection (default): among crossing runs of --arm, per task the per_task cells that most SUTs cross
-(so a row compares SUTs on the same cell), ties broken by the smallest mean image magnitude at the crossing;
-within a (cell, SUT) the run with the fewest evaluations to cross. --runs takes a CSV with columns
+Selection (default): among crossing runs of --arm, per task the per_task cells that most SUTs cross (so a row
+compares SUTs on the same cell), then the smallest mean text cosine distance at the crossing (diag_txt_cosdist),
+ties broken by the smallest image RMS; within a (cell, SUT) the crossing with the smallest text distance, then
+image RMS. One further image-dominated row (a cell with a crossing of text cosine distance < 0.05) is added
+when one exists. A garbled question is therefore never picked in preference to a lightly edited one. --runs takes a CSV with columns
 task,sut,run_dir to override the selection. Missing images leave a labelled empty tile.
 """
 from __future__ import annotations
@@ -41,21 +43,47 @@ TASK_LABELS = {"imagenet": "ImageNet pairs", "pope": "POPE yes/no"}
 
 
 def select_runs(df: pd.DataFrame, arm: str = "a0_directed", per_task: int = 2,
-                suts: list[str] | None = None) -> pd.DataFrame:
-    """Rows of df (one per chosen run) with an added 'example' index; see the module docstring."""
+                suts: list[str] | None = None, img_dominated_max: float = 0.05) -> pd.DataFrame:
+    """Rows of df (one per chosen run) with an added 'example' index and a 'kind'; see the module docstring.
+
+    Text distance is the cosine distance of the text embedding at the first crossing (txt_mag_at_cross), image
+    distance the RMS (img_mag_at_cross); only diagnostic magnitudes are used when the data has them (never mixed
+    with optimised-fitness ones). Without magnitudes the fallback is the fewest evaluations to cross."""
     d = df[(df["arm"] == arm) & df["crossed"].astype(bool)].copy()
     if suts:
         d = d[d["sut"].isin(suts)]
+    if "mag_source" in d and (d["mag_source"] == "diag").any():
+        d = d[d["mag_source"] == "diag"]
+    has_mag = "txt_mag_at_cross" in d and d["txt_mag_at_cross"].notna().any()
+    if has_mag:
+        d = d[d["txt_mag_at_cross"].notna()]
     picks = []
     for task, t in d.groupby("task", sort=True):
-        best = t.sort_values("first_cross_eval").groupby(["cell_id", "sut"], as_index=False).first()
-        stat = best.groupby("cell_id").agg(n_sut=("sut", "nunique"), mag=("img_mag_at_cross", "mean"))
-        order = stat.reset_index().sort_values(["n_sut", "mag", "cell_id"], ascending=[False, True, True])
-        for ex, cell in enumerate(order["cell_id"].head(per_task)):
+        if has_mag:
+            key = ["txt_mag_at_cross", "img_mag_at_cross", "first_cross_eval", "run_dir"]
+        else:
+            key = ["first_cross_eval", "run_dir"]
+        best = t.sort_values(key).groupby(["cell_id", "sut"], as_index=False).first()
+        if has_mag:
+            stat = best.groupby("cell_id").agg(n_sut=("sut", "nunique"), txt=("txt_mag_at_cross", "mean"),
+                                               img=("img_mag_at_cross", "mean"), tmin=("txt_mag_at_cross", "min"))
+            order = stat.reset_index().sort_values(["n_sut", "txt", "img", "cell_id"], ascending=[False, True, True, True])
+        else:
+            stat = best.groupby("cell_id").agg(n_sut=("sut", "nunique"), mag=("img_mag_at_cross", "mean"))
+            order = stat.reset_index().sort_values(["n_sut", "mag", "cell_id"], ascending=[False, True, True])
+        chosen = list(order["cell_id"].head(per_task))
+        for ex, cell in enumerate(chosen):
             rows = best[best["cell_id"] == cell].copy()
-            rows["example"] = ex
+            rows["example"], rows["kind"] = ex, "cross"
             picks.append(rows)
-    return pd.concat(picks, ignore_index=True) if picks else d.iloc[0:0].assign(example=[])
+        if has_mag:   # one image-dominated example (text cosine < img_dominated_max), if any cell has one
+            cand = order[(order["tmin"] < img_dominated_max) & ~order["cell_id"].isin(chosen)]
+            if len(cand):
+                cand = cand.sort_values(["n_sut", "img", "txt", "cell_id"], ascending=[False, True, True, True])
+                rows = best[best["cell_id"] == cand.iloc[0]["cell_id"]].copy()
+                rows["example"], rows["kind"] = per_task, "img"
+                picks.append(rows)
+    return pd.concat(picks, ignore_index=True) if picks else d.iloc[0:0].assign(example=[], kind=[])
 
 
 def select_failures(df: pd.DataFrame, arm: str = "a0_directed", suts: list[str] | None = None) -> pd.DataFrame:
@@ -174,6 +202,9 @@ def plot_gallery(picks: pd.DataFrame, out: Path | str, *, runs_root: Path | None
             g0 = stats.get("anchor_g")
             cand = " / ".join(map(str, (stats.get("class_a"), stats.get("class_b"))))
             txt = [f"options: {cand}", "Q: " + _wrap(q0, 46, 1)]
+            kind = r.get("kind") if hasattr(r, "get") else None
+            if not fail and kind == "img":
+                txt[0] += "  [image-dominated]"
             if q1 and q1 != q0:
                 txt.append("Q': " + _wrap(q1, 46, 2))
             else:

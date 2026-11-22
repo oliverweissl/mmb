@@ -74,11 +74,12 @@ def plot_crossing_curve(
     ax.set_xlabel("model evaluations")
     ax.set_ylabel("share of runs crossed")
     ax.grid(True, which="major", color="0.9", linewidth=0.4)
-    ax.legend(fontsize=5.5, frameon=False, loc="upper left", handlelength=2.2)
+    ax.legend(fontsize=5.5, frameon=False, loc="upper center", bbox_to_anchor=(0.5, -0.28), ncol=2,
+              handlelength=2.2, columnspacing=1.0)   # below the axes: never over a curve
     fig.tight_layout(pad=0.3)
     out = Path(out)
     out.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(out)
+    fig.savefig(out, bbox_inches="tight", pad_inches=0.02)
     plt.close(fig)
     return out
 
