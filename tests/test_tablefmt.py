@@ -91,7 +91,7 @@ def test_arm_main_table_effects_bold_and_headers():
                                diff=[-0.40, 5.0, 60.0], dz=[-1.3, 0.7, 0.2], p_holm=[0.004, 0.2, 0.03]))
     tex = ex.arm_main_tex(summary, cost, paired)
     rows = [l for l in tex.splitlines() if l.startswith(("Directed", "Random"))]
-    assert "Crossing rate" in tex and "Model calls to first crossing" in tex and "Edits at crossing" in tex
+    assert "Crossing rate" in tex and "Model calls to first crossing" in tex and "Minimal edits" in tex
     assert r"\uparrow" in tex and r"\downarrow" in tex
     assert r"\textbf{90}" in rows[0] and r"\textbf{120}" in rows[0] and r"\textbf{20}" in rows[0]
     assert r"-40 \effL{}$^{\dagger}$" in rows[1]                                  # crossing rate: pp, large, significant
