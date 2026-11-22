@@ -54,8 +54,9 @@ def test_summary_table_has_arrows_and_one_best_per_column():
     tex = st.summary_tex(s)
     assert r"\uparrow" in tex and r"\downarrow" in tex
     rows = [l for l in tex.splitlines() if l.startswith(("Directed", "Random"))]
-    assert r"\textbf{30 (83.3)" in rows[0] and r"\textbf" not in rows[1].split("&")[2]
-    assert r"\textbf{100 [80--120]}" in rows[0] and r"\textbf{0.01}" in rows[0]
+    assert r"\textbf{83.3}" in rows[0] and r"\textbf" not in rows[1].split("&")[2]
+    assert r"\textbf{100}" in rows[0] and r"\textbf{0.01}" in rows[0]
+    assert "[" not in tex                                                         # no intervals in the tables
     assert r"\textbf{36}" not in tex                                            # counts are never bold
     gen0 = [r.split("&")[3] for r in rows]
     assert all(r"\textbf" not in g for g in gen0)                               # all tied: no best
@@ -72,3 +73,36 @@ def test_validity_table_bold_within_task_block():
     assert r"\textbf{0.05}" in lines[0] and r"\textbf{0.10}" in lines[3]       # LPIPS: lower is better, per task block
     assert r"\textbf{0.10}" not in lines[1] and r"\textbf{0.20}" not in lines[2]
     assert r"\downarrow" in tex
+
+
+def test_significance_markers_and_one_value_per_cell():
+    assert tf.stars(0.0004) == "***" and tf.stars(0.004) == "**" and tf.stars(0.04) == "*" and tf.stars(0.2) == ""
+    assert tf.mark("56", 0.004) == "56$^{**}$" and tf.mark("56", 0.2) == "56" and tf.mark("56", float("nan")) == "56"
+
+
+def test_arm_main_table_markers_bold_and_headers():
+    from mmb.analysis import export as ex
+    summary = pd.DataFrame(dict(arm=["a0_directed", "a1_random_tiered"], n_runs=[36, 36], share_crossed=[0.9, 0.5],
+                                median_first_cross_eval=[120.0, 600.0]))
+    cost = pd.DataFrame(dict(arm=["a0_directed", "a1_random_tiered"], med_min_edits=[20.0, 80.0]))
+    paired = pd.DataFrame(dict(arm=["a1_random_tiered"] * 3, metric=["crossed", "first_cross_eval", "min_edits"],
+                               p_holm=[0.004, 0.2, 0.0004]))
+    tex = ex.arm_main_tex(summary, cost, paired)
+    rows = [l for l in tex.splitlines() if l.startswith(("Directed", "Random"))]
+    assert "Crossing rate" in tex and "Model calls to first crossing" in tex and "Edits at crossing" in tex
+    assert r"\uparrow" in tex and r"\downarrow" in tex
+    assert r"\textbf{90}" in rows[0] and r"\textbf{120}" in rows[0] and r"\textbf{20}" in rows[0]
+    assert "50$^{**}$" in rows[1] and "600" in rows[1] and "600$^" not in rows[1] and "80$^{***}$" in rows[1]
+    assert "p_" not in tex and "[" not in tex.split("midrule")[1]
+
+
+def test_validity_and_generalization_main_tables():
+    from mmb.analysis import export as ex
+    vct = pd.DataFrame(dict(task=["imagenet", "imagenet"], arm=["a0_directed", "a1_random_tiered"], n_cross=[8, 5],
+                            med_lpips=[0.012, 0.030], med_vis_char=[0.42, 0.40]))
+    tex = ex.validity_main_tex(vct, {"imagenet": "ImageNet"})
+    assert "Image change" in tex and "Text change" in tex and r"\textbf{0.012}" in tex and r"\textbf{40}" in tex
+    prim = pd.DataFrame(dict(sut=["qwen", "qwen"], task=["imagenet", "pope"], ref_value=[0.9, 0.8], arm_value=[0.5, 0.8],
+                             p_holm_strata=[0.004, 0.9]))
+    g = ex.generalization_main_tex(prim, [dict(task="All", src="qwen", dst="internvl", k=3, n=10, share=0.3, lo=0, hi=1)])
+    assert "Transfer rate" in g and "50$^{**}$" in g and "30" in g and r"\textbf{90}" in g

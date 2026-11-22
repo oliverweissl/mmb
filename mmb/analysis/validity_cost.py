@@ -153,7 +153,7 @@ def table_tex(t: pd.DataFrame, task_names: dict, objective: bool = True) -> str:
             ([_pct(r, "img") for _, r in g.iterrows()], "lpips_share", _colvals(g, "img_share", 100), 0),
             ([_pct(r, "txt") for _, r in g.iterrows()], "txt_share", _colvals(g, "txt_share", 100), 0),
             ([_pct(r, "both") for _, r in g.iterrows()], "both_share", _colvals(g, "both_share", 100), 0),
-            (["--" if pd.isna(r["cons_share"]) else f"{100 * r['cons_share']:.0f} [{100 * r['cons_lo']:.0f}--{100 * r['cons_hi']:.0f}]"
+            (["--" if pd.isna(r["cons_share"]) else f"{100 * r['cons_share']:.0f}"
               for _, r in g.iterrows()], "cons_share", _colvals(g, "cons_share", 100), 0),
             ([_f(r["rho_eval_lpips"]) for _, r in g.iterrows()], None, [np.nan] * n, 2),
             ([_f(r["rho_eval_txt"]) for _, r in g.iterrows()], None, [np.nan] * n, 2),
@@ -178,7 +178,7 @@ def table_tex(t: pd.DataFrame, task_names: dict, objective: bool = True) -> str:
             rows.append([st.tex_escape(task_names.get(task, task)) if i == 0 else ""] + body)
     header = ["Task", "Arm", "Crossed", tf.head("Med. LPIPS", "lpips"), tf.head("Med. text dist.", "txt_dist"),
               tf.head(r"LPIPS $<0.2$ (\%)", "lpips_share"), tf.head(r"text $<0.1$ (\%)", "txt_share"),
-              tf.head("both (\\%)", "both_share"), tf.head("Both, of all runs (\\%) [95\\% CI]", "cons_share"),
+              tf.head("both (\\%)", "both_share"), tf.head("Both, of all runs (\\%)", "cons_share"),
               r"$\rho$(evals, LPIPS)", r"$\rho$(evals, text)",
               tf.head("Visible text cos. (med.)", "vis_cos"), tf.head("visibly identical (\\%)", "vis_identical"),
               tf.head(r"$\le$1 edit/word (\%)", "vis_within_one"),

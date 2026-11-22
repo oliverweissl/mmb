@@ -26,7 +26,7 @@ DIRECTION: dict[str, str] = {
     "first_cross_eval": DOWN, "evals": DOWN, "floor": DOWN, "min_edits": DOWN, "hv_edits": UP,
     "img_mag": DOWN, "txt_mag": DOWN, "wall": DOWN, "hv_mag": UP, "chardist": DOWN,
     # validity proxies
-    "lpips": DOWN, "txt_dist": DOWN, "lpips_share": UP, "txt_share": UP, "both_share": UP, "cons_share": UP,
+    "lpips": DOWN, "txt_dist": DOWN, "text_change": DOWN, "lpips_share": UP, "txt_share": UP, "both_share": UP, "cons_share": UP,
     "vis_cos": UP, "vis_identical": UP, "vis_within_one": UP, "obj_txt_dist": DOWN, "obj_share": UP,
     "clip": UP, "dino": UP, "ssim": UP, "minilm": UP, "word_edit": DOWN,
 }
@@ -52,6 +52,19 @@ def best_indices(values: Sequence, key: str, ties: Sequence[str] | None = None) 
     label = (lambda i: ties[i]) if ties is not None else (lambda i: values[i])
     win = {i for i in idx if (label(i) == label(next(j for j in idx if values[j] == best)))}
     return set() if len(win) == len(idx) else win
+
+
+def stars(p: float) -> str:
+    """Significance marker of a Holm-corrected p-value: *** p<0.001, ** p<0.01, * p<0.05 (explained once in the text)."""
+    if not _ok(p):
+        return ""
+    return "***" if p < 1e-3 else "**" if p < 1e-2 else "*" if p < ALPHA else ""
+
+
+def mark(cell: str, p: float) -> str:
+    """The cell followed by its significance marker as a superscript (nothing when not significant)."""
+    s = stars(p)
+    return cell + (rf"$^{{{s}}}$" if s else "")
 
 
 def bold(cell: str, on: bool) -> str:

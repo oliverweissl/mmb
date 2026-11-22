@@ -169,6 +169,92 @@ def keyed_summary_tex(frames: list[tuple[list[str], pd.DataFrame]], key_headers:
             + "\n".join(body) + "\n\\bottomrule\n\\end{tabular}")
 
 
+# ---------------------------------------------------------------------------
+# The three main-text tables (one per research question group): one value per cell, no intervals,
+# significance as a marker explained once in the text.
+# ---------------------------------------------------------------------------
+
+
+def arm_main_tex(summary: pd.DataFrame, cost: pd.DataFrame, paired: pd.DataFrame | None) -> str:
+    """RQ1 and RQ2: per arm the crossing rate, the model calls to the first crossing and the edits at the crossing.
+    A marker after a value means the arm differs significantly from the directed arm (paired test, Holm)."""
+    p = {}
+    if paired is not None and len(paired):
+        for r in paired.itertuples():
+            p[(r.arm, r.metric)] = r.p_holm
+    cost = cost.set_index("arm")
+    arms = [a for a in summary["arm"]]
+    cols = {
+        "crossed": [100 * float(v) for v in summary.share_crossed],
+        "first_cross_eval": [float(v) for v in summary.median_first_cross_eval],
+        "min_edits": [float(cost.loc[a, "med_min_edits"]) if a in cost.index else float("nan") for a in arms],
+    }
+    digits = {"crossed": 0, "first_cross_eval": 0, "min_edits": 0}
+    cells = {}
+    for k, vals in cols.items():
+        text = ["--" if pd.isna(v) else f"{v:.{digits[k]}f}" for v in vals]
+        bolded = tf.bold_best(text, vals, k, text)
+        cells[k] = [tf.mark(c, p.get((a, k), float("nan"))) for c, a in zip(bolded, arms)]
+    rows = [[st.tex_escape(st.arm_label(a)), str(int(n))] + [cells[k][i] for k in cols]
+            for i, (a, n) in enumerate(zip(arms, summary.n_runs))]
+    return st._booktabs("lrrrr", ["Arm", "Runs", tf.head(r"Crossing rate (\%)", "crossed"),
+                                  tf.head("Model calls to first crossing", "first_cross_eval"),
+                                  tf.head("Edits at crossing", "min_edits")], rows)
+
+
+def validity_main_tex(vct: pd.DataFrame, task_names: dict) -> str:
+    """RQ3: per task and arm the image change (LPIPS against the unedited input) and the text change (visible
+    character edit fraction) at the first crossing; best value bold within each task."""
+    rows = []
+    for task in dict.fromkeys(vct["task"]):
+        g = vct[vct["task"] == task]
+        lp = [float(v) for v in g["med_lpips"]]
+        tx = [100 * float(v) for v in g["med_vis_char"]]
+        lc = [f"{v:.3f}" for v in lp]
+        tc = [f"{v:.0f}" for v in tx]
+        lc, tc = tf.bold_best(lc, lp, "lpips", lc), tf.bold_best(tc, tx, "text_change", tc)
+        for i, (_, r) in enumerate(g.iterrows()):
+            rows.append([st.tex_escape(task_names.get(task, task)) if i == 0 else "", st.tex_escape(st.arm_label(r["arm"])),
+                         f"{int(r['n_cross'])}", lc[i], tc[i]])
+    return st._booktabs("llrrr", ["Task", "Arm", "Crossings", tf.head("Image change (LPIPS)", "lpips"),
+                                  tf.head(r"Text change (\% of characters)", "text_change")], rows)
+
+
+def generalization_main_tex(primary: pd.DataFrame, transfer_rows: list[dict] | None = None) -> str:
+    """RQ4: crossing rate of the directed and the random arm per model and task (marker on the random arm when it
+    differs significantly, Holm), and the transfer rate of the crossings found on each model."""
+    suts = [s for s in SUT_NAMES if s in set(primary["sut"])]
+    tasks = [t for t in ("imagenet", "pope") if t in set(primary["task"])]
+    rate = {}
+    if transfer_rows:
+        for s in suts:
+            r = [x for x in transfer_rows if x["task"] == "All" and x["src"] == s and x["dst"] != s]
+            n = sum(x["n"] for x in r)
+            if n:
+                rate[s] = 100 * sum(x["k"] for x in r) / n
+    rows = []
+    for s in suts:
+        row = [st.tex_escape(SUT_NAMES.get(s, s))]
+        for t in tasks:
+            q = primary[(primary["sut"] == s) & (primary["task"] == t)]
+            if q.empty:
+                row += ["--", "--"]
+                continue
+            r = q.iloc[0]
+            d, a = f"{100 * r.ref_value:.0f}", f"{100 * r.arm_value:.0f}"
+            cells = tf.bold_best([d, a], [r.ref_value, r.arm_value], "crossed", [d, a])
+            row += [cells[0], tf.mark(cells[1], r.p_holm_strata)]
+        if rate:
+            row.append(f"{rate[s]:.0f}" if s in rate else "--")
+        rows.append(row)
+    header = ["Model"]
+    for t in tasks:
+        header += [tf.head(rf"{TASK_NAMES.get(t, t)}: directed (\%)", "crossed"), tf.head(r"random (\%)", "crossed")]
+    if rate:
+        header.append(r"Transfer rate (\%)")
+    return st._booktabs("l" + "rr" * len(tasks) + ("r" if rate else ""), header, rows)
+
+
 def wrapped(tabular: str) -> str:
     return WRAP % tabular.strip()
 
@@ -348,8 +434,8 @@ def agree_table(df: pd.DataFrame) -> str:
 PAIRED_METRIC_NAMES = {"crossed": "Crossed", "first_cross_eval": "Evals", "floor": "Floor", "min_edits": "MinEdits",
                       "hv_edits": "HvEdits", "hv_mag": "HvMag", "img_mag": "ImgMag", "txt_mag": "TxtMag",
                       "chardist": "CharDist"}
-METRIC_HEAD = {"crossed": "crossed (share)", "first_cross_eval": "evals to cross", "floor": r"$\log_{10}$ floor",
-               "min_edits": "fewest edits", "hv_edits": "edit hypervolume"}
+METRIC_HEAD = {"crossed": "Crossing rate", "first_cross_eval": "Model calls to first crossing", "floor": "Closest approach",
+               "min_edits": "Edits at crossing", "hv_edits": "Edit hypervolume"}
 
 
 def _ci(v: float, lo: float, hi: float, d: int = 2) -> str:
@@ -372,6 +458,7 @@ def add_cluster_numbers(num: Numbers, sut: str, task: str, t: pd.DataFrame) -> N
 
 
 def cluster_table_tex(t: pd.DataFrame, metrics=pr.DEFAULT_METRICS) -> str:
+    """Paired cell-level differences against the directed arm: one value per comparison with its Holm marker."""
     rows = []
     for arm in list(dict.fromkeys(t["arm"])):
         row = [st.tex_escape(st.arm_label(arm))]
@@ -381,25 +468,25 @@ def cluster_table_tex(t: pd.DataFrame, metrics=pr.DEFAULT_METRICS) -> str:
                 row.append("--")
                 continue
             r0 = r.iloc[0]
-            cell = f"{_ci(r0['diff'], r0.diff_lo, r0.diff_hi, 2 if m in ('crossed', 'floor', 'hv_edits') else 0)}; {f_p(r0.p_holm)}"
-            row.append(tf.bold_if_better(cell, r0["diff"], r0.p_holm, m))
+            cell = tf.mark("--" if pd.isna(r0["diff"]) else f"{r0['diff']:+.{2 if m in ('crossed', 'floor', 'hv_edits') else 0}f}", r0.p_holm)
+            row.append(tf.bold(cell, tf.favourable(r0["diff"], m) and tf.stars(r0.p_holm) != ""))
         rows.append(row)
-    return st._booktabs("l" + "l" * len(metrics), ["Arm vs directed"] + [tf.head(METRIC_HEAD.get(m, m), m) for m in metrics], rows)
+    return st._booktabs("l" + "r" * len(metrics), ["Arm vs directed"] + [tf.head(METRIC_HEAD.get(m, m), m) for m in metrics], rows)
 
 
 def primary_tex(t: pd.DataFrame, short: str = "a1") -> str:
+    """Crossing rate of the directed and the compared arm per stratum; a marker on the compared arm when the
+    Holm-corrected paired test finds a significant difference."""
     rows = []
     for _, r in t.iterrows():
-        sig = pd.notna(r.p_holm_strata) and r.p_holm_strata < tf.ALPHA     # bold only a significantly better arm
-        ref_b = sig and r.ref_value > r.arm_value
-        arm_b = sig and r.arm_value > r.ref_value
-        rows.append([st.tex_escape(TASK_NAMES.get(r.task, r.task)), st.tex_escape(SUT_NAMES.get(r.sut, r.sut)),
-                     str(int(r.n_pairs)), tf.bold(f_pct(r.ref_value), ref_b), tf.bold(f_pct(r.arm_value), arm_b),
-                     _ci(100 * r["diff"], 100 * r.diff_lo, 100 * r.diff_hi, 1), f_p(r.p), f_p(r.p_holm_strata)])
-    return st._booktabs("llrrrrrr", ["Task", "SUT", "Pairs", tf.head("Directed (\\%)", "crossed"),
-                                     tf.head(f"{st.arm_label(short)} (\\%)", "crossed"),
-                                     f"{st.arm_label(short)} $-$ directed (pp) [95\\% CI]", "$p$",
-                                     r"$p_{\text{Holm}}$"], rows)
+        sig = tf.stars(r.p_holm_strata) != ""
+        rows.append([st.tex_escape(TASK_NAMES.get(r.task, r.task)), st.tex_escape(SUT_NAMES.get(r.sut, r.sut)), str(int(r.n_pairs)),
+                     tf.bold(f_pct(r.ref_value), sig and r.ref_value > r.arm_value),
+                     tf.bold(tf.mark(f_pct(r.arm_value), r.p_holm_strata), sig and r.arm_value > r.ref_value),
+                     f"{100 * r['diff']:+.1f}"])
+    return st._booktabs("llrrrr", ["Task", "SUT", "Pairs", tf.head("Directed crossing rate (\\%)", "crossed"),
+                                   tf.head(f"{st.arm_label(short)} crossing rate (\\%)", "crossed"),
+                                   f"Difference (pp)"], rows)
 
 
 def add_primary_numbers(num: Numbers, t: pd.DataFrame, family: str = "EPrimary", short: str = "a1") -> None:
@@ -435,18 +522,13 @@ def cost_summary(df: pd.DataFrame, n_boot: int) -> pd.DataFrame:
 def cost_tex(s: pd.DataFrame) -> str:
     def fmt(v, d):
         return "--" if pd.isna(v) else f"{v:.{d}f}"
-    cells = [
-        (tf.bold_best([f"{r.med_min_edits:.0f} [{r.me_lo:.0f}--{r.me_hi:.0f}]" for r in s.itertuples()], list(s.med_min_edits), "min_edits",
-                      [f"{v:.0f}" for v in s.med_min_edits])),
-        (tf.bold_best([f"{r.med_hv:.3f} [{r.hv_lo:.3f}--{r.hv_hi:.3f}]" for r in s.itertuples()], list(s.med_hv), "hv_edits",
-                      [f"{v:.3f}" for v in s.med_hv])),
-        (tf.bold_best([fmt(v, 3) for v in s.med_img_mag], list(s.med_img_mag), "img_mag", [fmt(v, 3) for v in s.med_img_mag])),
-        (tf.bold_best([fmt(v, 2) for v in s.med_txt_mag], list(s.med_txt_mag), "txt_mag", [fmt(v, 2) for v in s.med_txt_mag])),
-    ]
-    rows = [[st.tex_escape(st.arm_label(r.arm)), str(int(r.n_runs))] + [cells[j][i] for j in range(4)] for i, r in enumerate(s.itertuples())]
-    return st._booktabs("lrrrrr", ["Arm", "Runs", tf.head("Fewest edits at a crossing [95\\% CI]", "min_edits"),
-                                   tf.head("Edit hypervolume [95\\% CI]", "hv_edits"),
-                                   tf.head("Best image RMS", "img_mag"), tf.head("Best text cosine", "txt_mag")], rows)
+    def col(vals, d, key):
+        cells = [fmt(v, d) for v in vals]
+        return tf.bold_best(cells, list(vals), key, cells)
+    cols = [col(s.med_min_edits, 0, "min_edits"), col(s.med_hv, 3, "hv_edits"), col(s.med_img_mag, 3, "img_mag"), col(s.med_txt_mag, 2, "txt_mag")]
+    rows = [[st.tex_escape(st.arm_label(r.arm)), str(int(r.n_runs))] + [cols[j][i] for j in range(4)] for i, r in enumerate(s.itertuples())]
+    return st._booktabs("lrrrrr", ["Arm", "Runs", tf.head("Edits at crossing", "min_edits"), tf.head("Edit hypervolume", "hv_edits"),
+                                   tf.head("Smallest image change (RMS)", "img_mag"), tf.head("Smallest text change (cosine)", "txt_mag")], rows)
 
 
 def add_cost_numbers(num: Numbers, sut: str, task: str, s: pd.DataFrame) -> None:
@@ -607,6 +689,8 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
                 write_tex(tabs / "per" / f"{stem}_paired.tex", st.paired_tex(res["paired"]))
         if (sut, task) == ("All", "All"):
             write_tex(tabs / "e1.tex", st.summary_tex(res["summary"]))
+            write_tex(tabs / "arm_main.tex", arm_main_tex(res["summary"], cost_summary(d, n_boot),
+                                                           pr.paired_table(d, ref, pr.DEFAULT_METRICS, n_boot=n_boot) if ref in arms else None))
             write_tex(tabs / "e1_budgets.tex", st.budgets_tex(res["curve"], budgets))
             if "paired" in res:
                 write_tex(tabs / "e1_paired.tex", st.paired_tex(res["paired"]))
@@ -672,6 +756,8 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
                 vct = vc.validity_cost(vdf, df, grid_suts, view=view)
                 if len(vct):
                     write_tex(tabs / f"{stem}.tex", vc.table_tex(vct, TASK_NAMES, objective=(view == "first")))
+                    if view == "first":
+                        write_tex(tabs / "validity_main.tex", validity_main_tex(vct, TASK_NAMES))
                     vc.add_numbers(num, vct, fam)
                     write_tex(tabs / f"{stem.replace('cost', 'sensitivity')}.tex",
                               vc.sensitivity_tex(vc.sensitivity(vdf, df, grid_suts, view)))
@@ -682,6 +768,7 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
             write_tex(tabs / "agree.tex", agree_table(adf))
             add_agree_numbers(num, adf)
 
+    trows = None
     if transfer:
         tdf = tr.load_transfer(transfer, results=csv_paths[0])
         trows = tr.matrix_rows(tdf)
@@ -690,6 +777,9 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
             for task in sorted(set(tdf["task"])):
                 write_tex(tabs / f"transfer_{task}.tex", tr.matrix_tex(trows, task, SUT_NAMES))
             add_transfer_numbers(num, trows)
+
+    if len(pt):
+        write_tex(tabs / "generalization_main.tex", generalization_main_tex(pt, trows))
 
     if human is not None and Path(human).exists():
         hdf = pd.read_csv(human, keep_default_na=False)
