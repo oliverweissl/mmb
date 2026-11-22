@@ -452,6 +452,21 @@ def add_cost_numbers(num: Numbers, sut: str, task: str, s: pd.DataFrame) -> None
             num.add(["ECost", "MedTxtMag"] + tail, f_num(r.med_txt_mag, 2), "median best text cosine among crossing runs; " + d)
 
 
+def add_wall_numbers(num: Numbers, sc: dict) -> None:
+    """Median wall-clock minutes per run: per arm in every (SUT, task) scope, and pooled over arms."""
+    for (sut, task), d in sc.items():
+        if "wall_s" not in d or not d["wall_s"].notna().any():
+            continue
+        for arm, g in d.groupby("arm", sort=True):
+            w = g["wall_s"].dropna()
+            if len(w):
+                num.add(["ECost", "WallMinMed", arm_short(arm), camel(sut), camel(task)], f_num(w.median() / 60, 1),
+                        f"median wall-clock minutes per run; {arm}, {sut}, {task}")
+        w = d["wall_s"].dropna()
+        num.add(["ECost", "WallMinMedAllArms", camel(sut), camel(task)], f_num(w.median() / 60, 1),
+                f"median wall-clock minutes per run over all arms; {sut}, {task}")
+
+
 def add_mixed_numbers(num: Numbers, res: dict) -> None:
     if pd.isna(res["log_or"]):
         return
@@ -597,6 +612,8 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
         if len(st9):
             write_tex(tabs / "secondary_a9.tex", primary_tex(st9, "a9"))
             add_primary_numbers(num, st9, "ESecondaryNine", "a9")
+
+    add_wall_numbers(num, sc)
 
     prim = df[df["arm"].isin(PRIMARY_ARMS)]
     # E3: a0 and a1 per SUT on ImageNet (continuity SUT included)
