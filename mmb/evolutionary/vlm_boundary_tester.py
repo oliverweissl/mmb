@@ -1023,6 +1023,12 @@ class VLMBoundaryTester(SMOO):
 
         # -- Origin image -------------------------------------------------
         seed.image.save(run_dir / "origin.png")
+        # Unedited input as the SUT sees it (genotype 0 through the image codec):
+        # the reference for image-distance proxies (LPIPS, SSIM, ...).
+        try:
+            self._manipulator.baseline_image().save(run_dir / "anchor_recon.png")
+        except Exception as exc:  # noqa: BLE001 -- diagnostic artefact only
+            logger.warning("could not save anchor_recon.png: %s", exc)
 
         # -- Stats JSON ---------------------------------------------------
         stats = build_stats(
