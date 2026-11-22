@@ -153,6 +153,7 @@ class TestMetadata:
         ({"optimizer": {"algorithm": "agemoea2", "boundary_objective": "softmax_balance"}}, "a5_mimicry_objective"),
         ({"modality": "text_only", "optimizer": {"algorithm": "agemoea2"}}, "a6_text_only"),
         ({"modality": "image_only"}, "a7_image_only"),
+        ({"optimizer": {"algorithm": "deepjanus"}}, "a9_deepjanus"),
     ])
     def test_derive_arm(self, cfg, arm):
         assert col.derive_arm(cfg) == arm

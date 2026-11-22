@@ -403,8 +403,8 @@ def add_primary_numbers(num: Numbers, t: pd.DataFrame, family: str = "EPrimary",
         d = f"{'primary' if family == 'EPrimary' else 'secondary'} comparison {short} vs a0 crossing share, {r.sut}, {r.task}"
         for f, v, what in (("Pairs", str(int(r.n_pairs)), "matched pairs"),
                            ("RefShare", f_pct(r.ref_value), "a0 crossing share (%)"),
-                           ("ArmShare", f_pct(r.arm_value), "a1 crossing share (%)"),
-                           ("Diff", f_num(100 * r["diff"], 1, True), "a1 minus a0 (percentage points)"),
+                           ("ArmShare", f_pct(r.arm_value), f"{short} crossing share (%)"),
+                           ("Diff", f_num(100 * r["diff"], 1, True), f"{short} minus a0 (percentage points)"),
                            ("DiffLo", f_num(100 * r.diff_lo, 1, True), "cell-cluster bootstrap 95% CI lower (pp)"),
                            ("DiffHi", f_num(100 * r.diff_hi, 1, True), "cell-cluster bootstrap 95% CI upper (pp)"),
                            ("P", f_p(r.p), "exact McNemar p"),
@@ -591,6 +591,12 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
         if len(st7):
             write_tex(tabs / "secondary_a7.tex", primary_tex(st7, "a7"))
             add_primary_numbers(num, st7, "ESecondary", "a7")
+    # secondary (METHODOLOGY 2026-11-22 09:10 UTC): a9 (DeepJanus-style) vs a0 on matched pairs
+    if "a9_deepjanus" in set(df["arm"]):
+        st9 = pr.primary_table(df, ref, "a9_deepjanus", n_boot)
+        if len(st9):
+            write_tex(tabs / "secondary_a9.tex", primary_tex(st9, "a9"))
+            add_primary_numbers(num, st9, "ESecondaryNine", "a9")
 
     prim = df[df["arm"].isin(PRIMARY_ARMS)]
     # E3: a0 and a1 per SUT on ImageNet (continuity SUT included)

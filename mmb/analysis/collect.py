@@ -196,6 +196,8 @@ def derive_arm(cfg: dict[str, Any]) -> str | None:
         return "a3_ga_single"
     if algo == "nsga2":
         return "a4_nsga2"
+    if algo == "deepjanus":
+        return "a9_deepjanus"
     if algo == "agemoea2":
         if _dig(cfg, "optimizer", "boundary_objective") == "softmax_balance":
             return "a5_mimicry_objective"
