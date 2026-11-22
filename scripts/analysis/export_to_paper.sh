@@ -12,7 +12,7 @@ cd "$(dirname "$0")/../.."
 [ -f "$PAPER/main.tex" ] || { echo "not a paper repo: $PAPER"; exit 2; }
 "$PY" -m mmb.analysis.collect "$ROOT" --out "results/$EXP.csv" --exp-id "$EXP"
 VAL=()
-if [ -z "${SKIP_VALIDITY:-}" ]; then
+if [ "${SKIP_VALIDITY:-0}" = "0" ] || [ -z "${SKIP_VALIDITY:-}" ]; then
   if "$PY" -m mmb.validity.score "$ROOT" --out "results/validity_$EXP.csv" --default exp_id="$EXP" --offline; then
     VAL=(--validity "results/validity_$EXP.csv")
   else

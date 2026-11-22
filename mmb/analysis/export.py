@@ -505,11 +505,14 @@ def add_validity_numbers(num: Numbers, vdf: pd.DataFrame) -> None:
         for c in cols:
             num.add(["ESeven", "Median", c, arm_short(arm)], f_num(float(g[c].median()), 3),
                     f"median {c} of crossing inputs, arm {arm}")
-        if "question_preserved" in g:
+        n_all = len(g)
+        if "question_preserved" in g and "question_keyword_sim" in g:
+            g = g[g["question_keyword_sim"].notna()]    # defined with a protected keyword only (the POPE object); class-pair prompts have none
+        if "question_preserved" in g and len(g):
             qp = g["question_preserved"].astype(str).str.lower().isin(("true", "1", "1.0"))
             num.add(["ESeven", "QuestionPreserved", arm_short(arm)], f_pct(float(qp.mean())),
                     f"share of crossing inputs whose question heuristic is preserved (%), arm {arm}")
-        num.add(["ESeven", "Crossings", arm_short(arm)], str(len(g)), f"crossing inputs scored, arm {arm}")
+        num.add(["ESeven", "Crossings", arm_short(arm)], str(n_all), f"crossing inputs scored, arm {arm}")
 
 
 def validity_table(vdf: pd.DataFrame) -> str:

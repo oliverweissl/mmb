@@ -93,8 +93,12 @@ def cluster_ci(diffs: np.ndarray, kind: str, n_boot: int = st.N_BOOT, seed: int 
 
 
 def paired_table(df: pd.DataFrame, ref: str, metrics: Sequence[str] = DEFAULT_METRICS,
-                 arms: Sequence[str] | None = None, n_boot: int = st.N_BOOT) -> pd.DataFrame:
-    """One row per (arm, metric): pairs, values, cell-cluster CI of the difference, exact test, Holm."""
+                 arms: Sequence[str] | None = None, n_boot: int = st.N_BOOT,
+                 min_pairs: int = 6) -> pd.DataFrame:
+    """One row per (arm, metric): pairs, values, cell-cluster CI of the difference, exact test, Holm.
+
+    Arms with fewer than `min_pairs` matched (cell, seed) pairs (an incomplete layer) are left out, so a
+    degenerate one-pair comparison is never printed."""
     if ref not in set(df["arm"]):
         raise ValueError(f"reference arm {ref!r} not in data")
     arms = [a for a in (arms or sorted(set(df["arm"]))) if a != ref]
@@ -104,7 +108,7 @@ def paired_table(df: pd.DataFrame, ref: str, metrics: Sequence[str] = DEFAULT_ME
         for arm in arms:
             pf = pair_frame(df, ref, arm, metric)
             n = len(pf)
-            if n == 0:
+            if n < min_pairs:
                 continue
             point, lo, hi = cluster_ci(cell_differences(pf), kind, n_boot)
             if kind == "binary":
