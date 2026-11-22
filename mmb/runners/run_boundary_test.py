@@ -273,11 +273,16 @@ def _build_tester(
     objectives: CriterionCollection,
 ) -> VLMBoundaryTester:
     """Wire one tester bundle. Caller owns the shared models."""
-    optimizer = DiscretePymooOptimizer(
+    if exp.optimizer.algorithm == "deepjanus":
+        from mmb.optimizer.deepjanus import DeepJanusOptimizer
+        opt_cls, alg = DeepJanusOptimizer, "nsga2"
+    else:
+        opt_cls, alg = DiscretePymooOptimizer, exp.optimizer.algorithm
+    optimizer = opt_cls(
         gene_bounds=np.zeros(1, dtype=np.int64),  # updated per-seed
         num_objectives=objectives.num_objectives,
         pop_size=exp.pop_size,
-        algorithm=exp.optimizer.algorithm,
+        algorithm=alg,
         mutation_prob=exp.optimizer.mutation.prob,
         mutation_eta=exp.optimizer.mutation.eta,
         crossover_prob=exp.optimizer.crossover.prob,

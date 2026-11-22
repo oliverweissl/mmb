@@ -47,3 +47,15 @@ def test_hillclimb_descends():
         opt.assign_fitness([f])
         opt.update()
     assert min(best[-3:]) < best[0]  # incumbent improves on the minimisation objective
+
+
+def test_deepjanus_runs_and_builds_archive():
+    from mmb.optimizer.deepjanus import DeepJanusOptimizer
+    opt = DeepJanusOptimizer(np.full(20, 6), 1, pop_size=12, seed=0, archive_tau=5.0)
+    for _ in range(4):
+        x = opt.get_x_current()
+        assert x.shape == (12, 20)
+        opt.assign_fitness([np.abs(x.sum(1) - 40).astype(float)])
+        opt.update()
+    assert opt.archive_size >= 1
+    assert len(opt.best_candidates) >= 1
