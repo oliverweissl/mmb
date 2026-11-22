@@ -58,6 +58,14 @@ def summarize(g: pd.DataFrame, n_runs: int, lp: float = LPIPS_MAX, tx: float = T
                med_txt=float(g["txt_dist"].median()) if n else np.nan,
                rho_eval_lpips=_rho(g["first_cross_eval"].to_numpy(float), g["img_lpips"].to_numpy(float)),
                rho_eval_txt=_rho(g["first_cross_eval"].to_numpy(float), g["txt_dist"].to_numpy(float)))
+    if "vis_identical" in g:
+        ident = g["vis_identical"].astype(str).str.lower().isin(("true", "1", "1.0"))
+        within = g["vis_within_one_per_word"].astype(str).str.lower().isin(("true", "1", "1.0")) | ident
+        for name, ok in (("visid", ident), ("visone", within)):
+            s_ = _share(int(ok.sum()), n)
+            out.update({f"{name}_{k}": v for k, v in s_.items() if k != "n"})
+        out["med_vis_char"] = float(pd.to_numeric(g["vis_char_dist"], errors="coerce").median()) if n else np.nan
+        out["med_vis_cos"] = float(pd.to_numeric(g["vis_minilm_cos"], errors="coerce").median()) if n else np.nan
     for name, ok in (("img", ok_i), ("txt", ok_t), ("both", both)):
         s = _share(int(ok.sum()), n)
         out.update({f"{name}_{k}": v for k, v in s.items() if k != "n"})
@@ -138,14 +146,17 @@ def table_tex(t: pd.DataFrame, task_names: dict, objective: bool = True) -> str:
                          f"{int(r['n_cross'])}/{int(r['n_runs'])}", _f(r["med_lpips"]), _f(r["med_txt"]),
                          _pct(r, "img"), _pct(r, "txt"), _pct(r, "both"),
                          "--" if pd.isna(r["cons_share"]) else f"{100 * r['cons_share']:.0f} [{100 * r['cons_lo']:.0f}--{100 * r['cons_hi']:.0f}]",
-                         _f(r["rho_eval_lpips"]), _f(r["rho_eval_txt"])]
+                         _f(r["rho_eval_lpips"]), _f(r["rho_eval_txt"]),
+                         _f(r.get("med_vis_cos", np.nan)), _pct(r, "visid") if "visid_share" in r else "--",
+                         _pct(r, "visone") if "visone_share" in r else "--"]
                         + ([_f(r["obj_med"], 3), _pct(r, "obj_txt")] if objective else []))
     header = ["Task", "Arm", "Crossed", "Med. LPIPS", "Med. text dist.", r"LPIPS $<0.2$ (\%)", r"text $<0.1$ (\%)",
               "both (\\%)", "Both, of all runs (\\%) [95\\% CI]", r"$\rho$(evals, LPIPS)", r"$\rho$(evals, text)",
+              "Visible text cos. (med.)", "visibly identical (\\%)", r"$\le$1 edit/word (\%)",
               "Minimal-edit crossing: text cos.", r"$<0.1$ (\%)"]
     if not objective:
         header = header[:-2]
-    return st._booktabs("llrrrrrrrrr" + ("rr" if objective else ""), header, rows)
+    return st._booktabs("llrrrrrrrrrrrr" + ("rr" if objective else ""), header, rows)
 
 
 def sensitivity_tex(s: pd.DataFrame) -> str:
@@ -172,6 +183,11 @@ def add_numbers(num, t: pd.DataFrame, family: str = "EValid") -> None:
             num.add([family, "Share", key] + tail, f_pct(r[f"{key}_share"], 0), f"% of crossings under {what}; " + d)
         num.add([family, "ConsShare"] + tail, f_pct(r["cons_share"], 0), "% of ALL runs that crossed under both thresholds; " + d)
         num.add([family, "ConsCi"] + tail, f"[{100 * r['cons_lo']:.0f}--{100 * r['cons_hi']:.0f}]", "Wilson 95% interval; " + d)
+        if "visid_share" in r:
+            num.add([family, "VisIdentical"] + tail, f_pct(r["visid_share"], 0), "% of crossings whose question is visibly identical (NFKC, invisible characters removed, confusables mapped); " + d)
+            num.add([family, "VisWithinOne"] + tail, f_pct(r["visone_share"], 0), "% of crossings visibly identical or within one character edit per word; " + d)
+            num.add([family, "VisCharDist"] + tail, f_num(r["med_vis_char"], 3), "median visible character edit distance / length; " + d)
+            num.add([family, "VisMinilm"] + tail, f_num(r["med_vis_cos"], 2), "median MiniLM cosine of the normalised questions; " + d)
         num.add([family, "RhoEvalLpips"] + tail, f_num(r["rho_eval_lpips"], 2, True), "Spearman, evaluations to first crossing vs LPIPS; " + d)
         num.add([family, "RhoEvalTxt"] + tail, f_num(r["rho_eval_txt"], 2, True), "Spearman, evaluations to first crossing vs text distance; " + d)
         num.add([family, "ObjTxtMed"] + tail, f_num(r["obj_med"], 3), "median text cosine of the search's own minimal-edit crossing (post hoc addition); " + d)

@@ -36,7 +36,8 @@ ID_COLUMNS = ["item_id", "run_dir", "cell_id", "arm", "sut", "task", "rng_seed"]
 CROSS_COLUMNS = ["first_cross_eval", "first_cross_gen", "g_at_cross"]
 IMAGE_COLUMNS = ["img_clip_cos", "img_dino_cos", "img_lpips", "img_ssim"]
 TEXT_COLUMNS = ["txt_minilm_cos", "txt_word_edit", "question_preserved", "question_keyword_sim",
-                "question_content_kept", "txt_edited"]
+                "question_content_kept", "txt_edited",
+                "vis_char_dist", "vis_word_edit", "vis_minilm_cos", "vis_identical", "vis_within_one_per_word"]
 COLUMNS = ID_COLUMNS + ["view", "n_edits"] + CROSS_COLUMNS + ["img_ref"] + IMAGE_COLUMNS + TEXT_COLUMNS
 
 

@@ -46,6 +46,33 @@ def make_run(root, name, *, seed_level=100, cross_level=110, text="What is the m
     return d
 
 
+class TestVisible:
+    def test_homoglyph_and_zero_width_are_visibly_identical(self):
+        from mmb.validity.proxies import normalise_visible, visible_proxies
+        q = "What is the main subject?"
+        cyr = q.replace("a", chr(0x0430)).replace("i", chr(0x0456)).replace("s", chr(0x0455))
+        zw = "Wh" + chr(0x200B) + "at is the" + chr(0x200D) + " main subject?"
+        full = chr(0xFF37) + "hat is the main subject?"
+        assert normalise_visible(cyr) == q and normalise_visible(zw) == q and normalise_visible(full) == q
+        for e in (cyr, zw, full):
+            p = visible_proxies(FakeModels(), q, e)
+            assert p["vis_identical"] and p["vis_char_dist"] == 0.0 and p["vis_within_one_per_word"] and p["vis_minilm_cos"] == 1.0
+
+    def test_visible_changes_are_kept(self):
+        from mmb.validity.proxies import visible_proxies
+        q = "What is the main subject?"
+        frag = visible_proxies(FakeModels(), q, "Wha t is the main subject?")      # a space is visible
+        assert not frag["vis_identical"] and frag["vis_within_one_per_word"] and 0 < frag["vis_char_dist"] < 0.1
+        other = visible_proxies(FakeModels(), q, "Describe the picture in detail please")
+        assert not other["vis_within_one_per_word"] and other["vis_char_dist"] > 0.5
+
+    def test_operator_homoglyphs_are_all_covered(self):
+        from mmb.manipulator.text.operators.character_noise import HOMOGLYPHS
+        from mmb.validity.proxies import normalise_visible
+        for latin, glyph in HOMOGLYPHS.items():
+            assert normalise_visible(glyph) == latin, (latin, hex(ord(glyph)))
+
+
 class TestMinEdit:
     def test_fewest_genes_among_crossing_archive_members(self, tmp_path):
         import json as _json
