@@ -42,6 +42,7 @@ from mmb.analysis import paired as pr
 from mmb.analysis import predictors as pred
 from mmb.analysis import transfer as tr
 from mmb.analysis import stats as st
+from mmb.analysis import tablefmt as tf
 
 logger = logging.getLogger(__name__)
 
@@ -154,21 +155,15 @@ def scopes(df: pd.DataFrame, grid: Iterable[str]) -> dict[tuple[str, str], pd.Da
 
 
 def keyed_summary_tex(frames: list[tuple[list[str], pd.DataFrame]], key_headers: list[str]) -> str:
-    """Summary table with leading key columns; a midrule between key groups."""
-    header = key_headers + ["Arm", "Runs", r"Crossed (\%) [95\% CI]", r"Gen.\,0 (\%)",
-                            r"Med.\ evals to cross [95\% CI]", r"Med.\ floor (nats)", r"$\le10^{-2}$ (\%)"]
+    """Summary table with leading key columns; a midrule between key groups; best values bold within each group."""
+    header = key_headers + st.SUMMARY_HEADER
     body: list[str] = []
     for gi, (keys, s) in enumerate(frames):
         if gi:
             body.append(r"\midrule")
-        for ri, (_, r) in enumerate(s.iterrows()):
+        for ri, row in enumerate(st.summary_rows(s)):
             ks = [st.tex_escape(k) if ri == 0 else "" for k in keys]
-            body.append(" & ".join(ks + [
-                st.tex_escape(st.arm_label(r.arm)), str(int(r.n_runs)),
-                f"{int(r.n_crossed)} ({100 * r.share_crossed:.1f}) [{100 * r.wilson_lo:.0f}--{100 * r.wilson_hi:.0f}]",
-                f"{100 * r.share_gen0:.1f}",
-                f"{r.median_first_cross_eval:.0f} [{r.mfc_lo:.0f}--{r.mfc_hi:.0f}]",
-                f"{r.median_floor_nats:.2g}", f"{100 * r.share_band:.1f}"]) + r" \\")
+            body.append(" & ".join(ks + row) + r" \\")
     colspec = "l" * (len(key_headers) + 1) + "rrrrrr"
     return ("\\begin{tabular}{@{}" + colspec + "@{}}\n\\toprule\n" + " & ".join(header) + " \\\\\n\\midrule\n"
             + "\n".join(body) + "\n\\bottomrule\n\\end{tabular}")
@@ -382,18 +377,28 @@ def cluster_table_tex(t: pd.DataFrame, metrics=pr.DEFAULT_METRICS) -> str:
         row = [st.tex_escape(st.arm_label(arm))]
         for m in metrics:
             r = t[(t.arm == arm) & (t.metric == m)]
-            row.append("--" if r.empty else f"{_ci(r.iloc[0]['diff'], r.iloc[0].diff_lo, r.iloc[0].diff_hi, 2 if m in ('crossed', 'floor', 'hv_edits') else 0)}; {f_p(r.iloc[0].p_holm)}")
+            if r.empty:
+                row.append("--")
+                continue
+            r0 = r.iloc[0]
+            cell = f"{_ci(r0['diff'], r0.diff_lo, r0.diff_hi, 2 if m in ('crossed', 'floor', 'hv_edits') else 0)}; {f_p(r0.p_holm)}"
+            row.append(tf.bold_if_better(cell, r0["diff"], r0.p_holm, m))
         rows.append(row)
-    return st._booktabs("l" + "l" * len(metrics), ["Arm vs directed"] + [METRIC_HEAD.get(m, m) for m in metrics], rows)
+    return st._booktabs("l" + "l" * len(metrics), ["Arm vs directed"] + [tf.head(METRIC_HEAD.get(m, m), m) for m in metrics], rows)
 
 
 def primary_tex(t: pd.DataFrame, short: str = "a1") -> str:
     rows = []
     for _, r in t.iterrows():
+        sig = pd.notna(r.p_holm_strata) and r.p_holm_strata < tf.ALPHA     # bold only a significantly better arm
+        ref_b = sig and r.ref_value > r.arm_value
+        arm_b = sig and r.arm_value > r.ref_value
         rows.append([st.tex_escape(TASK_NAMES.get(r.task, r.task)), st.tex_escape(SUT_NAMES.get(r.sut, r.sut)),
-                     str(int(r.n_pairs)), f_pct(r.ref_value), f_pct(r.arm_value),
+                     str(int(r.n_pairs)), tf.bold(f_pct(r.ref_value), ref_b), tf.bold(f_pct(r.arm_value), arm_b),
                      _ci(100 * r["diff"], 100 * r.diff_lo, 100 * r.diff_hi, 1), f_p(r.p), f_p(r.p_holm_strata)])
-    return st._booktabs("llrrrrrr", ["Task", "SUT", "Pairs", "Directed (\\%)", f"{st.arm_label(short)} (\\%)", f"{st.arm_label(short)} $-$ directed (pp) [95\\% CI]", "$p$",
+    return st._booktabs("llrrrrrr", ["Task", "SUT", "Pairs", tf.head("Directed (\\%)", "crossed"),
+                                     tf.head(f"{st.arm_label(short)} (\\%)", "crossed"),
+                                     f"{st.arm_label(short)} $-$ directed (pp) [95\\% CI]", "$p$",
                                      r"$p_{\text{Holm}}$"], rows)
 
 
@@ -428,14 +433,20 @@ def cost_summary(df: pd.DataFrame, n_boot: int) -> pd.DataFrame:
 
 
 def cost_tex(s: pd.DataFrame) -> str:
-    rows = []
-    for _, r in s.iterrows():
-        rows.append([st.tex_escape(st.arm_label(r.arm)), str(int(r.n_runs)), f"{r.med_min_edits:.0f} [{r.me_lo:.0f}--{r.me_hi:.0f}]",
-                     f"{r.med_hv:.3f} [{r.hv_lo:.3f}--{r.hv_hi:.3f}]",
-                     "--" if pd.isna(r.med_img_mag) else f"{r.med_img_mag:.3f}",
-                     "--" if pd.isna(r.med_txt_mag) else f"{r.med_txt_mag:.2f}"])
-    return st._booktabs("lrrrrr", ["Arm", "Runs", "Fewest edits at a crossing [95\\% CI]", "Edit hypervolume [95\\% CI]",
-                                   "Best image RMS", "Best text cosine"], rows)
+    def fmt(v, d):
+        return "--" if pd.isna(v) else f"{v:.{d}f}"
+    cells = [
+        (tf.bold_best([f"{r.med_min_edits:.0f} [{r.me_lo:.0f}--{r.me_hi:.0f}]" for r in s.itertuples()], list(s.med_min_edits), "min_edits",
+                      [f"{v:.0f}" for v in s.med_min_edits])),
+        (tf.bold_best([f"{r.med_hv:.3f} [{r.hv_lo:.3f}--{r.hv_hi:.3f}]" for r in s.itertuples()], list(s.med_hv), "hv_edits",
+                      [f"{v:.3f}" for v in s.med_hv])),
+        (tf.bold_best([fmt(v, 3) for v in s.med_img_mag], list(s.med_img_mag), "img_mag", [fmt(v, 3) for v in s.med_img_mag])),
+        (tf.bold_best([fmt(v, 2) for v in s.med_txt_mag], list(s.med_txt_mag), "txt_mag", [fmt(v, 2) for v in s.med_txt_mag])),
+    ]
+    rows = [[st.tex_escape(st.arm_label(r.arm)), str(int(r.n_runs))] + [cells[j][i] for j in range(4)] for i, r in enumerate(s.itertuples())]
+    return st._booktabs("lrrrrr", ["Arm", "Runs", tf.head("Fewest edits at a crossing [95\\% CI]", "min_edits"),
+                                   tf.head("Edit hypervolume [95\\% CI]", "hv_edits"),
+                                   tf.head("Best image RMS", "img_mag"), tf.head("Best text cosine", "txt_mag")], rows)
 
 
 def add_cost_numbers(num: Numbers, sut: str, task: str, s: pd.DataFrame) -> None:
@@ -531,13 +542,17 @@ def add_validity_numbers(num: Numbers, vdf: pd.DataFrame) -> None:
 
 
 def validity_table(vdf: pd.DataFrame) -> str:
-    cols = [("img_clip_cos", "CLIP cos"), ("img_dino_cos", "DINOv2 cos"), ("img_lpips", "LPIPS"),
-            ("img_ssim", "SSIM"), ("txt_minilm_cos", "MiniLM cos"), ("txt_word_edit", "word edits")]
-    cols = [(c, h) for c, h in cols if c in vdf]
-    rows = []
-    for arm, g in vdf.groupby("arm"):
-        rows.append([st.tex_escape(st.arm_label(arm)), str(len(g))] + [f"{g[c].median():.2f}" for c, _ in cols])
-    return st._booktabs("lr" + "r" * len(cols), ["Arm", "Crossings"] + [h for _, h in cols], rows)
+    cols = [("img_clip_cos", "CLIP cos", "clip"), ("img_dino_cos", "DINOv2 cos", "dino"), ("img_lpips", "LPIPS", "lpips"),
+            ("img_ssim", "SSIM", "ssim"), ("txt_minilm_cos", "MiniLM cos", "minilm"), ("txt_word_edit", "word edits", "word_edit")]
+    cols = [(c, h, k) for c, h, k in cols if c in vdf]
+    arms = [(arm, g) for arm, g in vdf.groupby("arm")]
+    columns = []
+    for c, _, k in cols:
+        vals = [float(g[c].median()) for _, g in arms]
+        cells = [f"{v:.2f}" for v in vals]
+        columns.append(tf.bold_best(cells, vals, k, cells))
+    rows = [[st.tex_escape(st.arm_label(arm)), str(len(g))] + [columns[j][i] for j in range(len(cols))] for i, (arm, g) in enumerate(arms)]
+    return st._booktabs("lr" + "r" * len(cols), ["Arm", "Crossings"] + [tf.head(h, k) for _, h, k in cols], rows)
 
 
 # ---------------------------------------------------------------------------

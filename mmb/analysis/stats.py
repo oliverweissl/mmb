@@ -32,6 +32,8 @@ import numpy as np
 import pandas as pd
 from scipy import stats as sps
 
+from mmb.analysis import tablefmt as tf
+
 logger = logging.getLogger(__name__)
 
 N_BOOT = 10_000
@@ -302,30 +304,43 @@ def _booktabs(colspec: str, header: list[str], rows: list[list[str]], caption: s
     return "\n".join(lines) + "\n"
 
 
+def summary_rows(s: pd.DataFrame) -> list[list[str]]:
+    """Body rows of the summary table, best value of each metric column in bold (one comparison group)."""
+    cols = [
+        ([f"{int(r.n_crossed)} ({100 * r.share_crossed:.1f}) [{100 * r.wilson_lo:.0f}--{100 * r.wilson_hi:.0f}]" for r in s.itertuples()],
+         list(s.share_crossed), "crossed", [f"{100 * v:.1f}" for v in s.share_crossed]),
+        ([f"{100 * v:.1f}" for v in s.share_gen0], list(s.share_gen0), "gen0", None),
+        ([f"{r.median_first_cross_eval:.0f} [{r.mfc_lo:.0f}--{r.mfc_hi:.0f}]" for r in s.itertuples()],
+         list(s.median_first_cross_eval), "first_cross_eval", [f"{v:.0f}" for v in s.median_first_cross_eval]),
+        ([f"{v:.2g}" for v in s.median_floor_nats], list(s.median_floor_nats), "floor", [f"{v:.2g}" for v in s.median_floor_nats]),
+        ([f"{100 * v:.1f}" for v in s.share_band], list(s.share_band), "band", None),
+    ]
+    cells = [tf.bold_best(c, v, k, t) for c, v, k, t in cols]
+    return [[tex_escape(arm_label(r.arm)), str(int(r.n_runs))] + [cells[j][i] for j in range(len(cells))]
+            for i, r in enumerate(s.itertuples())]
+
+
+SUMMARY_HEADER = ["Arm", "Runs", tf.head(r"Crossed (\%) [95\% CI]", "crossed"), tf.head(r"Gen.\,0 (\%)", "gen0"),
+                  tf.head("Med. evals to cross [95\\% CI]", "first_cross_eval"), tf.head("Med. floor (nats)", "floor"),
+                  tf.head(r"$\le10^{-2}$ (\%)", "band")]
+
+
 def summary_tex(s: pd.DataFrame) -> str:
-    rows = []
-    for _, r in s.iterrows():
-        rows.append([
-            tex_escape(arm_label(r.arm)), str(int(r.n_runs)),
-            f"{int(r.n_crossed)} ({100 * r.share_crossed:.1f}) [{100 * r.wilson_lo:.0f}--{100 * r.wilson_hi:.0f}]",
-            f"{100 * r.share_gen0:.1f}",
-            f"{r.median_first_cross_eval:.0f} [{r.mfc_lo:.0f}--{r.mfc_hi:.0f}]",
-            f"{r.median_floor_nats:.2g}",
-            f"{100 * r.share_band:.1f}",
-        ])
-    return _booktabs("lrrrrrr", ["Arm", "Runs", r"Crossed (\%) [95\% CI]", r"Gen.\,0 (\%)",
-                                 "Med. evals to cross [95\\% CI]", "Med. floor (nats)", r"$\le10^{-2}$ (\%)"], rows)
+    return _booktabs("lrrrrrr", SUMMARY_HEADER, summary_rows(s))
 
 
 def budgets_tex(curve: pd.DataFrame, budgets: Sequence[int]) -> str:
     arms = list(dict.fromkeys(curve["arm"]))
-    rows = []
-    for arm in arms:
-        c = curve[curve["arm"] == arm].set_index("budget")
-        rows.append([tex_escape(arm_label(arm))] + [
-            f"{100 * c.loc[b, 'share']:.1f} [{100 * c.loc[b, 'boot_lo']:.0f}--{100 * c.loc[b, 'boot_hi']:.0f}]"
-            for b in budgets])
-    return _booktabs("l" + "r" * len(budgets), ["Arm"] + [f"{b}" for b in budgets], rows)
+    cols = []
+    for b in budgets:
+        vals = [float(curve[(curve["arm"] == a) & (curve["budget"] == b)]["share"].iloc[0]) for a in arms]
+        cells = []
+        for a in arms:
+            r = curve[(curve["arm"] == a) & (curve["budget"] == b)].iloc[0]
+            cells.append(f"{100 * r['share']:.1f} [{100 * r['boot_lo']:.0f}--{100 * r['boot_hi']:.0f}]")
+        cols.append(tf.bold_best(cells, vals, "budget_share", [f"{100 * v:.1f}" for v in vals]))
+    rows = [[tex_escape(arm_label(a))] + [cols[j][i] for j in range(len(budgets))] for i, a in enumerate(arms)]
+    return _booktabs("l" + "r" * len(budgets), ["Arm"] + [tf.head(f"{b}", "budget_share") for b in budgets], rows)
 
 
 def paired_tex(p: pd.DataFrame) -> str:
@@ -334,8 +349,8 @@ def paired_tex(p: pd.DataFrame) -> str:
     for _, r in p.iterrows():
         eff = f"{r.effect:+.2f}"
         extra = f" ({int(r.b_ref_only)}/{int(r.c_arm_only)})" if r.metric == "crossed" else ""
-        rows.append([tex_escape(arm_label(r.arm)), names[r.metric], str(int(r.n_pairs)), _fmt_p(r.p), _fmt_p(r.p_holm),
-                     eff + extra])
+        rows.append([tex_escape(arm_label(r.arm)), tf.head(names[r.metric], r.metric), str(int(r.n_pairs)), _fmt_p(r.p), _fmt_p(r.p_holm),
+                     tf.bold_if_better(eff + extra, r.effect, r.p_holm, r.metric)])
     return _booktabs("llrrrr", ["Arm", "Metric", "Pairs", "$p$", r"$p_{\text{Holm}}$",
                                 r"Effect (arm $-$ ref)"], rows)
 

@@ -16,6 +16,7 @@ import pandas as pd
 from scipy.stats import spearmanr
 
 from mmb.analysis import stats as st
+from mmb.analysis import tablefmt as tf
 
 LPIPS_MAX = 0.2
 TXT_MAX = 0.1
@@ -138,22 +139,50 @@ def _pct(r, k):
     return "--" if pd.isna(r[f"{k}_share"]) else f"{100 * r[f'{k}_share']:.0f}"
 
 
+def _colvals(g: pd.DataFrame, col: str, scale: float = 1.0) -> list:
+    return [np.nan if col not in g or pd.isna(v) else scale * float(v) for v in (g[col] if col in g else [np.nan] * len(g))]
+
+
 def table_tex(t: pd.DataFrame, task_names: dict, objective: bool = True) -> str:
+    # (header label, direction key, cell strings, numeric values, tie labels); best bold within each task block
+    def block(g: pd.DataFrame) -> list[list[str]]:
+        n = len(g)
+        spec = [
+            ([_f(v) for v in _colvals(g, "med_lpips")], "lpips", _colvals(g, "med_lpips"), 2),
+            ([_f(v) for v in _colvals(g, "med_txt")], "txt_dist", _colvals(g, "med_txt"), 2),
+            ([_pct(r, "img") for _, r in g.iterrows()], "lpips_share", _colvals(g, "img_share", 100), 0),
+            ([_pct(r, "txt") for _, r in g.iterrows()], "txt_share", _colvals(g, "txt_share", 100), 0),
+            ([_pct(r, "both") for _, r in g.iterrows()], "both_share", _colvals(g, "both_share", 100), 0),
+            (["--" if pd.isna(r["cons_share"]) else f"{100 * r['cons_share']:.0f} [{100 * r['cons_lo']:.0f}--{100 * r['cons_hi']:.0f}]"
+              for _, r in g.iterrows()], "cons_share", _colvals(g, "cons_share", 100), 0),
+            ([_f(r["rho_eval_lpips"]) for _, r in g.iterrows()], None, [np.nan] * n, 2),
+            ([_f(r["rho_eval_txt"]) for _, r in g.iterrows()], None, [np.nan] * n, 2),
+            ([_f(r.get("med_vis_cos", np.nan)) for _, r in g.iterrows()], "vis_cos", _colvals(g, "med_vis_cos"), 2),
+            ([_pct(r, "visid") if "visid_share" in r else "--" for _, r in g.iterrows()], "vis_identical", _colvals(g, "visid_share", 100), 0),
+            ([_pct(r, "visone") if "visone_share" in r else "--" for _, r in g.iterrows()], "vis_within_one", _colvals(g, "visone_share", 100), 0),
+        ]
+        if objective:
+            spec += [([_f(r["obj_med"], 3) for _, r in g.iterrows()], "obj_txt_dist", _colvals(g, "obj_med"), 3),
+                     ([_pct(r, "obj_txt") for _, r in g.iterrows()], "obj_share", _colvals(g, "obj_txt_share", 100), 0)]
+        cols = []
+        for cells, key, vals, dig in spec:
+            ties = [None if (isinstance(v, float) and np.isnan(v)) else f"{round(v, dig)}" for v in vals]
+            cols.append(tf.bold_best(cells, vals, key, ties) if key else cells)
+        return [[st.tex_escape(st.arm_label(r["arm"])), f"{int(r['n_cross'])}/{int(r['n_runs'])}"] + [cols[j][i] for j in range(len(cols))]
+                for i, (_, r) in enumerate(g.iterrows())]
+
     rows = []
     for task in dict.fromkeys(t["task"]):
-        for i, (_, r) in enumerate(t[t["task"] == task].iterrows()):
-            rows.append([st.tex_escape(task_names.get(task, task)) if i == 0 else "", st.tex_escape(st.arm_label(r["arm"])),
-                         f"{int(r['n_cross'])}/{int(r['n_runs'])}", _f(r["med_lpips"]), _f(r["med_txt"]),
-                         _pct(r, "img"), _pct(r, "txt"), _pct(r, "both"),
-                         "--" if pd.isna(r["cons_share"]) else f"{100 * r['cons_share']:.0f} [{100 * r['cons_lo']:.0f}--{100 * r['cons_hi']:.0f}]",
-                         _f(r["rho_eval_lpips"]), _f(r["rho_eval_txt"]),
-                         _f(r.get("med_vis_cos", np.nan)), _pct(r, "visid") if "visid_share" in r else "--",
-                         _pct(r, "visone") if "visone_share" in r else "--"]
-                        + ([_f(r["obj_med"], 3), _pct(r, "obj_txt")] if objective else []))
-    header = ["Task", "Arm", "Crossed", "Med. LPIPS", "Med. text dist.", r"LPIPS $<0.2$ (\%)", r"text $<0.1$ (\%)",
-              "both (\\%)", "Both, of all runs (\\%) [95\\% CI]", r"$\rho$(evals, LPIPS)", r"$\rho$(evals, text)",
-              "Visible text cos. (med.)", "visibly identical (\\%)", r"$\le$1 edit/word (\%)",
-              "Minimal-edit crossing: text cos.", r"$<0.1$ (\%)"]
+        g = t[t["task"] == task]
+        for i, body in enumerate(block(g)):
+            rows.append([st.tex_escape(task_names.get(task, task)) if i == 0 else ""] + body)
+    header = ["Task", "Arm", "Crossed", tf.head("Med. LPIPS", "lpips"), tf.head("Med. text dist.", "txt_dist"),
+              tf.head(r"LPIPS $<0.2$ (\%)", "lpips_share"), tf.head(r"text $<0.1$ (\%)", "txt_share"),
+              tf.head("both (\\%)", "both_share"), tf.head("Both, of all runs (\\%) [95\\% CI]", "cons_share"),
+              r"$\rho$(evals, LPIPS)", r"$\rho$(evals, text)",
+              tf.head("Visible text cos. (med.)", "vis_cos"), tf.head("visibly identical (\\%)", "vis_identical"),
+              tf.head(r"$\le$1 edit/word (\%)", "vis_within_one"),
+              tf.head("Minimal-edit crossing: text dist.", "obj_txt_dist"), tf.head(r"$<0.1$ (\%)", "obj_share")]
     if not objective:
         header = header[:-2]
     return st._booktabs("llrrrrrrrrrrrr" + ("rr" if objective else ""), header, rows)
