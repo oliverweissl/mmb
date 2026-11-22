@@ -584,17 +584,6 @@ def add_cost_numbers(num: Numbers, sut: str, task: str, s: pd.DataFrame) -> None
             num.add(["ECost", "MedTxtMag"] + tail, f_num(r.med_txt_mag, 2), "median best text cosine among crossing runs; " + d)
 
 
-def sign_flip_tex(df: pd.DataFrame) -> str | None:
-    """Supplement: crossing rate with the plain sign flip next to the robust crossing of the main text."""
-    if "crossed_sign" not in df:
-        return None
-    rows = []
-    for arm, g in df.groupby("arm", sort=True):
-        rows.append([st.tex_escape(st.arm_label(arm)), str(len(g)), f"{100 * g['crossed'].mean():.0f}",
-                     f"{100 * g['crossed_sign'].mean():.0f}"])
-    return st._booktabs("lrrr", ["Arm", "Runs", r"Robust crossing (\%)", r"Sign flip only (\%)"], rows)
-
-
 def add_failure_numbers(num: Numbers, minimal: pd.DataFrame) -> None:
     """Macros of the failure-type study: per (SUT, task) scope and arm group the number of reduced crossings, the share
     that re-verified, the median genes before and after the reduction and the share of each failure type."""
@@ -603,9 +592,9 @@ def add_failure_numbers(num: Numbers, minimal: pd.DataFrame) -> None:
     for r in ft.summary(minimal).itertuples():
         tail = [{"directed": "Directed", "others": "Others"}[r.group], camel(r.sut), camel(r.task)]
         d = f"{r.group} arms, {r.sut}, {r.task}"
-        num.add(["EFail", "N"] + tail, str(int(r.n)), "robust first crossings submitted to the minimiser; " + d)
-        num.add(["EFail", "Verified"] + tail, f_pct(r.verified_share, 0), "share re-verified as a robust crossing (%); " + d)
-        num.add(["EFail", "MedGenesFirst"] + tail, f_num(r.med_genes_first, 0), "median changed genes of the first robust crossing; " + d)
+        num.add(["EFail", "N"] + tail, str(int(r.n)), "first crossings submitted to the minimiser; " + d)
+        num.add(["EFail", "Verified"] + tail, f_pct(r.verified_share, 0), "share re-verified as a crossing (%); " + d)
+        num.add(["EFail", "MedGenesFirst"] + tail, f_num(r.med_genes_first, 0), "median changed genes of the first crossing; " + d)
         num.add(["EFail", "MedGenesMin"] + tail, f_num(r.med_genes_min, 0), "median changed genes after the reduction; " + d)
         num.add(["EFail", "MedImgMin"] + tail, f_num(r.med_img_min, 0), "median image genes of the minimal flip; " + d)
         num.add(["EFail", "MedTxtMin"] + tail, f_num(r.med_txt_min, 0), "median text genes of the minimal flip; " + d)
@@ -725,6 +714,11 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
     df = st.load_results(csv_paths)
     if df["arm"].isna().any():
         raise SystemExit("some runs have no arm; re-run collect with --default arm=<id>")
+    if agree:                                   # per-run verification flag from the replay CSVs
+        adf = load_agree(agree)
+        if len(adf) and "run_dir" in adf:
+            v = adf.drop_duplicates("run_dir").set_index("run_dir")["cross_verified"]
+            df["verified"] = df["run_dir"].map(v)
     num = Numbers()
     if planned is not None:
         num.datastatus, n_ok, n_plan = data_status(df, planned, Path(planned).resolve().parents[2])
@@ -754,9 +748,6 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
                 if len(ct):
                     write_tex(tabs / "e1_cluster.tex", cluster_table_tex(ct))
                 write_tex(tabs / "cost.tex", cost_tex(cs_))
-                sf = sign_flip_tex(d)
-                if sf:
-                    write_tex(tabs / "sign_flip.tex", sf)
                 for a in sorted(arms - {ref}):
                     add_mixed_numbers(num, pr.mixed_model(d.assign(cell_id=d["cluster_id"]), ref, a))
         if "paired" in res:

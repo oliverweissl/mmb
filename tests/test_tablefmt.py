@@ -142,23 +142,13 @@ def test_crossing_only_edit_metrics_use_pairs_where_both_arms_crossed():
     assert int(t[t.metric == "min_edits_x"].iloc[0].n_pairs) == 3 and int(t[t.metric == "min_edits"].iloc[0].n_pairs) == 8
 
 
-def test_robust_crossing_needs_a_margin_of_tau_and_becomes_primary():
+def test_plain_sign_flip_is_primary_and_robust_is_a_diagnostic():
     from mmb.analysis import collect as co
     lp = np.array([[-1.0, -2.0], [-1.55, -1.5], [-1.9, -1.0], [-1.0, -1.2]])      # g = +1, -0.05, -0.9, +0.2
     out = co.evaluate_trace(lp, np.array([0, 0, 1, 1]), anchor_g=1.0)
-    assert out["crossed"] and out["first_cross_eval"] == 2                         # plain sign flip: row 1 (g = -0.05)
-    assert out["crossed_robust"] and out["first_cross_eval_robust"] == 3           # robust: |g| >= 0.15 at row 2
-    assert not out["crossed_robust_at_gen0"] and out["n_cross_evals"] == 2
-    weak = co.evaluate_trace(lp[:2], np.array([0, 0]), anchor_g=1.0)
-    assert weak["crossed"] and not weak["crossed_robust"] and weak["first_cross_eval_robust"] is None
-    df = pd.DataFrame(dict(crossed=["True", "True"], crossed_at_gen0=["False", "False"], first_cross_eval=[2, 2],
-                           crossed_robust=["True", "False"], crossed_robust_at_gen0=["False", "False"],
-                           first_cross_eval_robust=[3, 1500]))
-    from mmb.analysis import stats as st
-    df = df.assign(crossed=True, crossed_at_gen0=False, crossed_robust=[True, False], crossed_robust_at_gen0=False)
-    p = st.use_robust_crossing(df)
-    assert list(p["crossed"]) == [True, False] and list(p["crossed_sign"]) == [True, True]
-    assert list(p["first_cross_eval"]) == [3, 1500] and list(p["first_cross_eval_sign"]) == [2, 2]
+    assert out["crossed"] and out["first_cross_eval"] == 2                         # sign flip at row 1 (g = -0.05)
+    assert out["crossed_robust"] and out["first_cross_eval_robust"] == 3           # diagnostic: |g| >= 0.15 at row 2
+    assert int(np.argmax(out["_crossing"])) == 1
 
 
 def _synthetic_minimal(tmp_path):
