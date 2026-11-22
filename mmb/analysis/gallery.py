@@ -121,7 +121,13 @@ def _load(run_dir: Path, runs_root: Path | None, fail: bool = False):
         p = runs_root / p
     stats = json.loads((p / "stats.json").read_text())
     fc = json.loads((p / "first_cross.json").read_text()) if (p / "first_cross.json").exists() else {}
-    o = Image.open(p / "origin.png").convert("RGB") if (p / "origin.png").exists() else None
+    o = None
+    if (p / "anchor_recon.png").exists():          # the unedited input as the SUT sees it (codec reconstruction)
+        o = Image.open(p / "anchor_recon.png").convert("RGB")
+    elif (p / "origin.png").exists():              # older runs: raw photograph, resized + centre-cropped like the codec input
+        raw = Image.open(p / "origin.png").convert("RGB")
+        side = min(raw.size)
+        o = raw.crop(((raw.width - side) // 2, (raw.height - side) // 2, (raw.width + side) // 2, (raw.height + side) // 2))
     c = Image.open(p / "first_cross.png").convert("RGB") if (p / "first_cross.png").exists() else None
     if fail:
         png, j = _closest_pareto(p)

@@ -32,6 +32,7 @@ def make_run(root, name, *, seed_level=100, cross_level=110, text="What is the m
     d = root / name
     d.mkdir(parents=True)
     Image.new("RGB", (32, 32), (seed_level,) * 3).save(d / "origin.png")
+    Image.new("RGB", (32, 32), (seed_level,) * 3).save(d / "anchor_recon.png")   # the reference (codec reconstruction)
     stats = {"prompt_template": prompt, "class_a": "junco", "class_b": "sparrow", "seed_idx": 0,
              "model_id": "x/llava", "seed_selection_mode": "roster",
              "run_meta": {"arm": "a0_directed", "exp_id": "E1", "task": "imagenet_pair", "sut": "llava", "rng_seed": 3},
@@ -46,6 +47,14 @@ def make_run(root, name, *, seed_level=100, cross_level=110, text="What is the m
 
 
 class TestScore:
+    def test_reference_is_saved_recon_not_raw_origin(self, tmp_path):
+        from PIL import Image
+        from mmb.validity.score import anchor_reference
+        Image.new("RGB", (40, 20), (10, 10, 10)).save(tmp_path / "origin.png")       # raw, non-square
+        Image.new("RGB", (32, 32), (200, 200, 200)).save(tmp_path / "anchor_recon.png")
+        im, kind = anchor_reference(tmp_path)
+        assert kind == "saved" and im.size == (32, 32) and im.getpixel((0, 0)) == (200, 200, 200)
+
     def test_one_row_per_crossing_run_with_hand_checked_values(self, tmp_path):
         make_run(tmp_path, "r_cross", seed_level=100, cross_level=110, text="What is the primary subject?")
         make_run(tmp_path, "r_none", crossing=False)                 # never crossed: no row
