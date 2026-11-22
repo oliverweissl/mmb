@@ -110,3 +110,18 @@ def test_validity_and_generalization_main_tables():
                              diff=[-0.4, 0.0], dz=[-1.3, 0.0], p_holm_strata=[0.004, 0.9]))
     g = ex.generalization_main_tex(prim, [dict(task="All", src="qwen", dst="internvl", k=3, n=10, share=0.3, lo=0, hi=1)])
     assert "Transfer rate" in g and r"-40 \effL{}$^{\dagger}$" in g and "30" in g and r"\textbf{90}" in g
+
+
+def test_data_status_partial_until_every_planned_config_has_all_cells(tmp_path):
+    from mmb.analysis import export as ex
+    cfg = tmp_path / "configs" / "generated" / "MAIN"
+    cfg.mkdir(parents=True)
+    for n in ("a", "b"):
+        (cfg / f"{n}.yaml").write_text(f"save_dir: runs/MAIN/{n}\n")
+    rows = [dict(run_dir=str(tmp_path / "runs" / "MAIN" / "a" / f"r{i}"), cell_id=f"c{i}", complete=True) for i in range(3)]
+    df = pd.DataFrame(rows)
+    assert ex.data_status(df, cfg, tmp_path, n_cells=3) == ("partial", 1, 2)          # b has no runs
+    rows += [dict(run_dir=str(tmp_path / "runs" / "MAIN" / "b" / f"r{i}"), cell_id=f"c{i}", complete=i < 2) for i in range(3)]
+    assert ex.data_status(pd.DataFrame(rows), cfg, tmp_path, n_cells=3)[0] == "partial"  # one run of b incomplete
+    rows[-1]["complete"] = True
+    assert ex.data_status(pd.DataFrame(rows), cfg, tmp_path, n_cells=3) == ("complete", 2, 2)

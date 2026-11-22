@@ -459,10 +459,15 @@ def collect(
     runs_root: Path,
     defaults: dict[str, Any] | None = None,
     epsilon: float = EPSILON,
+    require_stats: bool = False,
 ) -> pd.DataFrame:
+    """require_stats skips runs without stats.json: a run that is still being written has a trace only."""
     runs_root = Path(runs_root)
     rows = []
     for rd in find_runs(runs_root):
+        if require_stats and not (rd / "stats.json").is_file():
+            logger.info("skipping %s: run in progress (no stats.json)", rd)
+            continue
         try:
             rows.append(load_run(rd, runs_root, defaults, epsilon))
         except Exception as exc:
@@ -487,13 +492,14 @@ def main(argv: list[str] | None = None) -> int:
                          "stats/config do not provide it; repeatable")
     ap.add_argument("--exp-id", default=None, help="shorthand for --default exp_id=...")
     ap.add_argument("--epsilon", type=float, default=EPSILON)
+    ap.add_argument("--require-stats", action="store_true", help="skip runs that have no stats.json yet (still running)")
     args = ap.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(message)s")
 
     defaults = _parse_kv(args.default)
     if args.exp_id:
         defaults["exp_id"] = args.exp_id
-    df = collect(args.runs_root, defaults, args.epsilon)
+    df = collect(args.runs_root, defaults, args.epsilon, args.require_stats)
     args.out.parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(args.out, index=False)
     n_unknown = int(df["arm"].isna().sum()) if len(df) else 0

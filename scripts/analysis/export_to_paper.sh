@@ -10,7 +10,7 @@ PY="${PYTHON:-python}"
 PAPER="${1:?paper repo}"; ROOT="${2:-runs/MAIN}"; EXP="${3:-MAIN}"
 cd "$(dirname "$0")/../.."
 [ -f "$PAPER/main.tex" ] || { echo "not a paper repo: $PAPER"; exit 2; }
-"$PY" -m mmb.analysis.collect "$ROOT" --out "results/$EXP.csv" --exp-id "$EXP"
+"$PY" -m mmb.analysis.collect "$ROOT" --out "results/$EXP.csv" --exp-id "$EXP" --require-stats
 VAL=()
 if [ "${SKIP_VALIDITY:-0}" = "0" ] || [ -z "${SKIP_VALIDITY:-}" ]; then
   if "$PY" -m mmb.validity.score "$ROOT" --out "results/validity_$EXP.csv" --default exp_id="$EXP" --offline; then
@@ -25,6 +25,8 @@ for f in results/agree_${EXP}_*.csv; do [ -f "$f" ] && AGR+=("$f"); done
 TRF=()
 for f in results/transfer_${EXP}*.csv; do [ -f "$f" ] && TRF+=("$f"); done
 [ ${#TRF[@]} -gt 0 ] && TRF=(--transfer "${TRF[@]}")
-"$PY" -m mmb.analysis.export "results/$EXP.csv" --paper "$PAPER" --runs-root "$ROOT" \
+PLN=()
+[ -d "configs/generated/$EXP" ] && PLN=(--planned "configs/generated/$EXP")
+"$PY" -m mmb.analysis.export "results/$EXP.csv" --paper "$PAPER" --runs-root "$ROOT" "${PLN[@]}" \
   --grid-suts "${GRID_SUTS:-qwen,internvl,ministral}" --n-boot "${N_BOOT:-10000}" "${VAL[@]}" "${AGR[@]}" "${TRF[@]}"
 echo "generated files: $PAPER/generated"
