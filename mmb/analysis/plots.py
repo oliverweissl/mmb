@@ -22,7 +22,7 @@ import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
 
-from mmb.analysis.stats import BOOT_SEED, N_BOOT, curve_with_bands, load_results  # noqa: E402
+from mmb.analysis.stats import BOOT_SEED, N_BOOT, arm_label, curve_with_bands, load_results  # noqa: E402
 
 #: Okabe-Ito palette (colour-blind safe), ordered so neighbouring arms differ strongly.
 PALETTE = ["#0072B2", "#D55E00", "#009E73", "#E69F00", "#CC79A7", "#56B4E9", "#000000", "#999999"]
@@ -64,7 +64,7 @@ def plot_crossing_curve(
         n = int(c["n"].iloc[0])
         ax.fill_between(c["budget"], c["boot_lo"], c["boot_hi"], color=col, alpha=0.18, linewidth=0)
         ax.plot(c["budget"], c["share"], color=col, linestyle=LINESTYLES[i % len(LINESTYLES)],
-                linewidth=1.3 if arm == ref_arm else 1.0, label=f"{arm} (n={n})",
+                linewidth=1.3 if arm == ref_arm else 1.0, label=f"{arm_label(arm)} (n={n})",
                 marker=MARKERS[i % len(MARKERS)], markevery=(i % 5, 12), markersize=3)
     for v in vlines:
         ax.axvline(v, color="0.6", linewidth=0.5, linestyle=":")

@@ -164,7 +164,7 @@ def keyed_summary_tex(frames: list[tuple[list[str], pd.DataFrame]], key_headers:
         for ri, (_, r) in enumerate(s.iterrows()):
             ks = [st.tex_escape(k) if ri == 0 else "" for k in keys]
             body.append(" & ".join(ks + [
-                st.tex_escape(r.arm), str(int(r.n_runs)),
+                st.tex_escape(st.arm_label(r.arm)), str(int(r.n_runs)),
                 f"{int(r.n_crossed)} ({100 * r.share_crossed:.1f}) [{100 * r.wilson_lo:.0f}--{100 * r.wilson_hi:.0f}]",
                 f"{100 * r.share_gen0:.1f}",
                 f"{r.median_first_cross_eval:.0f} [{r.mfc_lo:.0f}--{r.mfc_hi:.0f}]",
@@ -379,7 +379,7 @@ def add_cluster_numbers(num: Numbers, sut: str, task: str, t: pd.DataFrame) -> N
 def cluster_table_tex(t: pd.DataFrame, metrics=pr.DEFAULT_METRICS) -> str:
     rows = []
     for arm in list(dict.fromkeys(t["arm"])):
-        row = [st.tex_escape(arm)]
+        row = [st.tex_escape(st.arm_label(arm))]
         for m in metrics:
             r = t[(t.arm == arm) & (t.metric == m)]
             row.append("--" if r.empty else f"{_ci(r.iloc[0]['diff'], r.iloc[0].diff_lo, r.iloc[0].diff_hi, 2 if m in ('crossed', 'floor', 'hv_edits') else 0)}; {f_p(r.iloc[0].p_holm)}")
@@ -430,7 +430,7 @@ def cost_summary(df: pd.DataFrame, n_boot: int) -> pd.DataFrame:
 def cost_tex(s: pd.DataFrame) -> str:
     rows = []
     for _, r in s.iterrows():
-        rows.append([st.tex_escape(r.arm), str(int(r.n_runs)), f"{r.med_min_edits:.0f} [{r.me_lo:.0f}--{r.me_hi:.0f}]",
+        rows.append([st.tex_escape(st.arm_label(r.arm)), str(int(r.n_runs)), f"{r.med_min_edits:.0f} [{r.me_lo:.0f}--{r.me_hi:.0f}]",
                      f"{r.med_hv:.3f} [{r.hv_lo:.3f}--{r.hv_hi:.3f}]",
                      "--" if pd.isna(r.med_img_mag) else f"{r.med_img_mag:.3f}",
                      "--" if pd.isna(r.med_txt_mag) else f"{r.med_txt_mag:.2f}"])
@@ -481,7 +481,7 @@ def human_tex(s: pd.DataFrame) -> str:
     rows = []
     for _, r in s.iterrows():
         rows.append([st.tex_escape(r["stratum"]), st.tex_escape(TASK_NAMES.get(r["task"], r["task"])),
-                     st.tex_escape(r["arm"] if isinstance(r["arm"], str) and r["arm"] else "unedited anchor"),
+                     st.tex_escape(st.arm_label(r["arm"]) if isinstance(r["arm"], str) and r["arm"] else "unedited anchor"),
                      str(int(r["items"])), f"{r['valid_share']:.2f} [{r['lo']:.2f}, {r['hi']:.2f}]",
                      f"{r['mean_comprehensibility']:.1f}", f"{100 * r['cant_share']:.0f}"])
     return st._booktabs("lllrrrr", ["Stratum", "Task", "Arm", "Items", "Valid share [95\\% CI]", "Comprehens.", "Can't tell (\\%)"], rows)
@@ -521,7 +521,7 @@ def validity_table(vdf: pd.DataFrame) -> str:
     cols = [(c, h) for c, h in cols if c in vdf]
     rows = []
     for arm, g in vdf.groupby("arm"):
-        rows.append([st.tex_escape(arm), str(len(g))] + [f"{g[c].median():.2f}" for c, _ in cols])
+        rows.append([st.tex_escape(st.arm_label(arm)), str(len(g))] + [f"{g[c].median():.2f}" for c, _ in cols])
     return st._booktabs("lr" + "r" * len(cols), ["Arm", "Crossings"] + [h for _, h in cols], rows)
 
 
@@ -562,7 +562,8 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
             cs_ = cost_summary(d, n_boot)
             add_cost_numbers(num, sut, task, cs_)
             if (sut, task) == ("All", "All"):
-                write_tex(tabs / "e1_cluster.tex", cluster_table_tex(ct))
+                if len(ct):
+                    write_tex(tabs / "e1_cluster.tex", cluster_table_tex(ct))
                 write_tex(tabs / "cost.tex", cost_tex(cs_))
                 for a in sorted(arms - {ref}):
                     add_mixed_numbers(num, pr.mixed_model(d.assign(cell_id=d["cluster_id"]), ref, a))
@@ -621,6 +622,12 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
         if len(vdf):
             write_tex(tabs / "validity.tex", validity_table(vdf))
             add_validity_numbers(num, vdf)
+            from mmb.analysis import validity_cost as vc
+            vct = vc.validity_cost(vdf, df, grid_suts)
+            if len(vct):
+                write_tex(tabs / "validity_cost.tex", vc.table_tex(vct, TASK_NAMES))
+                vc.add_numbers(num, vct)
+                write_tex(tabs / "validity_sensitivity.tex", vc.sensitivity_tex(vc.sensitivity(vdf, df, grid_suts)))
 
     if agree:
         adf = load_agree(agree)

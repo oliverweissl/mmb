@@ -266,6 +266,15 @@ def paired_vs_reference(df: pd.DataFrame, ref_arm: str, arms: Sequence[str] | No
 # ---------------------------------------------------------------------------
 
 
+ARM_LABELS = {"a0": "a0 Directed", "a1": "a1 Random", "a3": "a3 GA", "a4": "a4 NSGA-II",
+              "a5": "a5 MIMICRY-obj.", "a8": "a8 Hill climb"}
+
+
+def arm_label(arm: str) -> str:
+    """Short paper label of an arm id ('a0_directed' -> 'a0 Directed'); unknown ids pass through."""
+    return ARM_LABELS.get(str(arm).split("_")[0], str(arm))
+
+
 def tex_escape(s: str) -> str:
     return (str(s).replace("\\", r"\textbackslash{}").replace("_", r"\_").replace("%", r"\%")
             .replace("&", r"\&").replace("#", r"\#"))
@@ -296,7 +305,7 @@ def summary_tex(s: pd.DataFrame) -> str:
     rows = []
     for _, r in s.iterrows():
         rows.append([
-            tex_escape(r.arm), str(int(r.n_runs)),
+            tex_escape(arm_label(r.arm)), str(int(r.n_runs)),
             f"{int(r.n_crossed)} ({100 * r.share_crossed:.1f}) [{100 * r.wilson_lo:.0f}--{100 * r.wilson_hi:.0f}]",
             f"{100 * r.share_gen0:.1f}",
             f"{r.median_first_cross_eval:.0f} [{r.mfc_lo:.0f}--{r.mfc_hi:.0f}]",
@@ -312,7 +321,7 @@ def budgets_tex(curve: pd.DataFrame, budgets: Sequence[int]) -> str:
     rows = []
     for arm in arms:
         c = curve[curve["arm"] == arm].set_index("budget")
-        rows.append([tex_escape(arm)] + [
+        rows.append([tex_escape(arm_label(arm))] + [
             f"{100 * c.loc[b, 'share']:.1f} [{100 * c.loc[b, 'boot_lo']:.0f}--{100 * c.loc[b, 'boot_hi']:.0f}]"
             for b in budgets])
     return _booktabs("l" + "r" * len(budgets), ["Arm"] + [f"{b}" for b in budgets], rows)
@@ -324,7 +333,7 @@ def paired_tex(p: pd.DataFrame) -> str:
     for _, r in p.iterrows():
         eff = f"{r.effect:+.2f}"
         extra = f" ({int(r.b_ref_only)}/{int(r.c_arm_only)})" if r.metric == "crossed" else ""
-        rows.append([tex_escape(r.arm), names[r.metric], str(int(r.n_pairs)), _fmt_p(r.p), _fmt_p(r.p_holm),
+        rows.append([tex_escape(arm_label(r.arm)), names[r.metric], str(int(r.n_pairs)), _fmt_p(r.p), _fmt_p(r.p_holm),
                      eff + extra])
     return _booktabs("llrrrr", ["Arm", "Metric", "Pairs", "$p$", r"$p_{\text{Holm}}$",
                                 r"Effect (arm $-$ ref)"], rows)
