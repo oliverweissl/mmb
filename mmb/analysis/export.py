@@ -206,7 +206,7 @@ def validity_main_tex(vct: pd.DataFrame, task_names: dict) -> str:
     """RQ3: per task and arm the image change (LPIPS against the unedited input) and the text change (visible
     character edit fraction) at the first crossing; best value bold within each task."""
     rows = []
-    for task in dict.fromkeys(vct["task"]):
+    for task in [t for t in dict.fromkeys(vct["task"]) if t in task_names]:     # the pooled "All" block is not shown
         g = vct[vct["task"] == task]
         lp = [float(v) for v in g["med_lpips"]]
         tx = [100 * float(v) for v in g["med_vis_char"]]
