@@ -496,9 +496,13 @@ class VLMBoundaryTester(SMOO):
         #    for trace metadata.
         target_class = seed_target_class(seed)
         prompt_template = effective_prompt_template(seed, self._config)
+        # Words the text operators must not touch (e.g. the object noun of a
+        # POPE question: replacing it asks a different question).
+        protect = (seed.metadata or {}).get("protect_words") or None
         self._manipulator.prepare(
             seed.image,
             prompt_template,
+            exclude_words=frozenset(w.lower() for w in protect) if protect else None,
             target_class=target_class,
             origin_class=seed.class_a,
         )

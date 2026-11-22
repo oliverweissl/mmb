@@ -154,3 +154,8 @@ Let D = the pooled a0 minus a1 crossing-share difference with its cell-cluster i
 
 ### 10.5 Change log of this section
 - 2026-11-20 17:39 UTC: created.
+
+## Change 2026-11-22 03:10 UTC — POPE: protect the object word (validity of the second task)
+- Observation (first 8 POPE configs, before any arm comparison was looked at): every arm crossed on ~100% of POPE cells, mostly in generation 0 (median 2 evaluations). Inspection of first crossings showed the text operators replacing the object noun ("Is there a dog in the image?" -> "Is there a flaw in the pictkuer?"): a different question, so the answer change is not a boundary of the SUT.
+- Decision: for POPE the object noun(s) and "image" are protected from text edits (seed metadata protect_words, passed to the text operators' exclude_words; verified: object kept in 300/300 random genotypes vs 109/300 before). ImageNet prompts contain no class words and are unchanged.
+- Consequence: all POPE runs made before this change are archived (runs/archive/MAIN_pope_unprotected_20261122) and are re-run with the same cells, seeds and budget. Balanced design is preserved (every POPE run uses the protected operator).
