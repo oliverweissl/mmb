@@ -26,6 +26,7 @@ import numpy as np
 import pandas as pd
 
 from mmb.analysis import stats as st
+from mmb.analysis import tablefmt as tf
 
 logger = logging.getLogger(__name__)
 
@@ -123,7 +124,8 @@ def paired_table(df: pd.DataFrame, ref: str, metrics: Sequence[str] = DEFAULT_ME
             rows.append(dict(arm=arm, ref=ref, metric=metric, n_pairs=n, n_cells=pf["cluster"].nunique(),
                              ref_value=ref_v, arm_value=arm_v, diff=point, diff_lo=lo, diff_hi=hi,
                              diff_name="mean cell difference" if kind == "binary" else "median cell difference",
-                             p=p, effect=eff, effect_name=eff_name, direction=direction, **extra))
+                             p=p, effect=eff, effect_name=eff_name, direction=direction,
+                             dz=tf.cohens_dz(pf["arm"].to_numpy(float) - pf["ref"].to_numpy(float)), **extra))
     out = pd.DataFrame(rows)
     if len(out):
         out["p_holm"] = np.nan

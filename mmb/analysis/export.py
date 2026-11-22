@@ -176,12 +176,13 @@ def keyed_summary_tex(frames: list[tuple[list[str], pd.DataFrame]], key_headers:
 
 
 def arm_main_tex(summary: pd.DataFrame, cost: pd.DataFrame, paired: pd.DataFrame | None) -> str:
-    """RQ1 and RQ2: per arm the crossing rate, the model calls to the first crossing and the edits at the crossing.
-    A marker after a value means the arm differs significantly from the directed arm (paired test, Holm)."""
-    p = {}
+    """RQ1 and RQ2: per arm the crossing rate, the model calls to the first crossing and the edits at the crossing,
+    each followed by one effect-size cell against the directed arm (pp for the crossing rate, Cohen's d_z for calls
+    and edits; magnitude bullet; dagger when significant after Holm). The directed arm is the reference."""
+    eff = {}
     if paired is not None and len(paired):
         for r in paired.itertuples():
-            p[(r.arm, r.metric)] = r.p_holm
+            eff[(r.arm, r.metric)] = (r._asdict())
     cost = cost.set_index("arm")
     arms = [a for a in summary["arm"]]
     cols = {
@@ -189,17 +190,19 @@ def arm_main_tex(summary: pd.DataFrame, cost: pd.DataFrame, paired: pd.DataFrame
         "first_cross_eval": [float(v) for v in summary.median_first_cross_eval],
         "min_edits": [float(cost.loc[a, "med_min_edits"]) if a in cost.index else float("nan") for a in arms],
     }
-    digits = {"crossed": 0, "first_cross_eval": 0, "min_edits": 0}
-    cells = {}
+    cells, effects = {}, {}
     for k, vals in cols.items():
-        text = ["--" if pd.isna(v) else f"{v:.{digits[k]}f}" for v in vals]
-        bolded = tf.bold_best(text, vals, k, text)
-        cells[k] = [tf.mark(c, p.get((a, k), float("nan"))) for c, a in zip(bolded, arms)]
-    rows = [[st.tex_escape(st.arm_label(a)), str(int(n))] + [cells[k][i] for k in cols]
+        text = ["--" if pd.isna(v) else f"{v:.0f}" for v in vals]
+        cells[k] = tf.bold_best(text, vals, k, text)
+        effects[k] = []
+        for a in arms:
+            e = eff.get((a, k))
+            effects[k].append("--" if e is None else tf.effect_cell(_effect_text(e, k), e["dz"], e["p_holm"]))
+    rows = [[st.tex_escape(st.arm_label(a)), str(int(n))] + sum(([cells[k][i], effects[k][i]] for k in cols), [])
             for i, (a, n) in enumerate(zip(arms, summary.n_runs))]
-    return st._booktabs("lrrrr", ["Arm", "Runs", tf.head(r"Crossing rate (\%)", "crossed"),
-                                  tf.head("Model calls to first crossing", "first_cross_eval"),
-                                  tf.head("Edits at crossing", "min_edits")], rows)
+    return st._booktabs("lrrrrrrr", ["Arm", "Runs", tf.head(r"Crossing rate (\%)", "crossed"), r"vs directed (pp)",
+                                     tf.head("Model calls to first crossing", "first_cross_eval"), r"vs directed ($d$)",
+                                     tf.head("Edits at crossing", "min_edits"), r"vs directed ($d$)"], rows)
 
 
 def validity_main_tex(vct: pd.DataFrame, task_names: dict) -> str:
@@ -221,8 +224,8 @@ def validity_main_tex(vct: pd.DataFrame, task_names: dict) -> str:
 
 
 def generalization_main_tex(primary: pd.DataFrame, transfer_rows: list[dict] | None = None) -> str:
-    """RQ4: crossing rate of the directed and the random arm per model and task (marker on the random arm when it
-    differs significantly, Holm), and the transfer rate of the crossings found on each model."""
+    """RQ4: crossing rate of the directed and the random arm per model and task with the effect size of the
+    difference (pp, bullet, dagger), and the transfer rate of the crossings found on each model."""
     suts = [s for s in SUT_NAMES if s in set(primary["sut"])]
     tasks = [t for t in ("imagenet", "pope") if t in set(primary["task"])]
     rate = {}
@@ -238,21 +241,21 @@ def generalization_main_tex(primary: pd.DataFrame, transfer_rows: list[dict] | N
         for t in tasks:
             q = primary[(primary["sut"] == s) & (primary["task"] == t)]
             if q.empty:
-                row += ["--", "--"]
+                row += ["--", "--", "--"]
                 continue
             r = q.iloc[0]
             d, a = f"{100 * r.ref_value:.0f}", f"{100 * r.arm_value:.0f}"
             cells = tf.bold_best([d, a], [r.ref_value, r.arm_value], "crossed", [d, a])
-            row += [cells[0], tf.mark(cells[1], r.p_holm_strata)]
+            row += [cells[0], cells[1], tf.effect_cell(f"{100 * r['diff']:+.0f}", r["dz"], r.p_holm_strata)]
         if rate:
             row.append(f"{rate[s]:.0f}" if s in rate else "--")
         rows.append(row)
     header = ["Model"]
     for t in tasks:
-        header += [tf.head(rf"{TASK_NAMES.get(t, t)}: directed (\%)", "crossed"), tf.head(r"random (\%)", "crossed")]
+        header += [tf.head(rf"{TASK_NAMES.get(t, t)}: directed (\%)", "crossed"), tf.head(r"random (\%)", "crossed"), r"effect (pp)"]
     if rate:
         header.append(r"Transfer rate (\%)")
-    return st._booktabs("l" + "rr" * len(tasks) + ("r" if rate else ""), header, rows)
+    return st._booktabs("l" + "rrr" * len(tasks) + ("r" if rate else ""), header, rows)
 
 
 def wrapped(tabular: str) -> str:
@@ -457,33 +460,34 @@ def add_cluster_numbers(num: Numbers, sut: str, task: str, t: pd.DataFrame) -> N
             num.add(["ETwoA", f] + tail, v, f"{what}; {d}")
 
 
+def _effect_text(row, metric: str) -> str:
+    """Effect size of a paired comparison: percentage points for the crossing rate, d_z otherwise."""
+    if metric == "crossed":
+        return "--" if pd.isna(row["diff"]) else f"{100 * row['diff']:+.0f}"
+    return "--" if pd.isna(row["dz"]) else f"{row['dz']:+.2f}"
+
+
 def cluster_table_tex(t: pd.DataFrame, metrics=pr.DEFAULT_METRICS) -> str:
-    """Paired cell-level differences against the directed arm: one value per comparison with its Holm marker."""
+    """Paired differences against the directed arm: one effect size per comparison (bullet for the magnitude,
+    dagger when significant after Holm)."""
     rows = []
     for arm in list(dict.fromkeys(t["arm"])):
         row = [st.tex_escape(st.arm_label(arm))]
         for m in metrics:
             r = t[(t.arm == arm) & (t.metric == m)]
-            if r.empty:
-                row.append("--")
-                continue
-            r0 = r.iloc[0]
-            cell = tf.mark("--" if pd.isna(r0["diff"]) else f"{r0['diff']:+.{2 if m in ('crossed', 'floor', 'hv_edits') else 0}f}", r0.p_holm)
-            row.append(tf.bold(cell, tf.favourable(r0["diff"], m) and tf.stars(r0.p_holm) != ""))
+            row.append("--" if r.empty else tf.effect_cell(_effect_text(r.iloc[0], m), r.iloc[0]["dz"], r.iloc[0].p_holm))
         rows.append(row)
     return st._booktabs("l" + "r" * len(metrics), ["Arm vs directed"] + [tf.head(METRIC_HEAD.get(m, m), m) for m in metrics], rows)
 
 
 def primary_tex(t: pd.DataFrame, short: str = "a1") -> str:
-    """Crossing rate of the directed and the compared arm per stratum; a marker on the compared arm when the
-    Holm-corrected paired test finds a significant difference."""
+    """Crossing rate of the directed and the compared arm per stratum, and the effect size of the difference in
+    percentage points with its magnitude bullet and dagger (Holm across strata)."""
     rows = []
     for _, r in t.iterrows():
-        sig = tf.stars(r.p_holm_strata) != ""
         rows.append([st.tex_escape(TASK_NAMES.get(r.task, r.task)), st.tex_escape(SUT_NAMES.get(r.sut, r.sut)), str(int(r.n_pairs)),
-                     tf.bold(f_pct(r.ref_value), sig and r.ref_value > r.arm_value),
-                     tf.bold(tf.mark(f_pct(r.arm_value), r.p_holm_strata), sig and r.arm_value > r.ref_value),
-                     f"{100 * r['diff']:+.1f}"])
+                     f"{100 * r.ref_value:.0f}", f"{100 * r.arm_value:.0f}",
+                     tf.effect_cell(f"{100 * r['diff']:+.0f}", r["dz"], r.p_holm_strata)])
     return st._booktabs("llrrrr", ["Task", "SUT", "Pairs", tf.head("Directed crossing rate (\\%)", "crossed"),
                                    tf.head(f"{st.arm_label(short)} crossing rate (\\%)", "crossed"),
                                    f"Difference (pp)"], rows)

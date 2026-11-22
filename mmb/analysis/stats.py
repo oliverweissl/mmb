@@ -243,7 +243,8 @@ def paired_vs_reference(df: pd.DataFrame, ref_arm: str, arms: Sequence[str] | No
         rows.append(dict(arm=arm, ref=ref_arm, metric="crossed", n_pairs=n,
                          ref_value=float(m["crossed_ref"].mean()), arm_value=float(m["crossed_arm"].mean()),
                          p=mc["p"], effect=mc["diff"], effect_name="share diff",
-                         b_ref_only=mc["b_ref_only"], c_arm_only=mc["c_arm_only"]))
+                         b_ref_only=mc["b_ref_only"], c_arm_only=mc["c_arm_only"],
+                         dz=tf.cohens_dz(m["crossed_arm"].astype(float) - m["crossed_ref"].astype(float))))
         for metric, ref_v, arm_v in (
             ("first_cross_eval", m["first_cross_eval_ref"], m["first_cross_eval_arm"]),
             ("floor", np.log10(m["floor_nats_ref"].clip(lower=1e-300)),
@@ -253,7 +254,8 @@ def paired_vs_reference(df: pd.DataFrame, ref_arm: str, arms: Sequence[str] | No
             rows.append(dict(arm=arm, ref=ref_arm, metric=metric, n_pairs=n,
                              ref_value=float(np.median(ref_v)), arm_value=float(np.median(arm_v)),
                              p=w["p"], effect=w["r_rb"], effect_name="rank-biserial r",
-                             n_nonzero=w["n_nonzero"], median_diff=w["median_diff"]))
+                             n_nonzero=w["n_nonzero"], median_diff=w["median_diff"],
+                             dz=tf.cohens_dz(arm_v.to_numpy(float) - ref_v.to_numpy(float))))
     out = pd.DataFrame(rows)
     if len(out):
         out["p_holm"] = np.nan
@@ -348,13 +350,13 @@ def budgets_tex(curve: pd.DataFrame, budgets: Sequence[int]) -> str:
 
 
 def paired_tex(p: pd.DataFrame) -> str:
-    """One effect size per comparison, followed by its Holm significance marker (explained once in the text)."""
-    names = {"crossed": "Crossing rate", "first_cross_eval": "Model calls to first crossing", "floor": "Closest approach"}
+    """One effect size per comparison with its magnitude bullet and dagger (explained once in the text): the
+    difference in percentage points for the crossing rate, Cohen's d_z for the other metrics."""
+    names = {"crossed": "Crossing rate (pp)", "first_cross_eval": "Model calls to first crossing", "floor": "Closest approach"}
     rows = []
     for _, r in p.iterrows():
-        eff = f"{r.effect:+.2f}" + (f" ({int(r.b_ref_only)}/{int(r.c_arm_only)})" if r.metric == "crossed" else "")
-        rows.append([tex_escape(arm_label(r.arm)), tf.head(names[r.metric], r.metric), str(int(r.n_pairs)),
-                     tf.bold(tf.mark(eff, r.p_holm), tf.favourable(r.effect, r.metric) and tf.stars(r.p_holm) != "")])
+        text = f"{100 * r.effect:+.0f}" if r.metric == "crossed" else f"{r.dz:+.2f}"
+        rows.append([tex_escape(arm_label(r.arm)), names[r.metric], str(int(r.n_pairs)), tf.effect_cell(text, r.dz, r.p_holm)])
     return _booktabs("llrr", ["Arm", "Metric", "Pairs", r"Effect (arm $-$ directed)"], rows)
 
 
