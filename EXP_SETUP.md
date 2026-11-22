@@ -94,3 +94,4 @@ could not be verified here (no OpenVINO stack). Thesis-era numbers are therefore
 - 2026-11-22 03:10: POPE object-word protection (METHODOLOGY change 2026-11-22). Archived 8 POPE configs' runs; POPE configs regenerated; retry pass re-runs L1 POPE.
 - 2026-11-22 00:38-03:10: no crashes after E-core pinning.
 - 2026-11-22 08:10: archived L1 imagenet/internvl/a0 s0 (run before the diagnostic magnitude columns existed); the retry pass re-runs it so every arm has diag_* magnitudes.
+- 2026-11-22 10:34: queue restarted as `mmb-queue2` (scripts/run_queue_passes.sh, 3 passes, from L1) so the missing seed-0 directed/random configs run first; the DeepJanus layer was renamed L10 -> L9z so it sorts after L9. Order: L1 remainder, L2-L8, L9, L9z.
