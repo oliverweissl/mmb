@@ -592,9 +592,9 @@ def add_failure_numbers(num: Numbers, minimal: pd.DataFrame) -> None:
     for r in ft.summary(minimal).itertuples():
         tail = [{"directed": "Directed", "others": "Others"}[r.group], camel(r.sut), camel(r.task)]
         d = f"{r.group} arms, {r.sut}, {r.task}"
-        num.add(["EFail", "N"] + tail, str(int(r.n)), "first crossings submitted to the minimiser; " + d)
-        num.add(["EFail", "Verified"] + tail, f_pct(r.verified_share, 0), "share re-verified as a crossing (%); " + d)
-        num.add(["EFail", "MedGenesFirst"] + tail, f_num(r.med_genes_first, 0), "median changed genes of the first crossing; " + d)
+        num.add(["EFail", "N"] + tail, str(int(r.n)), "smallest crossings submitted to the minimiser; " + d)
+        num.add(["EFail", "Verified"] + tail, f_pct(r.verified_share, 0), "share of the smallest (final minimal) crossings that verify by single-item re-scoring (%); " + d)
+        num.add(["EFail", "MedGenesFirst"] + tail, f_num(r.med_genes_first, 0), "median changed genes of the smallest crossing in the trace; " + d)
         num.add(["EFail", "MedGenesMin"] + tail, f_num(r.med_genes_min, 0), "median changed genes after the reduction; " + d)
         num.add(["EFail", "MedImgMin"] + tail, f_num(r.med_img_min, 0), "median image genes of the minimal flip; " + d)
         num.add(["EFail", "MedTxtMin"] + tail, f_num(r.med_txt_min, 0), "median text genes of the minimal flip; " + d)

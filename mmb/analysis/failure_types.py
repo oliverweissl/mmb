@@ -1,6 +1,6 @@
 """Failure types of minimal flipping perturbations (contraction study; RQ3).
 
-Input: the CSVs of scripts/minimize_crossings.py (one row per run with a robust first crossing; columns run_dir, task, sut,
+Input: the CSVs of scripts/minimize_crossings.py (one row per run, starting from the run's smallest crossing in the trace (for MMBA its final minimal crossing); columns run_dir, task, sut,
 arm, rng_seed, verified, n_genes_first, n_genes_min, img_genes_min, txt_genes_min, channel, txt_zero_width, txt_homoglyph,
 txt_typo_words, txt_synonym_words, txt_visible_identical, ...). A row is classified only if it verified, i.e. the stored
 crossing was re-scored as a robust crossing and then reduced to a 1-minimal flipping perturbation.
