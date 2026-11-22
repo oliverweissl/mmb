@@ -7,7 +7,7 @@ logdir=$1; stall=${2:-20}
 while true; do
   pids=$(pgrep -f "mmb.runners.run_boundary_test" || true)
   if [ -n "$pids" ]; then
-    newest=$(ls -t "$logdir"/*.log 2>/dev/null | head -1)
+    newest=$(ls -t "$logdir"/../*/*.log "$logdir"/*.log 2>/dev/null | head -1)
     age=$(( ( $(date +%s) - $(stat -c %Y "$newest") ) / 60 ))
     if [ "$age" -ge "$stall" ]; then
       echo "[$(date +%F' '%T)] watchdog: no log output for ${age} min, killing $pids"

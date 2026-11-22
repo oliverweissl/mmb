@@ -59,3 +59,24 @@ def test_deepjanus_runs_and_builds_archive():
         opt.update()
     assert opt.archive_size >= 1
     assert len(opt.best_candidates) >= 1
+
+
+def test_mmba_crosses_then_minimises_to_key_edits():
+    from mmb.optimizer.mmba import MMBAOptimizer
+    key = [3, 7, 11]
+    opt = MMBAOptimizer(np.full(40, 5), 1, pop_size=30, seed=0)
+
+    def margin(x):
+        # crosses (m <= -0.15) only when all key genes are edited; other edits add a little
+        return 4.0 - 1.5 * (x[:, key] != 0).sum(1) + 0.01 * (x != 0).sum(1)
+
+    for _ in range(50):
+        x = opt.get_x_current()
+        m = margin(x)
+        opt.observe_margin(m)
+        opt.assign_fitness([np.abs(m)])
+        opt.update()
+    best = opt.best_candidates[0].solution
+    assert margin(best[None])[0] <= -0.15
+    assert set(np.nonzero(best)[0]) == set(key)      # 1-minimal: exactly the key edits
+    assert opt.phase == 2

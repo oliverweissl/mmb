@@ -873,6 +873,11 @@ class VLMBoundaryTester(SMOO):
                     cache_hits.append(self._sut.last_call_cached)
             logits = torch.stack(logits_list)
         self._maybe_save_first_cross(gen, genotypes, images, texts, logits, target_classes)
+        if hasattr(self._optimizer, "observe_margin") and getattr(self, "_anchor_eval", None):
+            ia_, ib_ = target_classes
+            sign0 = float(np.sign(self._anchor_eval["anchor_g"]) or 1.0)
+            self._optimizer.observe_margin(
+                (sign0 * (logits[:, ia_] - logits[:, ib_])).float().cpu().numpy())
 
         # -- Tensor conversion for MatrixDistance -------------------------
         # Skipped when modality=text_only (no MatrixDistance criterion);

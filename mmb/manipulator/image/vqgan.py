@@ -440,7 +440,9 @@ class VQModel(nn.Module):
             (z_q, loss, (None, None, indices)) where
             z_q is (B, embed_dim, Hq, Wq) and indices is (B*Hq*Wq,).
         """
-        h = self.encoder(x)
+        # Cast to the weights' dtype: another thread loading a SUT can switch torch's
+        # default dtype to bf16 while tensors for this model are being created.
+        h = self.encoder(x.to(self.quant_conv.weight.dtype))
         h = self.quant_conv(h)
         return self.quantize(h)
 
@@ -453,5 +455,5 @@ class VQModel(nn.Module):
         Returns:
             (B, 3, H, W) in approximately [-1, 1].
         """
-        z_q = self.post_quant_conv(z_q)
+        z_q = self.post_quant_conv(z_q.to(self.post_quant_conv.weight.dtype))
         return self.decoder(z_q)
