@@ -19,6 +19,7 @@ ARMS = {
     "a6_text_only": {"modality": "text_only"},
     "a7_image_only": {"modality": "image_only"},
     "a8_hillclimb": {"optimizer": {"algorithm": "hillclimb", "proximity_only": True}},
+    "a9_deepjanus": {"optimizer": {"algorithm": "deepjanus", "proximity_only": True}},
 }
 
 
