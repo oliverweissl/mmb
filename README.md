@@ -72,6 +72,20 @@ scripts/validity/run_validity.sh runs/E1 E1          # E7: descriptive validity 
 
 K and the number of seeds are fixed after a speed benchmark (EXP_SETUP.md section 3). E3 and E4 use the same commands with `--exp E3` / `--exp E4`.
 
+## Reproducing the results
+
+The results are computed from the run directories under `runs/MAIN` (one directory per run, written by the search). Everything after the runs is CPU only.
+
+1. Collect the runs into tables: `python -m mmb.analysis.collect runs/MAIN --out results/MAIN.csv --exp-id MAIN`, and the validity proxies of the crossing inputs with `python -m mmb.validity.score runs/MAIN --out results/validity_MAIN.csv --default exp_id=MAIN --offline` (the proxy models are loaded from the local cache).
+2. Work through the notebooks in `notebooks/`, one per research question, in this order:
+   - `00_collect.ipynb`: builds or reloads `results/MAIN.csv` and `results/validity_MAIN.csv` and checks completeness.
+   - `rq1_effectiveness.ipynb`: crossing shares, paired tests against the directed arm, the primary comparison, the secondary comparisons.
+   - `rq2_efficiency.ipynb`: crossing curve over the budget, cost of the crossing input, wall-clock time.
+   - `rq3_validity.ipynb`: validity proxies, the a-priori thresholds, the visible text view.
+   - `rq4_generalization.ipynb`: per-SUT and per-task strata, transfer, agreement with greedy generation, predictors of hardness.
+   Each notebook only calls functions of `mmb.analysis` and `mmb.validity`; it contains no analysis code of its own. They are committed without outputs. Run one with `jupyter nbconvert --to notebook --execute notebooks/rq1_effectiveness.ipynb --output-dir /tmp` (needs `pip install nbconvert ipykernel`, and the repository on the Python path). `N_BOOT` at the top of each notebook defaults to 2000 for speed; the paper uses 10000.
+3. The tables, figures and numbers of the paper come from one command: `PYTHON=python scripts/analysis/export_to_paper.sh <paper_repo>`. It writes `<paper_repo>/generated/` from the same functions.
+
 ## What a run produces
 
 `runs/<exp>/<task>/<sut>/<arm>/s<seed>/<name>_seed_<cell>_<ts>/`:
