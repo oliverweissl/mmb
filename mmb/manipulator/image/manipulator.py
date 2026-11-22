@@ -180,6 +180,13 @@ class ImageConfig:
     knn_cache_path: Path | None = None
     cone_filter: ConeFilterConfig = field(default_factory=ConeFilterConfig)
     stylegan: StyleGANConfig = field(default_factory=StyleGANConfig)
+    # Region edits (2026-11-22): region_block > 0 switches the VQGAN genotype from
+    # one gene per patch to one gene per region of region_block x region_block
+    # patches; a gene value k >= 1 shifts EVERY patch of the region to its
+    # region_levels[k-1]-th nearest codeword (coherent regional edit with a
+    # strength level); 0 keeps the region. Cone filter and patch_ratio are ignored.
+    region_block: int = 0
+    region_levels: tuple[int, ...] = (1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192)
 
     def __post_init__(self) -> None:
         if self.backend not in ("vqgan_codebook", "stylegan_xl"):
@@ -378,6 +385,23 @@ class ImageManipulator:
                 candidate_strategy="cone_filter",
             )
 
+        if self._config.region_block > 0:
+            b = self._config.region_block
+            H, W = grid.indices.shape
+            anchors = np.array([(r, c) for r in range(0, H, b) for c in range(0, W, b)], dtype=np.intp)
+            L = len(self._config.region_levels)
+            selection = PatchSelection(
+                positions=anchors,
+                candidates=tuple(np.arange(1, L + 1, dtype=np.int64) for _ in range(len(anchors))),
+                original_codes=np.zeros(len(anchors), dtype=np.int64),
+            )
+            return ManipulationContext(
+                original_grid=grid,
+                selection=selection,
+                target_class=target_class,
+                candidate_strategy="region",
+            )
+
         selection = build_patch_selection(
             grid=grid,
             knn=self._knn,
@@ -439,10 +463,17 @@ class ImageManipulator:
         """
         if len(genotypes) == 0:
             return []
-        grids = [
-            apply_genotype(ctx.original_grid, ctx.selection, g)
-            for g in genotypes
-        ]
+        if ctx.candidate_strategy == "region":
+            grids = [
+                apply_region_genotype(ctx.original_grid, ctx.selection, g, self._knn,
+                                      self._config.region_block, self._config.region_levels)
+                for g in genotypes
+            ]
+        else:
+            grids = [
+                apply_genotype(ctx.original_grid, ctx.selection, g)
+                for g in genotypes
+            ]
         return self._codec.decode_batch(
             grids, chunk_size=self._config.decode_batch_size
         )
@@ -486,3 +517,30 @@ def apply_genotype(
     )
 
     return grid.replace(rows, cols, codes)
+
+
+def apply_region_genotype(
+    grid: CodeGrid,
+    selection: PatchSelection,
+    genotype: NDArray[np.int64],
+    knn: NDArray[np.int64],
+    block: int,
+    levels: tuple[int, ...],
+) -> CodeGrid:
+    """Region edit: gene i = 0 keeps region i; k >= 1 replaces every code in the
+    block x block region anchored at selection.positions[i] by its
+    levels[k-1]-th nearest codeword (KNN rank, 1 = nearest)."""
+    active = np.nonzero(genotype)[0]
+    if len(active) == 0:
+        return grid
+    H, W = grid.indices.shape
+    rows, cols, codes = [], [], []
+    for i in active:
+        r0, c0 = selection.positions[i]
+        rank = levels[int(genotype[i]) - 1]
+        for r in range(r0, min(r0 + block, H)):
+            for c in range(c0, min(c0 + block, W)):
+                orig = grid.indices[r, c]
+                rows.append(r); cols.append(c)
+                codes.append(knn[orig][min(rank, knn.shape[1]) - 1])
+    return grid.replace(np.array(rows), np.array(cols), np.array(codes, dtype=np.int64))
