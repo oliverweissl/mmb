@@ -82,12 +82,20 @@ def objective_text(d: pd.DataFrame, arm: str, tx: float = TXT_MAX) -> dict:
                 obj_cons_lo=c_all["lo"], obj_cons_hi=c_all["hi"])
 
 
+def _view(vdf: pd.DataFrame, view: str) -> pd.DataFrame:
+    """Rows of one crossing view: 'first' (the first crossing input) or 'min_edit' (the search's own minimal-edit
+    crossing among the archive members). Frames without a 'view' column hold first crossings only."""
+    if "view" not in vdf:
+        return vdf if view == "first" else vdf.iloc[0:0]
+    return vdf[vdf["view"] == view]
+
+
 def validity_cost(vdf: pd.DataFrame, df: pd.DataFrame, grid_suts=None, lp: float = LPIPS_MAX,
-                  tx: float = TXT_MAX) -> pd.DataFrame:
+                  tx: float = TXT_MAX, view: str = "first") -> pd.DataFrame:
     """Rows per (task, arm) with task 'All' pooling the tasks; df is the results CSV (denominators)."""
     if "img_lpips" not in vdf or "txt_minilm_cos" not in vdf:
         return pd.DataFrame()                       # proxies not computed for this tree
-    v = prepare(vdf)
+    v = prepare(_view(vdf, view))
     d = df
     if grid_suts:
         v, d = v[v["sut"].isin(grid_suts)], d[d["sut"].isin(grid_suts)]
@@ -102,13 +110,13 @@ def validity_cost(vdf: pd.DataFrame, df: pd.DataFrame, grid_suts=None, lp: float
     return pd.DataFrame(rows)
 
 
-def sensitivity(vdf: pd.DataFrame, df: pd.DataFrame, grid_suts=None) -> pd.DataFrame:
+def sensitivity(vdf: pd.DataFrame, df: pd.DataFrame, grid_suts=None, view: str = "first") -> pd.DataFrame:
     """Share of crossings under both cut-offs for other values (labelled sensitivity, not a result)."""
     rows = []
     for lp in SENS_LPIPS:
         for tx in SENS_TXT:
-            t = validity_cost(vdf, df, grid_suts, lp, tx)
-            t = t[t["task"] == "All"]
+            t = validity_cost(vdf, df, grid_suts, lp, tx, view)
+            t = t[t["task"] == "All"] if len(t) else t
             for _, r in t.iterrows():
                 rows.append(dict(arm=r["arm"], lpips=lp, txt=tx, both_share=r["both_share"], cons_share=r["cons_share"]))
     return pd.DataFrame(rows)
@@ -122,7 +130,7 @@ def _pct(r, k):
     return "--" if pd.isna(r[f"{k}_share"]) else f"{100 * r[f'{k}_share']:.0f}"
 
 
-def table_tex(t: pd.DataFrame, task_names: dict) -> str:
+def table_tex(t: pd.DataFrame, task_names: dict, objective: bool = True) -> str:
     rows = []
     for task in dict.fromkeys(t["task"]):
         for i, (_, r) in enumerate(t[t["task"] == task].iterrows()):
@@ -130,12 +138,14 @@ def table_tex(t: pd.DataFrame, task_names: dict) -> str:
                          f"{int(r['n_cross'])}/{int(r['n_runs'])}", _f(r["med_lpips"]), _f(r["med_txt"]),
                          _pct(r, "img"), _pct(r, "txt"), _pct(r, "both"),
                          "--" if pd.isna(r["cons_share"]) else f"{100 * r['cons_share']:.0f} [{100 * r['cons_lo']:.0f}--{100 * r['cons_hi']:.0f}]",
-                         _f(r["rho_eval_lpips"]), _f(r["rho_eval_txt"]),
-                         _f(r["obj_med"], 3), _pct(r, "obj_txt")])
+                         _f(r["rho_eval_lpips"]), _f(r["rho_eval_txt"])]
+                        + ([_f(r["obj_med"], 3), _pct(r, "obj_txt")] if objective else []))
     header = ["Task", "Arm", "Crossed", "Med. LPIPS", "Med. text dist.", r"LPIPS $<0.2$ (\%)", r"text $<0.1$ (\%)",
               "both (\\%)", "Both, of all runs (\\%) [95\\% CI]", r"$\rho$(evals, LPIPS)", r"$\rho$(evals, text)",
-              "Cheapest crossing: text cos.", r"$<0.1$ (\%)"]
-    return st._booktabs("llrrrrrrrrrrr", header, rows)
+              "Minimal-edit crossing: text cos.", r"$<0.1$ (\%)"]
+    if not objective:
+        header = header[:-2]
+    return st._booktabs("llrrrrrrrrr" + ("rr" if objective else ""), header, rows)
 
 
 def sensitivity_tex(s: pd.DataFrame) -> str:
@@ -148,24 +158,24 @@ def sensitivity_tex(s: pd.DataFrame) -> str:
     return st._booktabs("rr" + "r" * len(arms), ["LPIPS $<$", "text $<$"] + [st.tex_escape(st.arm_label(a)) for a in arms], rows)
 
 
-def add_numbers(num, t: pd.DataFrame) -> None:
+def add_numbers(num, t: pd.DataFrame, family: str = "EValid") -> None:
     """Macros EValid<Metric><Arm><Task> (task All pools the tasks)."""
     from mmb.analysis.export import arm_short, camel, f_num, f_pct
     for _, r in t.iterrows():
         tail = [arm_short(r["arm"]), camel(r["task"])]
-        d = f"{r['arm']}, {r['task']} (descriptive thresholds fixed a priori)"
-        num.add(["EValid", "Runs"] + tail, str(int(r["n_runs"])), "runs of the arm; " + d)
-        num.add(["EValid", "Crossed"] + tail, str(int(r["n_cross"])), "runs with a validity-scored first crossing; " + d)
-        num.add(["EValid", "MedLpips"] + tail, f_num(r["med_lpips"], 2), "median LPIPS at the first crossing; " + d)
-        num.add(["EValid", "MedTxt"] + tail, f_num(r["med_txt"], 2), "median 1 - MiniLM cosine at the first crossing; " + d)
+        d = f"{r['arm']}, {r['task']}, {'minimal-edit crossing' if family == 'EValidMin' else 'first crossing'} (descriptive thresholds fixed a priori)"
+        num.add([family, "Runs"] + tail, str(int(r["n_runs"])), "runs of the arm; " + d)
+        num.add([family, "Crossed"] + tail, str(int(r["n_cross"])), "runs with a validity-scored first crossing; " + d)
+        num.add([family, "MedLpips"] + tail, f_num(r["med_lpips"], 2), "median LPIPS at the first crossing; " + d)
+        num.add([family, "MedTxt"] + tail, f_num(r["med_txt"], 2), "median 1 - MiniLM cosine at the first crossing; " + d)
         for key, what in (("img", "LPIPS < 0.2"), ("txt", "text distance < 0.1"), ("both", "both thresholds")):
-            num.add(["EValid", "Share", key] + tail, f_pct(r[f"{key}_share"], 0), f"% of crossings under {what}; " + d)
-        num.add(["EValid", "ConsShare"] + tail, f_pct(r["cons_share"], 0), "% of ALL runs that crossed under both thresholds; " + d)
-        num.add(["EValid", "ConsCi"] + tail, f"[{100 * r['cons_lo']:.0f}--{100 * r['cons_hi']:.0f}]", "Wilson 95% interval; " + d)
-        num.add(["EValid", "RhoEvalLpips"] + tail, f_num(r["rho_eval_lpips"], 2, True), "Spearman, evaluations to first crossing vs LPIPS; " + d)
-        num.add(["EValid", "RhoEvalTxt"] + tail, f_num(r["rho_eval_txt"], 2, True), "Spearman, evaluations to first crossing vs text distance; " + d)
-        num.add(["EValid", "ObjTxtMed"] + tail, f_num(r["obj_med"], 3), "median objective text cosine at the cheapest crossing (post hoc addition); " + d)
-        num.add(["EValid", "ObjTxtShare"] + tail, f_pct(r["obj_txt_share"], 0), "% of crossed runs whose cheapest crossing has objective text cosine < 0.1 (post hoc addition); " + d)
+            num.add([family, "Share", key] + tail, f_pct(r[f"{key}_share"], 0), f"% of crossings under {what}; " + d)
+        num.add([family, "ConsShare"] + tail, f_pct(r["cons_share"], 0), "% of ALL runs that crossed under both thresholds; " + d)
+        num.add([family, "ConsCi"] + tail, f"[{100 * r['cons_lo']:.0f}--{100 * r['cons_hi']:.0f}]", "Wilson 95% interval; " + d)
+        num.add([family, "RhoEvalLpips"] + tail, f_num(r["rho_eval_lpips"], 2, True), "Spearman, evaluations to first crossing vs LPIPS; " + d)
+        num.add([family, "RhoEvalTxt"] + tail, f_num(r["rho_eval_txt"], 2, True), "Spearman, evaluations to first crossing vs text distance; " + d)
+        num.add([family, "ObjTxtMed"] + tail, f_num(r["obj_med"], 3), "median text cosine of the search's own minimal-edit crossing (post hoc addition); " + d)
+        num.add([family, "ObjTxtShare"] + tail, f_pct(r["obj_txt_share"], 0), "% of crossed runs whose minimal-edit crossing has text cosine < 0.1 (post hoc addition); " + d)
 
 
 def main() -> None:

@@ -37,7 +37,7 @@ CROSS_COLUMNS = ["first_cross_eval", "first_cross_gen", "g_at_cross"]
 IMAGE_COLUMNS = ["img_clip_cos", "img_dino_cos", "img_lpips", "img_ssim"]
 TEXT_COLUMNS = ["txt_minilm_cos", "txt_word_edit", "question_preserved", "question_keyword_sim",
                 "question_content_kept", "txt_edited"]
-COLUMNS = ID_COLUMNS + CROSS_COLUMNS + ["img_ref"] + IMAGE_COLUMNS + TEXT_COLUMNS
+COLUMNS = ID_COLUMNS + ["view", "n_edits"] + CROSS_COLUMNS + ["img_ref"] + IMAGE_COLUMNS + TEXT_COLUMNS
 
 
 def find_crossing_runs(root: Path) -> list[Path]:
@@ -88,6 +88,58 @@ def anchor_reference(run_dir: Path) -> tuple[Image.Image, str]:
     return _RECON_CACHE[key], "computed"
 
 
+def min_edit_crossing(run_dir: Path) -> dict | None:
+    """The search's own minimal-edit crossing among the saved archive (Pareto) members: the crossing evaluation
+    with the fewest active genes whose genotype is a saved Pareto member (those are the ones with an image on
+    disk); ties by the smaller text cosine distance, then image RMS, then the earlier evaluation. None when no
+    archive member crosses. Returns {png, text, eval_idx, n_edits}."""
+    import numpy as np
+    import pyarrow.parquet as pq
+    from mmb.analysis.collect import evaluate_trace
+
+    run_dir = Path(run_dir)
+    stats = json.loads((run_dir / "stats.json").read_text())
+    names = set(pq.read_schema(run_dir / "trace.parquet").names)
+    want = [c for c in ("generation", "individual", "genotype", "logprobs", "decoded_text", "diag_img_rms",
+                        "diag_txt_cosdist") if c in names]
+    df = pd.read_parquet(run_dir / "trace.parquet", columns=want).sort_values(["generation", "individual"], kind="stable")
+    df = df.drop_duplicates(["generation", "individual"], keep="last").reset_index(drop=True)
+    if not len(df):
+        return None
+    tc = stats.get("target_classes") or (0, 1)
+    lp = np.vstack([np.asarray(v, dtype=float) for v in df["logprobs"]])
+    anchor_row = next((i for i, gt in enumerate(df["genotype"]) if not np.any(np.asarray(gt))), None)
+    cats = stats.get("categories") or []
+    a = stats.get("anchor_argmax")
+    anchor_argmax = cats.index(a) if isinstance(a, str) and a in cats else (a if isinstance(a, int) else None)
+    res = evaluate_trace(lp, df["generation"].to_numpy(), target_classes=(int(tc[0]), int(tc[1])), anchor_row=anchor_row,
+                         anchor_g=stats.get("anchor_g"), anchor_argmax=anchor_argmax)
+    cross = np.asarray(res["_crossing"], dtype=bool)
+    arch = {}
+    for jf in sorted(run_dir.glob("pareto_*.json")):
+        try:
+            j = json.loads(jf.read_text())
+        except ValueError:
+            continue
+        if jf.with_suffix(".png").exists():
+            arch[tuple(int(x) for x in j["genotype"])] = (jf.with_suffix(".png"), j.get("text"))
+    best = None
+    for i in np.flatnonzero(cross):
+        key = tuple(int(x) for x in df["genotype"].iloc[i])
+        if key not in arch:
+            continue
+        n_edits = int(np.count_nonzero(key))
+        tx = float(df["diag_txt_cosdist"].iloc[i]) if "diag_txt_cosdist" in df else 0.0
+        im = float(df["diag_img_rms"].iloc[i]) if "diag_img_rms" in df else 0.0
+        rank = (n_edits, tx if tx == tx else 9.0, im if im == im else 9.0, int(i))
+        if best is None or rank < best[0]:
+            best = (rank, i, key)
+    if best is None:
+        return None
+    png, text = arch[best[2]]
+    return dict(png=png, text=text or str(df["decoded_text"].iloc[best[1]]), eval_idx=int(best[1]), n_edits=best[0][0])
+
+
 def score_run(run_dir: Path, models: ProxyModels, root: Path | None = None, defaults: dict | None = None) -> dict:
     run_dir = Path(run_dir)
     stats = json.loads((run_dir / "stats.json").read_text())
@@ -102,9 +154,22 @@ def score_run(run_dir: Path, models: ProxyModels, root: Path | None = None, defa
         "first_cross_eval": fc.get("eval_idx"), "first_cross_gen": fc.get("generation"),
         "g_at_cross": fc.get("g"), "img_ref": ref_kind,
     }
+    row["view"], row["n_edits"] = "first", None
     row.update(image_proxies(models, seed_img, cross_img))
     row.update(text_proxies(models, original_question(stats), str(fc.get("text", "")), object_word(stats, fc)))
-    return {c: row.get(c) for c in COLUMNS}
+    out = [{c: row.get(c) for c in COLUMNS}]
+    try:
+        me = min_edit_crossing(run_dir)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("no minimal-edit crossing for %s: %s", run_dir, exc)
+        me = None
+    if me is not None:
+        r2 = dict(row, view="min_edit", first_cross_gen=None, g_at_cross=None)
+        r2.update(image_proxies(models, seed_img, Image.open(me["png"]).convert("RGB")))
+        r2.update(text_proxies(models, original_question(stats), str(me["text"]), object_word(stats, fc)))
+        r2["n_edits"] = me["n_edits"]
+        out.append({c: r2.get(c) for c in COLUMNS})
+    return out
 
 
 def score_runs(root: Path, models: ProxyModels | None = None, defaults: dict | None = None) -> pd.DataFrame:
@@ -112,7 +177,7 @@ def score_runs(root: Path, models: ProxyModels | None = None, defaults: dict | N
     rows = []
     for rd in find_crossing_runs(Path(root)):
         try:
-            rows.append(score_run(rd, models, Path(root), defaults))
+            rows.extend(score_run(rd, models, Path(root), defaults))
         except Exception as exc:  # noqa: BLE001
             logger.warning("skipping %s: %s", rd, exc)
     return pd.DataFrame(rows, columns=COLUMNS)

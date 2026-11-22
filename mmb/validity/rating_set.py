@@ -131,10 +131,10 @@ def build(results: Path, out: Path, *, n: int = 120, controls: int = 24, arms=DE
         ca, cb = stats.get("class_a"), stats.get("class_b")
         q0 = meta.get("prompt_template") or stats.get("prompt_template") or ""
         if stratum == "edited":
-            src, text = run_dir / "first_cross.png", fc.get("text") or q0
-        else:
-            src, text = run_dir / "origin.png", q0
-        img = Image.open(src).convert("RGB")
+            img, text = Image.open(run_dir / "first_cross.png").convert("RGB"), fc.get("text") or q0
+        else:   # anchors are shown as the SUT sees them: the codec reconstruction, not the raw photograph
+            from mmb.validity.score import anchor_reference
+            img, text = anchor_reference(run_dir)[0], q0
         if img.size != size:
             img = img.resize(size, Image.BICUBIC)
         img.save(out / "items" / f"{item_id}.png")

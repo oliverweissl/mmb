@@ -46,6 +46,33 @@ def make_run(root, name, *, seed_level=100, cross_level=110, text="What is the m
     return d
 
 
+class TestMinEdit:
+    def test_fewest_genes_among_crossing_archive_members(self, tmp_path):
+        import json as _json
+        import numpy as np, pandas as pd
+        from PIL import Image
+        from mmb.validity.score import min_edit_crossing
+        gts = [[0, 0, 0, 0], [3, 1, 2, 0], [1, 0, 0, 0], [2, 2, 0, 0]]
+        lps = [[-1.0, -3.0], [-3.0, -1.0], [-3.0, -1.5], [-0.5, -2.0]]      # anchor g=+2: rows 1, 2 cross
+        pd.DataFrame(dict(generation=[0, 0, 0, 0], individual=[0, 1, 2, 3], genotype=gts, logprobs=lps,
+                          decoded_text=["q", "q1", "q2", "q3"])).to_parquet(tmp_path / "trace.parquet")
+        (tmp_path / "stats.json").write_text(_json.dumps(dict(anchor_g=2.0, target_classes=[0, 1], categories=["a", "b"], anchor_argmax="a")))
+        for k, gt in ((0, gts[1]), (1, gts[2]), (2, gts[3])):
+            (tmp_path / f"pareto_{k}.json").write_text(_json.dumps(dict(genotype=gt, fitness=[0.1, 0.1, 0.1], text=f"t{k}")))
+            Image.new("RGB", (8, 8)).save(tmp_path / f"pareto_{k}.png")
+        me = min_edit_crossing(tmp_path)
+        assert me["n_edits"] == 1 and me["text"] == "t1" and me["eval_idx"] == 2
+
+    def test_none_without_archive_crossing(self, tmp_path):
+        import json as _json
+        import pandas as pd
+        from mmb.validity.score import min_edit_crossing
+        pd.DataFrame(dict(generation=[0], individual=[0], genotype=[[0, 0]], logprobs=[[-1.0, -3.0]],
+                          decoded_text=["q"])).to_parquet(tmp_path / "trace.parquet")
+        (tmp_path / "stats.json").write_text(_json.dumps(dict(anchor_g=2.0, target_classes=[0, 1])))
+        assert min_edit_crossing(tmp_path) is None
+
+
 class TestScore:
     def test_reference_is_saved_recon_not_raw_origin(self, tmp_path):
         from PIL import Image

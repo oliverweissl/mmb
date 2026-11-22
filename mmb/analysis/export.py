@@ -51,7 +51,7 @@ PRIMARY_ARMS = ("a0_directed", "a1_random_tiered")
 SUT_NAMES = {"qwen": "Qwen3.5-4B (bf16)", "internvl": "InternVL3.5-4B (bf16)",
              "ministral": "Ministral-3-3B (bf16)", "llava": "LLaVA-NeXT-7B (NF4)"}
 TASK_NAMES = {"imagenet": "ImageNet class pairs", "pope": "POPE yes/no"}
-WRAP = "\\begin{adjustbox}{max width=\\columnwidth}%s\\end{adjustbox}\n"
+WRAP = "\\begin{adjustbox}{max width=\\linewidth}%s\\end{adjustbox}\n"
 
 
 # ---------------------------------------------------------------------------
@@ -387,20 +387,20 @@ def cluster_table_tex(t: pd.DataFrame, metrics=pr.DEFAULT_METRICS) -> str:
     return st._booktabs("l" + "l" * len(metrics), ["Arm vs a0"] + [METRIC_HEAD.get(m, m) for m in metrics], rows)
 
 
-def primary_tex(t: pd.DataFrame) -> str:
+def primary_tex(t: pd.DataFrame, short: str = "a1") -> str:
     rows = []
     for _, r in t.iterrows():
         rows.append([st.tex_escape(TASK_NAMES.get(r.task, r.task)), st.tex_escape(SUT_NAMES.get(r.sut, r.sut)),
                      str(int(r.n_pairs)), f_pct(r.ref_value), f_pct(r.arm_value),
                      _ci(100 * r["diff"], 100 * r.diff_lo, 100 * r.diff_hi, 1), f_p(r.p), f_p(r.p_holm_strata)])
-    return st._booktabs("llrrrrrr", ["Task", "SUT", "Pairs", "a0 (\\%)", "a1 (\\%)", "a1 $-$ a0 (pp) [95\\% CI]", "$p$",
+    return st._booktabs("llrrrrrr", ["Task", "SUT", "Pairs", "a0 (\\%)", f"{short} (\\%)", f"{short} $-$ a0 (pp) [95\\% CI]", "$p$",
                                      r"$p_{\text{Holm}}$"], rows)
 
 
-def add_primary_numbers(num: Numbers, t: pd.DataFrame) -> None:
+def add_primary_numbers(num: Numbers, t: pd.DataFrame, family: str = "EPrimary", short: str = "a1") -> None:
     for _, r in t.iterrows():
         tail = [camel(r.sut), camel(r.task)]
-        d = f"primary comparison a1 vs a0 crossing share, {r.sut}, {r.task}"
+        d = f"{'primary' if family == 'EPrimary' else 'secondary'} comparison {short} vs a0 crossing share, {r.sut}, {r.task}"
         for f, v, what in (("Pairs", str(int(r.n_pairs)), "matched pairs"),
                            ("RefShare", f_pct(r.ref_value), "a0 crossing share (%)"),
                            ("ArmShare", f_pct(r.arm_value), "a1 crossing share (%)"),
@@ -409,7 +409,7 @@ def add_primary_numbers(num: Numbers, t: pd.DataFrame) -> None:
                            ("DiffHi", f_num(100 * r.diff_hi, 1, True), "cell-cluster bootstrap 95% CI upper (pp)"),
                            ("P", f_p(r.p), "exact McNemar p"),
                            ("PHolm", f_p(r.p_holm_strata), "Holm-adjusted across strata")):
-            num.add(["EPrimary", f] + tail, v, f"{what}; {d}")
+            num.add([family, f] + tail, v, f"{what}; {d}")
 
 
 def cost_summary(df: pd.DataFrame, n_boot: int) -> pd.DataFrame:
@@ -585,6 +585,12 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
     if len(pt):
         write_tex(tabs / "primary.tex", primary_tex(pt))
         add_primary_numbers(num, pt)
+    # secondary (declared after the primary plan, METHODOLOGY 2026-11-22 08:40 UTC): a7 (image only) vs a0 on matched pairs
+    if "a7_image_only" in set(df["arm"]):
+        st7 = pr.primary_table(df, ref, "a7_image_only", n_boot)
+        if len(st7):
+            write_tex(tabs / "secondary_a7.tex", primary_tex(st7, "a7"))
+            add_primary_numbers(num, st7, "ESecondary", "a7")
 
     prim = df[df["arm"].isin(PRIMARY_ARMS)]
     # E3: a0 and a1 per SUT on ImageNet (continuity SUT included)
@@ -620,14 +626,17 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
     if validity is not None and Path(validity).exists():
         vdf = pd.read_csv(validity)
         if len(vdf):
-            write_tex(tabs / "validity.tex", validity_table(vdf))
-            add_validity_numbers(num, vdf)
+            v1 = vdf[vdf["view"] == "first"] if "view" in vdf else vdf
+            write_tex(tabs / "validity.tex", validity_table(v1))
+            add_validity_numbers(num, v1)
             from mmb.analysis import validity_cost as vc
-            vct = vc.validity_cost(vdf, df, grid_suts)
-            if len(vct):
-                write_tex(tabs / "validity_cost.tex", vc.table_tex(vct, TASK_NAMES))
-                vc.add_numbers(num, vct)
-                write_tex(tabs / "validity_sensitivity.tex", vc.sensitivity_tex(vc.sensitivity(vdf, df, grid_suts)))
+            for view, stem, fam in (("first", "validity_cost", "EValid"), ("min_edit", "validity_cost_min", "EValidMin")):
+                vct = vc.validity_cost(vdf, df, grid_suts, view=view)
+                if len(vct):
+                    write_tex(tabs / f"{stem}.tex", vc.table_tex(vct, TASK_NAMES, objective=(view == "first")))
+                    vc.add_numbers(num, vct, fam)
+                    write_tex(tabs / f"{stem.replace('cost', 'sensitivity')}.tex",
+                              vc.sensitivity_tex(vc.sensitivity(vdf, df, grid_suts, view)))
 
     if agree:
         adf = load_agree(agree)
