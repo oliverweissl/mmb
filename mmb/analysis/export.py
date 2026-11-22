@@ -222,7 +222,7 @@ def arm_main_tex(summary: pd.DataFrame, cost: pd.DataFrame, paired: pd.DataFrame
             for i, (a, n) in enumerate(zip(arms, summary.n_runs))]
     return st._booktabs("lrrrrrrr", ["Arm", "Runs", tf.head(r"Crossing rate (\%)", "crossed"), r"vs directed (pp)",
                                      tf.head("Model calls to first crossing", "first_cross_eval"), r"vs directed ($d$)",
-                                     tf.head("Edits at crossing", "min_edits_x"), r"vs directed ($d$)"], rows)
+                                     tf.head("Minimal edits", "min_edits_x"), r"vs directed ($d$)"], rows)
 
 
 def validity_main_tex(vct: pd.DataFrame, task_names: dict) -> str:
@@ -459,8 +459,8 @@ PAIRED_METRIC_NAMES = {"crossed": "Crossed", "first_cross_eval": "Evals", "floor
                       "hv_edits": "HvEdits", "hv_mag": "HvMag", "img_mag": "ImgMag", "txt_mag": "TxtMag",
                       "chardist": "CharDist"}
 METRIC_HEAD = {"crossed": "Crossing rate", "first_cross_eval": "Model calls to first crossing", "floor": "Closest approach",
-               "min_edits": "Edits, censored at all genes", "min_edits_x": "Edits at crossing",
-               "edits_img_x": "Image edits at crossing", "edits_txt_x": "Text edits at crossing", "hv_edits": "Edit hypervolume"}
+               "min_edits": "Edits, censored at all genes", "min_edits_x": "Minimal edits",
+               "edits_img_x": "Image edits, minimal crossing", "edits_txt_x": "Text edits, minimal crossing", "hv_edits": "Edit hypervolume"}
 
 
 def _ci(v: float, lo: float, hi: float, d: int = 2) -> str:
@@ -560,7 +560,7 @@ def cost_tex(s: pd.DataFrame) -> str:
     cols = [col(s.med_edits_x, 0, "min_edits_x"), col(s.med_edits_img, 0, "edits_img_x"), col(s.med_edits_txt, 0, "edits_txt_x"),
             col(s.med_min_edits, 0, "min_edits"), col(s.med_hv, 3, "hv_edits"), col(s.med_img_mag, 3, "img_mag"), col(s.med_txt_mag, 2, "txt_mag")]
     rows = [[st.tex_escape(st.arm_label(r.arm)), str(int(r.n_runs)), str(int(r.n_crossed))] + [cols[j][i] for j in range(7)] for i, r in enumerate(s.itertuples())]
-    return st._booktabs("lrrrrrrrrr", ["Arm", "Runs", "Crossed", tf.head("Edits at crossing", "min_edits_x"),
+    return st._booktabs("lrrrrrrrrr", ["Arm", "Runs", "Crossed", tf.head("Minimal edits", "min_edits_x"),
                                    tf.head("Image edits", "edits_img_x"), tf.head("Text edits", "edits_txt_x"),
                                    tf.head("Edits, censored at all genes", "min_edits"), tf.head("Edit hypervolume", "hv_edits"),
                                    tf.head("Smallest image change (RMS)", "img_mag"), tf.head("Smallest text change (cosine)", "txt_mag")], rows)
