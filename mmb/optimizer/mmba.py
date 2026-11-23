@@ -29,7 +29,9 @@ from .discrete_pymoo_optimizer import DiscretePymooOptimizer
 
 class MMBAOptimizer(DiscretePymooOptimizer):
     def __init__(self, *args, tau: float = 0.0, elite_frac: float = 0.34,
-                 explore_frac: float = 0.2, move_frac: float = 0.25, **kwargs) -> None:
+                 explore_frac: float = 0.2, move_frac: float = 0.25, guided: bool = True,
+                 **kwargs) -> None:
+        self._guided = guided  # False (ablation): Phase 1 draws fresh samples only, no margin guidance
         kwargs["algorithm"] = "random"  # only used to draw generation 0 from the sampler
         self._tau = tau
         self._elite_frac = elite_frac
@@ -127,6 +129,8 @@ class MMBAOptimizer(DiscretePymooOptimizer):
             self._best_candidates = [OptimizerCandidate(solution=self._best[0].copy(),
                                                         fitness=[float(self._best[1])] * self._num_objectives)]
             nxt = self._shrink_candidates(self._pop_size)
+        elif not self._guided:
+            nxt = self._fresh(self._pop_size)
         else:
             order = np.argsort(m)
             mu = max(1, int(round(self._pop_size * self._elite_frac)))

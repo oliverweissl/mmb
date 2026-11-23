@@ -80,3 +80,14 @@ def test_mmba_crosses_then_minimises_to_key_edits():
     assert margin(best[None])[0] < 0
     assert set(np.nonzero(best)[0]) == set(key)      # 1-minimal: exactly the key edits
     assert opt.phase == 2
+
+
+def test_mmba_unguided_still_minimises():
+    from mmb.optimizer.mmba import MMBAOptimizer
+    opt = MMBAOptimizer(np.full(40, 5), 1, pop_size=30, seed=1, guided=False)
+    key = [3, 7, 11]
+    for _ in range(80):
+        x = opt.get_x_current()
+        m = 4.0 - 1.5 * (x[:, key] != 0).sum(1) + 0.01 * (x != 0).sum(1)
+        opt.observe_margin(m); opt.assign_fitness([np.abs(m)]); opt.update()
+    assert opt.phase == 2

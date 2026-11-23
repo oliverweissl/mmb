@@ -276,9 +276,11 @@ def _build_tester(
     if exp.optimizer.algorithm == "deepjanus":
         from mmb.optimizer.deepjanus import DeepJanusOptimizer
         opt_cls, alg = DeepJanusOptimizer, "nsga2"
-    elif exp.optimizer.algorithm == "mmba":
+    elif exp.optimizer.algorithm in ("mmba", "mmba_unguided"):
+        from functools import partial
         from mmb.optimizer.mmba import MMBAOptimizer
-        opt_cls, alg = MMBAOptimizer, "random"
+        opt_cls = partial(MMBAOptimizer, guided=exp.optimizer.algorithm == "mmba")
+        alg = "random"
     else:
         opt_cls, alg = DiscretePymooOptimizer, exp.optimizer.algorithm
     optimizer = opt_cls(
