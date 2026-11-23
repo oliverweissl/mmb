@@ -874,6 +874,10 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
         if len(mdf):
             write_tex(tabs / "arm_failure.tex", mtp.table_tex(mdf))
             mtp.add_numbers(num, mdf, camel, f_num, f_pct)
+            from mmb.analysis import hardness as hd
+            hdf = hd.frame(df, mdf)
+            if len(hdf):
+                hd.add_numbers(num, hd.correlations(hdf))
     elif minimal:
         from mmb.analysis import failure_types as ft
         mdf = ft.load_minimal(minimal)
