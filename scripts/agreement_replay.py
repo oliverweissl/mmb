@@ -1,6 +1,6 @@
 """E-agree: does the teacher-forced argmax agree with the SUT's greedy answer?
 
-For every run with a first crossing, replay the crossing input (first_cross.png +
+For every run with a minimal crossing, replay it (min_cross.png +
 full prompt) and the anchor (VQGAN reconstruction of origin.png + original prompt)
 through greedy generation, and map the free-text answer to the candidate set.
 
@@ -50,19 +50,19 @@ def main() -> None:
     sc = create_scorer(model_id, a.device, enable_thinking=False, load_in_4bit=int8)
     codec = VQGANCodec(load_vqgan("f8-16384"), device=a.device)
     rows = []
-    dirs = sorted(p.parent for p in a.runs.rglob("first_cross.json"))
+    dirs = sorted(p.parent for p in a.runs.rglob("min_cross.json"))
     for d in dirs:
         st = json.loads((d / "stats.json").read_text())
         if st.get("run_meta", {}).get("sut") not in (None, a.sut):
             continue
-        fc = json.loads((d / "first_cross.json").read_text())
+        fc = json.loads((d / "min_cross.json").read_text())
         cands = list(st["categories"])
         suffix = st["answer_format"].format(categories=", ".join(cands))
         prompt0 = (st.get("seed_metadata") or {}).get("prompt_template") or st["prompt_template"]
         anchor_img = codec.decode(codec.encode(Image.open(d / "origin.png").convert("RGB")))
         out = {"run_dir": str(d), **{k: st.get("run_meta", {}).get(k) for k in ("exp_id", "task", "sut", "arm", "rng_seed")}}
         for tag, img, prompt in (("anchor", anchor_img, prompt0 + suffix),
-                                 ("cross", Image.open(d / "first_cross.png").convert("RGB"), fc["full_prompt"])):
+                                 ("cross", Image.open(d / "min_cross.png").convert("RGB"), fc["full_prompt"])):
             ans, _, _ = sc.generate(img, prompt)
             res = dict(zip(cands, sc.score_batch_tensor([img], [prompt], cands)[0].tolist()))
             tf = max(res, key=res.get)

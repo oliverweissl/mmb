@@ -1,6 +1,6 @@
 """Transfer of crossings across SUTs (W2 / E10c).
 
-For every run with a first crossing, replay the crossing input (first_cross.png + full
+For every run with a minimal crossing, replay it (min_cross.png + full
 prompt) and the anchor (VQGAN reconstruction of origin.png + original prompt) on every
 OTHER SUT, scored alone (full-sequence teacher forcing). A crossing transfers if, on the
 destination SUT, the crossing input has the opposite sign of g to the destination's anchor.
@@ -41,7 +41,7 @@ def main() -> None:
     from mmb.sut.scorer import create_scorer
 
     items = []
-    for fc in sorted(a.runs.rglob("first_cross.json")):
+    for fc in sorted(a.runs.rglob("min_cross.json")):
         d = fc.parent
         st = json.loads((d / "stats.json").read_text())
         meta = st.get("run_meta", {})
@@ -66,7 +66,7 @@ def main() -> None:
                 continue
             c = it["cands"]
             ga = sc.score_batch_tensor([anchors[it["run_dir"]]], [it["anchor_prompt"]], c)[0]
-            gx = sc.score_batch_tensor([Image.open(Path(it["run_dir"]) / "first_cross.png").convert("RGB")],
+            gx = sc.score_batch_tensor([Image.open(Path(it["run_dir"]) / "min_cross.png").convert("RGB")],
                                        [it["cross_prompt"]], c)[0]
             g_a, g_x = float(ga[0] - ga[1]), float(gx[0] - gx[1])
             rows.append({k: it[k] for k in ("run_dir", "src_sut", "task", "arm", "rng_seed")}
