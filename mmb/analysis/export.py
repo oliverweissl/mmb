@@ -833,6 +833,13 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
             for task in sorted(set(tdf["task"])):
                 write_tex(tabs / f"transfer_{task}.tex", tr.matrix_tex(trows, task, SUT_NAMES))
             add_transfer_numbers(num, trows)
+            if "arm" in tdf:
+                for arm_name, tg in tdf.groupby("arm"):
+                    for task_name, tt in [("All", tg)] + [(t, tg[tg["task"] == t]) for t in sorted(set(tg["task"]))]:
+                        m, n = tr.mean_off_diagonal(tr.matrix_rows(tt), "All")
+                        if n:
+                            num.add(["ETransferArm", "Share", arm_short(arm_name), camel(task_name)], f_pct(m), f"pooled share of crossings flipping another SUT (%), arm {arm_name}, {task_name}")
+                            num.add(["ETransferArm", "N", arm_short(arm_name), camel(task_name)], str(n), f"crossing-destination pairs behind it, arm {arm_name}, {task_name}")
 
     if len(pt):
         write_tex(tabs / "generalization_main.tex", generalization_main_tex(pt, trows))
