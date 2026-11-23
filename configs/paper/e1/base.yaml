@@ -25,6 +25,7 @@ seeds:
       directions: both
 image:
   backend: vqgan_codebook
+  region_block: 4
   n_candidates: 16383
   cone_filter:
     enabled: true

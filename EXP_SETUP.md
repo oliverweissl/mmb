@@ -99,3 +99,4 @@ could not be verified here (no OpenVINO stack). Thesis-era numbers are therefore
 - 2026-11-22 12:40: MAIN v2 (minimal text profile + protected key words, METHODOLOGY 12:40). v1 runs archived; configs regenerated (100); queue restarted as `mmb-queue3` from L1.
 - 2026-11-22 16:37: pending directed (a0) and image-only (a7) configs renamed with prefix Z so they run after all baselines; the directed search is under redesign (pending decision), and baseline runs remain valid whatever the redesign is.
 - 2026-11-22 21:40: MMBA redesign frozen (METHODOLOGY 21:40). a0 configs renamed A* (run first), a7 configs Z* (run last); old v2 a0/a7 runs archived. Pilot runs in runs/PILOT (held-out cells).
+- 2026-11-23 01:10: MAIN v3 (region edits; METHODOLOGY 01:10). v2 runs archived to runs/archive/MAIN_v2_patch; configs regenerated (100, prefixes A/B/C give the order); queue restarted as `mmb-queue8`.
