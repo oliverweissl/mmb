@@ -3,11 +3,12 @@
 Metrics (defined once in the paper's Metrics paragraph), all per run and summarised by the median over runs unless noted:
 
 * CR      share of runs that found a crossing (%), higher is better
-* LPIPS_bp image distance across the boundary pair: LPIPS between the minimal crossing and its non-crossing partner
+* LPIPS   image distance of the minimal crossing to the original input (the unedited seed at the model's input resolution)
+* LPIPS_bp image distance across the boundary pair (a sentence in the paper, not a table column): LPIPS between the minimal crossing and its non-crossing partner
           (the same input minus one edit); shown when at least MIN_PARTNERS partners exist
 * d_edit  visible character edit distance of the question at the minimal crossing against the unedited question, in
           percent of its characters (NFKC, zero-width characters removed, homoglyphs mapped)
-* d_sem   semantic distance of the question at the minimal crossing: 1 - MiniLM cosine
+* d_sem   semantic distance of the visible question at the minimal crossing: 1 - MiniLM cosine of the normalised strings (d_edit = 0 implies d_sem = 0)
 * calls   model calls to the first crossing (runs without a crossing are censored at the budget) and to the minimal crossing
 * runtime wall-clock seconds per run
 
@@ -39,7 +40,7 @@ VARIANT_KEYS = {"a0": "Full", "x1": "Unguided", "a7": "ImageOnly", "a6": "TextOn
 CR = ("CR", "crossed", r"CR (\%)", 0)
 SC = ("S", "stealth", r"$S$", 2)
 SR = ("SCR", "scr", r"SCR (\%)", 0)
-LP = ("lpips_bp", "lpips_bp", r"LPIPS$_\mathrm{bp}$", 2)
+LP = ("lpips", "lpips", "LPIPS", 2)
 DE = ("d_edit", "d_edit", r"$d_\mathrm{edit}$ (\%)", 0)
 DS = ("d_sem", "d_sem", r"$d_\mathrm{sem}$", 2)
 FC = ("first_cross_eval", "first_cross_eval", "Calls to first", 0)
@@ -85,7 +86,8 @@ def metrics(d: pd.DataFrame, v: pd.DataFrame, v_first: pd.DataFrame | None = Non
     out["SCR"] = out["CR"] * out["S"] if not pd.isna(out["S"]) else np.nan
     out["n_cross_scored"] = len(vv)
     out["d_edit"] = 100.0 * float(pd.to_numeric(vv["vis_char_dist"], errors="coerce").median()) if len(vv) and "vis_char_dist" in vv else np.nan
-    out["d_sem"] = float(vv["txt_dist"].median()) if len(vv) else np.nan
+    out["lpips"] = float(pd.to_numeric(vv["img_lpips"], errors="coerce").median()) if len(vv) and "img_lpips" in vv else np.nan
+    out["d_sem"] = float((1.0 - pd.to_numeric(vv["vis_minilm_cos"], errors="coerce")).median()) if len(vv) and "vis_minilm_cos" in vv else np.nan   # visible text, like d_edit
     hp = _truthy(vv["has_partner"]) if len(vv) and "has_partner" in vv else pd.Series(dtype=bool)
     out["n_partner"] = int(hp.sum())
     out["lpips_bp"] = float(pd.to_numeric(vv.loc[hp, "pair_lpips"], errors="coerce").median()) if hp.sum() >= MIN_PARTNERS else np.nan
@@ -177,7 +179,7 @@ def ablation_tex(a: pd.DataFrame) -> str:
 
 
 def add_ablation_numbers(num, a: pd.DataFrame) -> None:
-    names = {"CR": "Cr", "S": "S", "SCR": "Scr", "lpips_bp": "LpipsBp", "d_edit": "DEdit", "d_sem": "DSem", "first_cross_eval": "Calls", "wall": "Wall", "n_runs": "Runs"}
+    names = {"CR": "Cr", "S": "S", "SCR": "Scr", "lpips": "Lpips", "lpips_bp": "LpipsBp", "d_edit": "DEdit", "d_sem": "DSem", "first_cross_eval": "Calls", "wall": "Wall", "n_runs": "Runs"}
     for _, r in a.iterrows():
         key = VARIANT_KEYS.get(r["pre"], r["pre"])
         if r["label"] == "w/o Phase 2":
@@ -189,7 +191,7 @@ def add_ablation_numbers(num, a: pd.DataFrame) -> None:
                 num.add(["EAbl", nm, key], f"{r[col]:.{0 if col in ('CR', 'SCR', 'first_cross_eval', 'wall', 'n_runs', 'd_edit') else 2}f}", f"ablation variant {r['label']}, pooled over SUTs and tasks, seed 0: {col}")
 
 
-POOL_NAMES = {"CR": "Cr", "S": "S", "SCR": "Scr", "lpips_bp": "LpipsBp", "d_edit": "DEdit", "d_sem": "DSem",
+POOL_NAMES = {"lpips": "Lpips", "CR": "Cr", "S": "S", "SCR": "Scr", "lpips_bp": "LpipsBp", "d_edit": "DEdit", "d_sem": "DSem",
               "first_cross_eval": "Calls", "min_cross_eval": "CallsMin", "wall": "Wall", "n_partner": "NPartner"}
 
 

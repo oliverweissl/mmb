@@ -87,7 +87,7 @@ def test_rq_tables_blocks_bold_and_partner_rule():
     rows = []
     for t in ("imagenet", "pope"):
         for a, cr, lp, np_ in (("a0_directed", 90.0, 0.05, 20), ("a1_random_tiered", 50.0, 0.08, 2)):
-            rows.append(dict(task=t, sut="qwen", arm=a, n_runs=10, CR=cr, S=0.9, SCR=cr * 0.9, lpips_bp=lp if np_ >= 3 else float("nan"), n_partner=np_,
+            rows.append(dict(task=t, sut="qwen", arm=a, n_runs=10, CR=cr, S=0.9, SCR=cr * 0.9, lpips=lp, lpips_bp=lp if np_ >= 3 else float("nan"), n_partner=np_,
                              d_edit=0.0 if a.startswith("a0") else 10.0, d_sem=0.01, first_cross_eval=50.0 if a.startswith("a0") else 90.0,
                              min_cross_eval=400.0, wall=170.0))
     m = pd.DataFrame(rows)
@@ -95,7 +95,7 @@ def test_rq_tables_blocks_bold_and_partner_rule():
     assert "Qwen3.5-4B" in t1 and "ImageNet" in t1 and "POPE" in t1 and r"\uparrow" in t1 and r"\downarrow" in t1 and "SCR" in t1
     d_row = [l for l in t1.splitlines() if "Directed" in l][0]
     r_row = [l for l in t1.splitlines() if "Random" in l][0]
-    assert r"\textbf{90}" in d_row and r"\textbf{0.05}" not in r_row and "--" in r_row            # random has 2 partners: no value
+    assert r"\textbf{90}" in d_row and r"\textbf{0.05}" in d_row and "LPIPS" in t1 and "bp" not in t1
     t2 = rq.rq2_tex(m)
     assert "Runtime (s)" in t2 and "Calls to first" in t2 and r"\textbf{50}" in t2
     ab = rq.ablation(pd.DataFrame(dict(arm=["a0_directed"] * 4, rng_seed=0, crossed=[True, True, True, False], first_cross_eval=[10, 20, 30, 40],
