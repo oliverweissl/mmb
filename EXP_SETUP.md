@@ -100,3 +100,9 @@ could not be verified here (no OpenVINO stack). Thesis-era numbers are therefore
 - 2026-11-22 16:37: pending directed (a0) and image-only (a7) configs renamed with prefix Z so they run after all baselines; the directed search is under redesign (pending decision), and baseline runs remain valid whatever the redesign is.
 - 2026-11-22 21:40: MMBA redesign frozen (METHODOLOGY 21:40). a0 configs renamed A* (run first), a7 configs Z* (run last); old v2 a0/a7 runs archived. Pilot runs in runs/PILOT (held-out cells).
 - 2026-11-23 01:10: MAIN v3 (region edits; METHODOLOGY 01:10). v2 runs archived to runs/archive/MAIN_v2_patch; configs regenerated (100, prefixes A/B/C give the order); queue restarted as `mmb-queue8`.
+
+## 2026-11-23 — Process-independent text rendering; replays from trace texts
+- Text operators seeded their per-word RNG with Python `hash()`, which is salted per process. Searches are unaffected (one process per run, trace stores the scored text), but post-hoc re-rendering (replays) could produce different text.
+- Fix: `stable_hash` (CRC32) in mmb/manipulator/text/operators (base, character_noise, saliency, fragmentation).
+- Repair: scripts/fix_text_from_trace.py sets min_cross texts from trace `decoded_text` (81 fixed); neighbours differing by an image gene keep the crossing text; others re-scored by scripts/partner_replay.py (scored text kept for image-gene partners).
+- Re-run: scripts/replay_maintenance.sh (pauses queue; partner, agreement, transfer replays; restarts queue).
