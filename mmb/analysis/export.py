@@ -217,15 +217,19 @@ def arm_main_tex(summary: pd.DataFrame, vct: pd.DataFrame | None, paired: pd.Dat
         return [float(v.loc[a, c]) * scale if a in v.index and c in v else float("nan") for a in arms]
     crossed = [100 * float(x) for x in summary.share_crossed]
     ct = ["--" if pd.isna(x) else f"{x:.0f}" for x in crossed]
-    cols = {"lpips": (vcol("med_lpips"), 2), "text_change": (vcol("med_vis_char", 100), 0), "txt_dist": (vcol("med_txt"), 2)}
+    cols = {"lpips": (vcol("med_lpips"), 2), "text_change": (vcol("med_vis_char", 100), 0), "txt_dist": (vcol("med_txt"), 2),
+            "pair_lpips": (vcol("med_pair_lpips"), 2), "pair_text": (vcol("med_pair_vis_char", 100), 1)}
+    npart = vcol("n_partner")
+    npt = ["--" if pd.isna(x) else f"{x:.0f}" for x in npart]
     cells = {k: tf.bold_best([("--" if pd.isna(x) else f"{x:.{d}f}") for x in vals], vals, k,
                              [("--" if pd.isna(x) else f"{x:.{d}f}") for x in vals]) for k, (vals, d) in cols.items()}
     crossed_c = tf.bold_best(ct, crossed, "crossed", ct)
     rows = [[st.tex_escape(st.arm_label(a)), str(int(n)), crossed_c[i], eff["crossed"][i], cells["lpips"][i],
-             cells["text_change"][i], cells["txt_dist"][i]] for i, (a, n) in enumerate(zip(arms, summary.n_runs))]
-    return st._booktabs("lrrrrrr", ["Arm", "Runs", tf.head(r"Crossing found (\% of runs)", "crossed"), r"vs directed (pp)",
+             cells["text_change"][i], cells["txt_dist"][i], npt[i], cells["pair_lpips"][i], cells["pair_text"][i]] for i, (a, n) in enumerate(zip(arms, summary.n_runs))]
+    return st._booktabs("lrrrrrrrrr", ["Arm", "Runs", tf.head(r"Crossing found (\% of runs)", "crossed"), r"vs directed (pp)",
                                     tf.head("Image change (LPIPS)", "lpips"), tf.head(r"Text change (\% of characters)", "text_change"),
-                                    tf.head("Semantic text distance", "txt_dist")], rows)
+                                    tf.head("Semantic text distance", "txt_dist"), "Pairs with partner",
+                                    tf.head("Image distance across pair (LPIPS)", "pair_lpips"), tf.head(r"Text change across pair (\% of characters)", "pair_text")], rows)
 
 
 def arm_cost_tex(d: pd.DataFrame, summary: pd.DataFrame, cost: pd.DataFrame, paired: pd.DataFrame | None) -> str:

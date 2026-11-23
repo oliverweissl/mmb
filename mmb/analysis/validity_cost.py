@@ -67,6 +67,12 @@ def summarize(g: pd.DataFrame, n_runs: int, lp: float = LPIPS_MAX, tx: float = T
             out.update({f"{name}_{k}": v for k, v in s_.items() if k != "n"})
         out["med_vis_char"] = float(pd.to_numeric(g["vis_char_dist"], errors="coerce").median()) if n else np.nan
         out["med_vis_cos"] = float(pd.to_numeric(g["vis_minilm_cos"], errors="coerce").median()) if n else np.nan
+    if "has_partner" in g:                          # boundary pair (minimal crossing and its non-crossing neighbour)
+        hp = g["has_partner"].astype(str).str.lower().isin(("true", "1", "1.0"))
+        out["n_partner"] = int(hp.sum())
+        out["med_pair_lpips"] = float(pd.to_numeric(g.loc[hp, "pair_lpips"], errors="coerce").median()) if hp.any() else np.nan
+        out["med_pair_vis_char"] = float(pd.to_numeric(g.loc[hp, "pair_vis_char"], errors="coerce").median()) if hp.any() else np.nan
+        out["med_pair_txt"] = float(pd.to_numeric(g.loc[hp, "pair_txt_dist"], errors="coerce").median()) if hp.any() else np.nan
     for name, ok in (("img", ok_i), ("txt", ok_t), ("both", both)):
         s = _share(int(ok.sum()), n)
         out.update({f"{name}_{k}": v for k, v in s.items() if k != "n"})

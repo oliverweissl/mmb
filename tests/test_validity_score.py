@@ -134,6 +134,18 @@ class TestScore:
         assert df.loc["min", "n_edits"] == 3 and df.loc["min", "first_cross_eval"] == 40
         assert bool(df.loc["min", "txt_edited"]) is False
 
+    def test_boundary_pair_distance_from_the_neighbour(self, tmp_path):
+        d = make_run(tmp_path, "r", seed_level=100, cross_level=140, text="What is the primary subject?")
+        Image.new("RGB", (32, 32), (105,) * 3).save(d / "min_cross.png")
+        (d / "min_cross.json").write_text(json.dumps({"text": "What is the main subject?", "g": -0.1, "eval_idx": 40, "generation": 1, "n_edits": 3}))
+        df = score.score_runs(tmp_path, FakeModels()).set_index("view")
+        assert bool(df.loc["min", "has_partner"]) is False
+        Image.new("RGB", (32, 32), (102,) * 3).save(d / "min_cross_neighbour.png")
+        (d / "min_cross_neighbour.json").write_text(json.dumps({"text": "What is the main subject", "g": 0.2, "n_edits": 2}))
+        df = score.score_runs(tmp_path, FakeModels()).set_index("view")
+        assert bool(df.loc["min", "has_partner"]) is True and df.loc["min", "pair_lpips"] == pytest.approx(3 / 255)
+        assert df.loc["min", "pair_vis_char"] == pytest.approx(1 / 25) and df.loc["min", "pair_txt_dist"] == pytest.approx(0.5)
+
     def test_identical_text_and_image_give_neutral_row(self, tmp_path):
         make_run(tmp_path, "same", seed_level=100, cross_level=100)
         r = score.score_runs(tmp_path, FakeModels()).iloc[0]

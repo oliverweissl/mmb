@@ -86,12 +86,14 @@ def test_arm_main_and_cost_tables():
     from mmb.analysis import export as ex
     summary = pd.DataFrame(dict(arm=["a0_directed", "a1_random_tiered"], n_runs=[36, 36], share_crossed=[0.9, 0.5],
                                 median_first_cross_eval=[120.0, 600.0]))
-    vct = pd.DataFrame(dict(arm=["a0_directed", "a1_random_tiered"], med_lpips=[0.2, 0.3], med_vis_char=[0.0, 0.1], med_txt=[0.01, 0.05]))
+    vct = pd.DataFrame(dict(arm=["a0_directed", "a1_random_tiered"], med_lpips=[0.2, 0.3], med_vis_char=[0.0, 0.1], med_txt=[0.01, 0.05],
+                            n_partner=[30, 20], med_pair_lpips=[0.05, 0.08], med_pair_vis_char=[0.0, 0.02]))
     paired = pd.DataFrame(dict(arm=["a1_random_tiered"] * 4, metric=["crossed", "first_cross_eval", "min_edits_x", "wall"],
                                diff=[-0.40, 5.0, 60.0, 1.0], dz=[-1.3, 0.7, 0.2, 0.1], p_holm=[0.004, 0.2, 0.03, 0.5]))
     tex = ex.arm_main_tex(summary, vct, paired)
     rows = [l for l in tex.splitlines() if l.startswith(("Directed", "Random"))]
     assert "Crossing found" in tex and "Semantic text distance" in tex and "Image change" in tex and r"\uparrow" in tex and r"\downarrow" in tex
+    assert "Image distance across pair" in tex and "Pairs with partner" in tex and r"\textbf{0.05}" in rows[0]
     assert r"\textbf{90}" in rows[0] and r"\textbf{0.20}" in rows[0] and r"-40 \effL{}$^{\dagger}$" in rows[1]
     d = pd.DataFrame(dict(arm=["a0_directed", "a1_random_tiered"] * 2, crossed=[True] * 4, wall_s=[100.0, 200.0] * 2,
                           min_cross_eval=[300.0, 900.0] * 2))

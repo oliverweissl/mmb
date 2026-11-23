@@ -29,7 +29,7 @@ from PIL import Image
 
 from mmb.analysis.collect import _load_config, resolve_meta
 from mmb.analysis.crossing_files import first_crossing, minimal_crossing
-from mmb.validity.proxies import ProxyModels, image_proxies, text_proxies
+from mmb.validity.proxies import ProxyModels, image_proxies, text_proxies, visible_proxies
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +39,9 @@ IMAGE_COLUMNS = ["img_clip_cos", "img_dino_cos", "img_lpips", "img_ssim"]
 TEXT_COLUMNS = ["txt_minilm_cos", "txt_word_edit", "question_preserved", "question_keyword_sim",
                 "question_content_kept", "txt_edited",
                 "vis_char_dist", "vis_word_edit", "vis_minilm_cos", "vis_identical", "vis_within_one_per_word"]
-COLUMNS = ID_COLUMNS + ["view", "n_edits"] + CROSS_COLUMNS + ["img_ref"] + IMAGE_COLUMNS + TEXT_COLUMNS
+#: the boundary pair (min view only): the minimal crossing against its non-crossing neighbour one edit away
+PAIR_COLUMNS = ["has_partner", "pair_lpips", "pair_vis_char", "pair_txt_dist"]
+COLUMNS = ID_COLUMNS + ["view", "n_edits"] + CROSS_COLUMNS + ["img_ref"] + IMAGE_COLUMNS + TEXT_COLUMNS + PAIR_COLUMNS
 
 
 def find_crossing_runs(root: Path) -> list[Path]:
@@ -142,6 +144,20 @@ def min_edit_crossing(run_dir: Path) -> dict | None:
     return dict(png=png, text=text or str(df["decoded_text"].iloc[best[1]]), eval_idx=int(best[1]), n_edits=best[0][0])
 
 
+def pair_proxies(models: ProxyModels, run_dir: Path, cross_png: Path, cross_text: str) -> dict:
+    """Distance across the boundary pair: LPIPS between min_cross.png and min_cross_neighbour.png, the visible character change
+    (fraction) and the semantic distance (1 - MiniLM cosine) between their questions. Empty when the run has no partner."""
+    npng, njson = Path(run_dir) / "min_cross_neighbour.png", Path(run_dir) / "min_cross_neighbour.json"
+    if not (npng.is_file() and njson.is_file()):
+        return {"has_partner": False}
+    ntext = str(json.loads(njson.read_text()).get("text", ""))
+    vis = visible_proxies(models, cross_text, ntext)
+    return {"has_partner": True,
+            "pair_lpips": models.lpips(Image.open(cross_png).convert("RGB"), Image.open(npng).convert("RGB")),
+            "pair_vis_char": vis["vis_char_dist"],
+            "pair_txt_dist": 0.0 if cross_text == ntext else 1.0 - models.minilm_cos(cross_text, ntext)}
+
+
 def score_run(run_dir: Path, models: ProxyModels, root: Path | None = None, defaults: dict | None = None) -> dict:
     run_dir = Path(run_dir)
     stats = json.loads((run_dir / "stats.json").read_text())
@@ -173,6 +189,7 @@ def score_run(run_dir: Path, models: ProxyModels, root: Path | None = None, defa
         r2.update(image_proxies(models, seed_img, Image.open(mpng).convert("RGB")))
         r2.update(text_proxies(models, original_question(stats), str(mj.get("text", "")), object_word(stats, fc)))
         r2["n_edits"] = mj.get("n_edits")
+        r2.update(pair_proxies(models, run_dir, mpng, str(mj.get("text", ""))))
         out.append({c: r2.get(c) for c in COLUMNS})
     return out
 
