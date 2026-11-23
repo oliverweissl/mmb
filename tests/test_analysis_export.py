@@ -96,7 +96,7 @@ class TestExport:
         for f in ("tables/e1.tex", "tables/e1_budgets.tex", "tables/e1_paired.tex", "tables/e3.tex",
                   "tables/e4.tex", "tables/e2b.tex", "tables/per/imagenet_qwen_summary.tex",
                   "tables/per/pope_internvl_paired.tex", "figures/crossing-curve.pdf",
-                  "figures/predictor-main.pdf", "figures/gallery.pdf", "numbers.tex", "numbers_map.csv",
+                  "figures/predictor-main.pdf", "numbers.tex", "numbers_map.csv",
                   "tables/primary.tex", "tables/e1_cluster.tex", "tables/cost.tex", "figures/per-cell-diff.pdf"):
             assert (gen / f).exists() and (gen / f).stat().st_size > 0, f
         assert not (gen / ".work").exists()
@@ -274,6 +274,22 @@ class TestGallery:
         assert len(picks) and not picks.duplicated(["task", "example", "sut"]).any()
         out = gallery.plot_gallery(picks, tmp_path / "gm.pdf", minimal=True)
         assert out.exists()
+
+    def test_teaser_pairs_directed_with_random_and_draws_difference_panes(self, tree, tmp_path):
+        import shutil
+        _, csv = tree
+        df = export.st.load_results([csv])
+        d = df[df.sut.isin(export.GRID_SUTS)]
+        assert gallery.select_teaser(d) == []                                         # no min_cross.* yet
+        for rd in d[d.crossed].run_dir:
+            p = Path(rd)
+            shutil.copy(p / "first_cross.png", p / "min_cross.png")
+            shutil.copy(p / "first_cross.json", p / "min_cross.json")
+        ex = gallery.select_teaser(d)
+        assert ex and all(e["dir"]["run_dir"] != e["rnd"]["run_dir"] for e in ex)
+        assert gallery.plot_teaser(ex, tmp_path / "t.pdf").exists()
+        a = np.zeros((4, 4, 3), "uint8")
+        assert gallery.diff_image(Image.fromarray(a), Image.fromarray(a)).max() == 0          # unchanged image: black pane
 
     def test_selection_prefers_small_text_distance(self):
         rows = []

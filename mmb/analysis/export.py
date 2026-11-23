@@ -907,17 +907,14 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
         if "probe_gen0" in df and df["probe_gen0"].notna().any():
             plots.plot_predictor_scatter(df[df["sut"].isin(set(grid_suts))], figs / "predictor-main.pdf", arm=ref)
         gdf = df[df["sut"].isin(set(grid_suts))]
-        picks = gallery.select_runs(gdf, ref, 2, minimal=True, runs_root=runs_root)   # teaser: MMBA's minimal crossing
-        if not len(picks):
-            logger.warning("gallery: no run has a minimal crossing (min_cross.png) yet")
-        fails = gallery.select_failures(gdf, ref)
-        if len(fails):
-            picks = pd.concat([picks.assign(kind="cross"), fails], ignore_index=True)
-        if len(picks):
+        teaser = gallery.select_teaser(gdf, ref, "a1_random_tiered", runs_root=runs_root)      # teaser: directed vs random minimal crossing, with difference panes
+        if not teaser:
+            logger.warning("teaser: no cell with a stored minimal crossing for both arms yet")
+        else:
             try:
-                gallery.plot_gallery(picks, figs / "gallery.pdf", runs_root=runs_root, minimal=True)
+                gallery.plot_teaser(teaser, figs / "gallery.pdf", runs_root=runs_root)
             except FileNotFoundError as e:
-                logger.warning("gallery skipped: %s", e)
+                logger.warning("teaser skipped: %s", e)
     if minimal:
         from mmb.analysis import failure_types as ft
         mdf = ft.load_minimal(minimal)

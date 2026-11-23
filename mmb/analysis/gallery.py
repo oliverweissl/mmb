@@ -265,6 +265,108 @@ def plot_gallery(picks: pd.DataFrame, out: Path | str, *, runs_root: Path | None
     return out
 
 
+def select_teaser(df: pd.DataFrame, ref: str = "a0_directed", rand: str = "a1_random_tiered",
+                  runs_root: Path | None = None, suts: list[str] | None = None) -> list[dict]:
+    """Two teaser examples, each a (cell, SUT, seed) on which the directed arm and the random arm both crossed and both have a
+    stored minimal crossing: the directed run with the fewest genes that changes the question (a mixed example) and the one with the
+    fewest genes that changes no text gene (an image example). Returns dicts with the two run rows."""
+    def ok(d):
+        d = d[d["crossed"].astype(bool)]
+        if suts:
+            d = d[d["sut"].isin(suts)]
+        keep = []
+        for r in d["run_dir"]:
+            p = Path(r)
+            if not p.is_absolute() and runs_root is not None and not p.exists():
+                p = runs_root / p
+            keep.append(minimal_crossing(p) is not None)
+        return d[keep]
+    a, b = ok(df[df["arm"] == ref]), ok(df[df["arm"] == rand])
+    if a.empty or b.empty or "min_edits_cross" not in a:
+        return []
+    keys = ["task", "sut", "cell_id", "rng_seed"]
+    m = a.merge(b, on=keys, suffixes=("", "_r"))
+    if m.empty:
+        return []
+    m = m.assign(_txt=m["edits_txt_at_min"].fillna(0)).sort_values(["task", "min_edits_cross", "run_dir"], ascending=[False, True, True])
+    out = []
+    for kind, sel in (("mixed", m[m["_txt"] > 0]), ("image", m[m["_txt"] == 0])):
+        if len(sel):
+            r = sel.iloc[0]
+            out.append(dict(kind=kind, task=r["task"], sut=r["sut"], cell_id=r["cell_id"],
+                            dir=dict(run_dir=r["run_dir"], n=int(r["min_edits_cross"]), img=int(r["edits_img_at_min"]), txt=int(r["edits_txt_at_min"])),
+                            rnd=dict(run_dir=r["run_dir_r"], n=int(r["min_edits_cross_r"]), img=int(r["edits_img_at_min_r"]), txt=int(r["edits_txt_at_min_r"]))))
+    return out
+
+
+_ZERO_WIDTH = "".join(map(chr, (0x200B, 0x200C, 0x200D, 0x2060, 0xFEFF)))
+
+
+def _vis(s: str) -> str:
+    """Make invisible characters visible in a caption: each zero-width character becomes a broken bar."""
+    return "".join(chr(0xA6) if ch in _ZERO_WIDTH else ch for ch in s)
+
+
+def diff_image(o: Image.Image, c: Image.Image) -> np.ndarray:
+    """Amplified absolute difference of two equally sized images (mean over channels), scaled to its 99.5th percentile; zeros where unchanged."""
+    d = np.abs(np.asarray(o, float) - np.asarray(c, float)).mean(axis=2)
+    hi = np.percentile(d, 99.5)
+    return np.clip(d / hi, 0, 1) if hi > 0 else np.zeros_like(d)
+
+
+def plot_teaser(examples: list[dict], out: Path | str, *, runs_root: Path | None = None, width_in: float = 7.0) -> Path:
+    """Teaser: per example one row of five panes, anchor | directed minimal crossing | difference | random minimal crossing | difference,
+    with the question, the gene counts and the contrast g under each crossing. The difference pane shows where the image changed
+    (white = changed most; black = unchanged), so a text-only crossing has a black pane."""
+    plt.rcParams.update({"pdf.fonttype": 42, "ps.fonttype": 42, "font.size": 6})
+    img_in, gap, head_h, txt_h, row_gap = 1.2, 0.09, 0.2, 0.62, 0.1
+    n = len(examples)
+    height = head_h + n * (img_in + txt_h + row_gap)
+    fig = plt.figure(figsize=(width_in, height))
+    x0 = (width_in - (5 * img_in + 4 * gap)) / 2
+
+    def axes(x, y, w, h):
+        a = fig.add_axes([x / width_in, 1 - (y + h) / height, w / width_in, h / height])
+        a.set_axis_off()
+        return a
+    titles = ["unedited input", "directed: minimal crossing", "difference", "random: smallest crossing", "difference"]
+    for k, t in enumerate(titles):
+        axes(x0 + k * (img_in + gap), 0, img_in, head_h).text(0.5, 0.3, t, ha="center", va="center", fontsize=6, fontweight="bold")
+    for i, ex in enumerate(examples):
+        y0 = head_h + i * (img_in + txt_h + row_gap)
+        loaded = {role: _load(Path(ex[role]["run_dir"]), runs_root, False, True) for role in ("dir", "rnd")}
+        o = loaded["dir"][2]
+        panes = [o, loaded["dir"][3], None, loaded["rnd"][3], None]
+        for k in range(5):
+            a = axes(x0 + k * (img_in + gap), y0, img_in, img_in)
+            if k in (2, 4):
+                c = panes[k - 1]
+                ok_ = o is not None and c is not None
+                a.imshow(diff_image(o, c.resize(o.size)) if ok_ else np.zeros((2, 2)), cmap="gray", vmin=0, vmax=1)
+            elif panes[k] is not None:
+                a.imshow(np.asarray(panes[k]))
+        stats0 = loaded["dir"][0]
+        for role, k in (("dir", 1), ("rnd", 3)):
+            stats, fc, _, _ = loaded[role]
+            q0 = (stats.get("seed_metadata") or {}).get("prompt_template") or stats.get("prompt_template") or ""
+            q1 = fc.get("text") or ""
+            e = ex[role]
+            lines = [f"{e['n']} gene{'' if e['n'] == 1 else 's'} ({e['img']} image, {e['txt']} text)", "Q': " + (_wrap(_vis(q1), 30, 2) if q1 and q1 != q0 else "unchanged"),
+                     f"g: {_fmt_g(stats.get('anchor_g'))} → {_fmt_g(fc.get('g'))}"]
+            a = axes(x0 + k * (img_in + gap), y0 + img_in + 0.03, 2 * img_in + gap, txt_h)
+            a.text(0.0, 1, "\n".join(lines), va="top", ha="left", fontsize=5, linespacing=1.15, transform=a.transAxes)
+        a = axes(x0, y0 + img_in + 0.03, img_in, txt_h)
+        cand = " / ".join(map(str, (stats0.get("class_a"), stats0.get("class_b"))))
+        q0 = (stats0.get("seed_metadata") or {}).get("prompt_template") or stats0.get("prompt_template") or ""
+        a.text(0, 1, f"{SUT_LABELS.get(ex['sut'], ex['sut'])}\nanswers: " + _wrap(cand, 24, 2) + "\nQ: " + _wrap(q0, 24, 3),
+               va="top", ha="left", fontsize=5, linespacing=1.15, transform=a.transAxes)
+    out = Path(out)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(out)
+    plt.close(fig)
+    return out
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("csv", nargs="+", type=Path)
