@@ -111,3 +111,6 @@ could not be verified here (no OpenVINO stack). Thesis-era numbers are therefore
 - scripts/confirm_crossings.py run for qwen/internvl/ministral (search output kept in min_cross_search.json). Must be re-run after each grid block (it skips confirmed runs).
 - Agreement (greedy answer == teacher-forced argmax) at the crossing: qwen 84%, internvl 76%, ministral 79%; anchors 100/84/100%.
 - agreement/transfer replays now warm up numba and disable hub kernels (qwen segfault); maintenance script pins CPUs.
+
+## 2026-11-23 — LLaVA on both tasks
+- Every SUT must cover every task: added C0/C1 LLaVA-NeXT (NF4) POPE configs (a0, a1; seeds 0, 1), same cells/budget as the other SUTs. make_main_queue.py updated accordingly (do NOT re-run it: it deletes the current queue names).

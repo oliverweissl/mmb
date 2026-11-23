@@ -18,7 +18,8 @@ for seed in (0, 1):
                     (out / f"L{layer}__s{seed}__{task}__{sut}__{arm}.yaml").write_text(yaml.safe_dump(cfg, sort_keys=False, allow_unicode=True)); n += 1
 for seed in (0, 1):
     layer += 1
-    for arm in ["a0_directed", "a1_random_tiered"]:
-        cfg = build("MAIN", "imagenet", "llava", arm, seed)
-        (out / f"L{layer}__s{seed}__imagenet__llava__{arm}.yaml").write_text(yaml.safe_dump(cfg, sort_keys=False, allow_unicode=True)); n += 1
+    for task in TASKS:  # LLaVA on both tasks (every SUT covers every task)
+        for arm in ["a0_directed", "a1_random_tiered"]:
+            cfg = build("MAIN", task, "llava", arm, seed)
+            (out / f"L{layer}__s{seed}__{task}__llava__{arm}.yaml").write_text(yaml.safe_dump(cfg, sort_keys=False, allow_unicode=True)); n += 1
 print(n, "configs")
