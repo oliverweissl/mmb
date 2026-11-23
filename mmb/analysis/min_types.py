@@ -89,8 +89,8 @@ def load_runs(runs_root: Path | str, arms=ARMS) -> pd.DataFrame:
 
 # ---- composition table and macros -----------------------------------------------------------------------------
 SUT_NAMES = {"qwen": "Qwen3.5-4B", "internvl": "InternVL3.5-4B", "ministral": "Ministral-3-3B"}
-TASK_NAMES = {"imagenet": "ImageNet pairs", "pope": "POPE yes/no"}
-GROUP_LABELS = {"directed": "Directed", "others": "Random"}
+TASK_NAMES = {"imagenet": "ImageNet", "pope": "POPE"}
+GROUP_LABELS = {"directed": r"\sysname", "others": "Random"}
 
 
 def composition(g: pd.DataFrame) -> dict:
@@ -112,22 +112,22 @@ COLS = [("img_only", r"Image only (\%)", 0), ("txt_only", r"Text only (\%)", 0),
 
 
 def table_tex(df: pd.DataFrame) -> str:
-    """One block per model, one band per task, rows directed and random: channel mix, median image regions and the mean
-    number of text edits per crossing by family (synonym, typo, character noise = homoglyph and zero-width)."""
-    k = len(COLS)
-    lines = [r"\begin{tabular}{l" + "r" * k + "}", r"\toprule", " & ".join(["Method"] + [c[1] for c in COLS]) + r" \\"]
+    """One block per model (rotated name), one band per task, rows directed and random: channel mix, median image regions
+    and the mean number of text edits per crossing by family (synonym, typo, character noise = homoglyph and zero-width)."""
+    from mmb.analysis.rq_tables import blocks_tex
+    blocks = []
     for s in [x for x in SUT_NAMES if x in set(df["sut"])]:
-        lines += [r"\midrule", rf"\multicolumn{{{1 + k}}}{{l}}{{\emph{{{SUT_NAMES[s]}}}}} \\"]
+        tasks = []
         for t in [x for x in TASK_NAMES if x in set(df["task"])]:
-            lines.append(rf"\multicolumn{{{1 + k}}}{{l}}{{\hspace{{1em}}{TASK_NAMES[t]}}} \\")
+            rows = []
             for gk, lab in GROUP_LABELS.items():
                 c = composition(df[(df["sut"] == s) & (df["task"] == t) & (df["group"] == gk)])
-                if not c["n"]:
-                    continue
-                cells = [f"{c[key]:.{dec}f}" for key, _l, dec in COLS]
-                lines.append(" & ".join([r"\hspace{2em}" + lab] + cells) + r" \\")
-    lines += [r"\bottomrule", r"\end{tabular}"]
-    return "\n".join(lines) + "\n"
+                if c["n"]:
+                    rows.append([lab] + [f"{c[key]:.{dec}f}" for key, _l, dec in COLS])
+            if rows:
+                tasks.append((TASK_NAMES[t], rows))
+        blocks.append((SUT_NAMES[s], tasks))
+    return blocks_tex(["Method"] + [c[1] for c in COLS], blocks)
 
 
 def add_numbers(num, df: pd.DataFrame, camel, f_num, f_pct) -> None:

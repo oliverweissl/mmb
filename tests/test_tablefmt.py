@@ -93,7 +93,8 @@ def test_rq_tables_blocks_bold_and_partner_rule():
     m = pd.DataFrame(rows)
     t1 = rq.rq1_tex(m)
     assert "Qwen3.5-4B" in t1 and "ImageNet" in t1 and "POPE" in t1 and r"\uparrow" in t1 and r"\downarrow" in t1 and "SCR" in t1
-    d_row = [l for l in t1.splitlines() if "Directed" in l][0]
+    assert r"\rotatebox[origin=c]{90}" in t1 and r"\multirow{4}" in t1
+    d_row = [l for l in t1.splitlines() if r"\sysname" in l][0]
     r_row = [l for l in t1.splitlines() if "Random" in l][0]
     assert r"\textbf{90}" in d_row and r"\textbf{0.05}" in d_row and "LPIPS" in t1 and "bp" not in t1
     t2 = rq.rq2_tex(m)

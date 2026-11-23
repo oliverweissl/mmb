@@ -314,6 +314,19 @@ def diff_image(o: Image.Image, c: Image.Image) -> np.ndarray:
     return np.clip(d / hi, 0, 1) if hi > 0 else np.zeros_like(d)
 
 
+def _answer_line(stats: dict, fc: dict) -> str:
+    """Decision before and after in plain words: the preferred answer and how many times as likely it is rated."""
+    a, b = stats.get("class_a"), stats.get("class_b")
+    g0, g1 = stats.get("anchor_g"), fc.get("g")
+    if a is None or b is None or g0 is None or g1 is None:
+        return ""
+
+    def pref(g):
+        return (a if g > 0 else b), float(np.exp(abs(g)))
+    (p0, r0), (p1, r1) = pref(float(g0)), pref(float(g1))
+    return f"answer: {p0} ({r0:.0f}x as likely) → {p1} ({r1:.1f}x)"
+
+
 def plot_teaser(examples: list[dict], out: Path | str, *, runs_root: Path | None = None, width_in: float = 7.0) -> Path:
     """Teaser: per example one row of five panes, anchor | directed minimal crossing | difference | random minimal crossing | difference,
     with the question, the gene counts and the contrast g under each crossing. The difference pane shows where the image changed
@@ -329,7 +342,7 @@ def plot_teaser(examples: list[dict], out: Path | str, *, runs_root: Path | None
         a = fig.add_axes([x / width_in, 1 - (y + h) / height, w / width_in, h / height])
         a.set_axis_off()
         return a
-    titles = ["unedited input", "directed: minimal crossing", "difference", "random: smallest crossing", "difference"]
+    titles = ["unedited input", "MMBA: minimal crossing", "difference", "random: smallest crossing", "difference"]
     for k, t in enumerate(titles):
         axes(x0 + k * (img_in + gap), 0, img_in, head_h).text(0.5, 0.3, t, ha="center", va="center", fontsize=6, fontweight="bold")
     for i, ex in enumerate(examples):
@@ -351,8 +364,8 @@ def plot_teaser(examples: list[dict], out: Path | str, *, runs_root: Path | None
             q0 = (stats.get("seed_metadata") or {}).get("prompt_template") or stats.get("prompt_template") or ""
             q1 = fc.get("text") or ""
             e = ex[role]
-            lines = [f"{e['n']} gene{'' if e['n'] == 1 else 's'} ({e['img']} image, {e['txt']} text)", "Q': " + (_wrap(_vis(q1), 30, 2) if q1 and q1 != q0 else "unchanged"),
-                     f"g: {_fmt_g(stats.get('anchor_g'))} → {_fmt_g(fc.get('g'))}"]
+            lines = [f"{e['n']} edit{'' if e['n'] == 1 else 's'}: {e['img']} of 64 image regions, {e['txt']} text", "Q': " + (_wrap(_vis(q1), 30, 2) if q1 and q1 != q0 else "unchanged"),
+                     _answer_line(stats, fc)]
             a = axes(x0 + k * (img_in + gap), y0 + img_in + 0.03, 2 * img_in + gap, txt_h)
             a.text(0.0, 1, "\n".join(lines), va="top", ha="left", fontsize=5, linespacing=1.15, transform=a.transAxes)
         a = axes(x0, y0 + img_in + 0.03, img_in, txt_h)

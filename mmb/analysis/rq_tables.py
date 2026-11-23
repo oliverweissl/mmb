@@ -112,28 +112,56 @@ def _head(label: str, key: str) -> str:
     return tf.head(label, key)
 
 
+def _method_label(arm: str) -> str:
+    return r"\sysname" if prefix(arm) == "a0" else st.tex_escape(st.arm_label(arm))
+
+
+def blocks_tex(heads: list[str], blocks: list[tuple[str, list[tuple[str, list[list[str]]]]]]) -> str:
+    """Model | Task | rows: the model name rotated by 90 degrees in a multirow spanning its rows, the task in a multirow
+    spanning its methods. blocks: [(model label, [(task label, [[method, cell, ...], ...]), ...]), ...]."""
+    k = len(heads)
+    lines = [r"\begin{tabular}{ll" + "l" + "r" * (k - 1) + "}", r"\toprule",
+             " & ".join(["Model", "Task"] + heads) + r" \\"]
+    for model, tasks in blocks:
+        n_model = sum(len(rows) for _t, rows in tasks)
+        if not n_model:
+            continue
+        lines.append(r"\midrule")
+        first_model = True
+        for ti, (task, rows) in enumerate(tasks):
+            if ti:
+                lines.append(rf"\cmidrule{{2-{2 + k - 1}}}")
+            for ri, row in enumerate(rows):
+                mcell = (rf"\multirow{{{n_model}}}{{*}}{{\rotatebox[origin=c]{{90}}{{\footnotesize {model}}}}}"
+                         if first_model else "")
+                tcell = rf"\multirow{{{len(rows)}}}{{*}}{{{task}}}" if ri == 0 else ""
+                first_model = False
+                lines.append(" & ".join([mcell, tcell] + row) + r" \\")
+    lines += [r"\bottomrule", r"\end{tabular}"]
+    return "\n".join(lines) + "\n"
+
+
 def grouped_tex(m: pd.DataFrame, cols: list[tuple], methods=METHODS) -> str:
-    """One block per SUT, inside it one band per task (rows: methods present); best value per band and column in bold."""
-    k = len(cols)
-    head = ["Method"] + [_head(lab, key) for (_, key, lab, _d) in cols]
-    lines = [r"\begin{tabular}{l" + "r" * k + "}", r"\toprule", " & ".join(head) + r" \\"]
+    """One block per SUT (rotated model name), one band per task (rows: methods present); best value per band and
+    column in bold."""
+    heads = ["Method"] + [_head(lab, key) for (_, key, lab, _d) in cols]
+    blocks = []
     for s in [x for x in SUT_NAMES if x in set(m["sut"])]:
-        lines += [r"\midrule", rf"\multicolumn{{{1 + k}}}{{l}}{{\emph{{{SUT_NAMES[s]}}}}} \\"]
+        tasks = []
         for t in [x for x in TASK_NAMES if x in set(m["task"])]:
             ms = m[(m["sut"] == s) & (m["task"] == t)]
             arms = sorted({a for a in ms["arm"] if prefix(a) in methods}, key=lambda a: methods.index(prefix(a)))
             if not arms:
                 continue
-            lines.append(rf"\multicolumn{{{1 + k}}}{{l}}{{\hspace{{1em}}{TASK_NAMES[t]}}} \\")
             cells = {}
             for (col, key, _lab, dec) in cols:
                 vals = [float(ms[ms["arm"] == a].iloc[0][col]) for a in arms]
                 txt = [_fmt(x, dec) for x in vals]
                 cells[col] = tf.bold_best(txt, vals, key, txt)
-            for i, a in enumerate(arms):
-                lines.append(" & ".join([r"\hspace{2em}" + st.tex_escape(st.arm_label(a))] + [cells[col][i] for (col, *_r) in cols]) + r" \\")
-    lines += [r"\bottomrule", r"\end{tabular}"]
-    return "\n".join(lines) + "\n"
+            rows = [[_method_label(a)] + [cells[col][i] for (col, *_r) in cols] for i, a in enumerate(arms)]
+            tasks.append((TASK_NAMES[t], rows))
+        blocks.append((SUT_NAMES[s], tasks))
+    return blocks_tex(heads, blocks)
 
 
 def rq1_tex(m: pd.DataFrame) -> str:

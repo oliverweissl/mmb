@@ -6,8 +6,8 @@ Usage::
         [--ref a0_directed] [--max-budget 1500] [--vline 206]
 
 One line per arm: share of runs with a crossing within b evaluations (log x), 95% percentile-bootstrap
-band (10,000 resamples, seed 42). Single-column width, colour-blind-safe (Okabe-Ito) palette with
-distinct line styles so the figure also reads in greyscale.
+band (10,000 resamples, seed 42). Single-column width, greyscale shades with
+distinct line styles and markers.
 """
 from __future__ import annotations
 
@@ -25,7 +25,7 @@ import pandas as pd  # noqa: E402
 from mmb.analysis.stats import BOOT_SEED, N_BOOT, arm_label, curve_with_bands, load_results  # noqa: E402
 
 #: Okabe-Ito palette (colour-blind safe), ordered so neighbouring arms differ strongly.
-PALETTE = ["#0072B2", "#D55E00", "#009E73", "#E69F00", "#CC79A7", "#56B4E9", "#000000", "#999999"]
+PALETTE = ["0.0", "0.55", "0.3", "0.7", "0.15", "0.45", "0.6", "0.8"]   # greyscale: arms differ by shade, line style and marker
 LINESTYLES = ["-", "--", "-.", ":", (0, (5, 1)), (0, (3, 1, 1, 1)), "-", "--"]
 MARKERS = ["o", "s", "^", "D", "v", "P", "X", "*"]
 COLUMN_WIDTH_IN = 3.3   # acmart sigconf column width
@@ -64,7 +64,7 @@ def plot_crossing_curve(
         n = int(c["n"].iloc[0])
         ax.fill_between(c["budget"], c["boot_lo"], c["boot_hi"], color=col, alpha=0.18, linewidth=0)
         ax.plot(c["budget"], c["share"], color=col, linestyle=LINESTYLES[i % len(LINESTYLES)],
-                linewidth=1.3 if arm == ref_arm else 1.0, label=f"{arm_label(arm)} (n={n})",
+                linewidth=1.3 if arm == ref_arm else 1.0, label=arm_label(arm),
                 marker=MARKERS[i % len(MARKERS)], markevery=(i % 5, 12), markersize=3)
     for v in vlines:
         ax.axvline(v, color="0.6", linewidth=0.5, linestyle=":")
