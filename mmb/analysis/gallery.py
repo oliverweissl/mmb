@@ -93,7 +93,7 @@ def select_runs(df: pd.DataFrame, arm: str = "a0_directed", per_task: int = 2,
 def _select_minimal(d: pd.DataFrame, per_task: int, runs_root: Path | None) -> pd.DataFrame:
     """Teaser selection on the minimal crossing (the method's output): runs with a stored minimal crossing, per task
     the per_task cells that most SUTs cross, then the fewest genes at the minimal crossing (ties: fewest text genes);
-    one further image-only example (no text gene at the minimal crossing) when one exists."""
+    one further image-dominated example (no text gene at the minimal crossing on any SUT) when one exists."""
     def has_min(rd) -> bool:
         p = Path(rd)
         if not p.is_absolute() and runs_root is not None and not p.exists():
@@ -106,13 +106,14 @@ def _select_minimal(d: pd.DataFrame, per_task: int, runs_root: Path | None) -> p
     picks = []
     for task, t in d.groupby("task", sort=True):
         best = t.sort_values(["min_edits_cross", "_txt", "run_dir"]).groupby(["cell_id", "sut"], as_index=False).first()
-        stat = best.groupby("cell_id").agg(n_sut=("sut", "nunique"), ed=("min_edits_cross", "mean"), tmin=("_txt", "min"))
+        stat = best.groupby("cell_id").agg(n_sut=("sut", "nunique"), ed=("min_edits_cross", "mean"), tsum=("_txt", "sum"))
         order = stat.reset_index().sort_values(["n_sut", "ed", "cell_id"], ascending=[False, True, True])
         chosen = list(order["cell_id"].head(per_task))
         for ex, cell in enumerate(chosen):
             picks.append(best[best["cell_id"] == cell].assign(example=ex, kind="cross"))
-        cand = order[(order["tmin"] == 0) & ~order["cell_id"].isin(chosen)]
+        cand = order[(order["tsum"] == 0) & ~order["cell_id"].isin(chosen)]       # no text gene on any SUT
         if len(cand):
+            cand = cand.sort_values(["n_sut", "ed", "cell_id"], ascending=[False, True, True])
             picks.append(best[best["cell_id"] == cand.iloc[0]["cell_id"]].assign(example=per_task, kind="img"))
     return pd.concat(picks, ignore_index=True).drop(columns="_txt") if picks else d.iloc[0:0].assign(example=[], kind=[])
 
