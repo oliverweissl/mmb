@@ -92,8 +92,8 @@ def objective_text(d: pd.DataFrame, arm: str, tx: float = TXT_MAX) -> dict:
 
 
 def _view(vdf: pd.DataFrame, view: str) -> pd.DataFrame:
-    """Rows of one crossing view: 'first' (the first crossing input) or 'min_edit' (the search's own minimal-edit
-    crossing among the archive members). Frames without a 'view' column hold first crossings only."""
+    """Rows of one crossing view: 'first' (the first crossing input) or 'min' (the run's smallest crossing, the
+    search's output). Frames without a 'view' column hold first crossings only."""
     if "view" not in vdf:
         return vdf if view == "first" else vdf.iloc[0:0]
     return vdf[vdf["view"] == view]
@@ -198,16 +198,16 @@ def sensitivity_tex(s: pd.DataFrame) -> str:
     return st._booktabs("rr" + "r" * len(arms), ["LPIPS $<$", "text $<$"] + [st.tex_escape(st.arm_label(a)) for a in arms], rows)
 
 
-def add_numbers(num, t: pd.DataFrame, family: str = "EValid") -> None:
+def add_numbers(num, t: pd.DataFrame, family: str = "EValid", label: str = "first crossing") -> None:
     """Macros EValid<Metric><Arm><Task> (task All pools the tasks)."""
     from mmb.analysis.export import arm_short, camel, f_num, f_pct
     for _, r in t.iterrows():
         tail = [arm_short(r["arm"]), camel(r["task"])]
-        d = f"{r['arm']}, {r['task']}, {'minimal-edit crossing' if family == 'EValidMin' else 'first crossing'} (descriptive thresholds fixed a priori)"
+        d = f"{r['arm']}, {r['task']}, {label} (descriptive thresholds fixed a priori)"
         num.add([family, "Runs"] + tail, str(int(r["n_runs"])), "runs of the arm; " + d)
         num.add([family, "Crossed"] + tail, str(int(r["n_cross"])), "runs with a validity-scored first crossing; " + d)
-        num.add([family, "MedLpips"] + tail, f_num(r["med_lpips"], 2), "median LPIPS at the first crossing; " + d)
-        num.add([family, "MedTxt"] + tail, f_num(r["med_txt"], 2), "median 1 - MiniLM cosine at the first crossing; " + d)
+        num.add([family, "MedLpips"] + tail, f_num(r["med_lpips"], 2), f"median LPIPS at the {label}; " + d)
+        num.add([family, "MedTxt"] + tail, f_num(r["med_txt"], 2), f"median 1 - MiniLM cosine at the {label}; " + d)
         for key, what in (("img", "LPIPS < 0.2"), ("txt", "text distance < 0.1"), ("both", "both thresholds")):
             num.add([family, "Share", key] + tail, f_pct(r[f"{key}_share"], 0), f"% of crossings under {what}; " + d)
         num.add([family, "ConsShare"] + tail, f_pct(r["cons_share"], 0), "% of ALL runs that crossed under both thresholds; " + d)

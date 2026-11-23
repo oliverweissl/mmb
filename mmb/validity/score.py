@@ -142,6 +142,17 @@ def min_edit_crossing(run_dir: Path) -> dict | None:
     return dict(png=png, text=text or str(df["decoded_text"].iloc[best[1]]), eval_idx=int(best[1]), n_edits=best[0][0])
 
 
+def minimal_crossing(run_dir: Path) -> tuple[Path, Path] | None:
+    """(png, json) of the run's smallest crossing: min_cross.* written by the tester (fewest edits, ties by the
+    smaller |g|), else the minimiser's minimal_cross.*; None if neither is stored (the run has no minimal view)."""
+    run_dir = Path(run_dir)
+    for stem in ("min_cross", "minimal_cross"):
+        png, js = run_dir / f"{stem}.png", run_dir / f"{stem}.json"
+        if png.exists() and js.exists():
+            return png, js
+    return None
+
+
 def score_run(run_dir: Path, models: ProxyModels, root: Path | None = None, defaults: dict | None = None) -> dict:
     run_dir = Path(run_dir)
     stats = json.loads((run_dir / "stats.json").read_text())
@@ -164,16 +175,15 @@ def score_run(run_dir: Path, models: ProxyModels, root: Path | None = None, defa
     row.update(image_proxies(models, seed_img, cross_img))
     row.update(text_proxies(models, original_question(stats), str(fc.get("text", "")), object_word(stats, fc)))
     out = [{c: row.get(c) for c in COLUMNS}]
-    try:
-        me = min_edit_crossing(run_dir)
-    except Exception as exc:  # noqa: BLE001
-        logger.warning("no minimal-edit crossing for %s: %s", run_dir, exc)
-        me = None
-    if me is not None:
-        r2 = dict(row, view="min_edit", first_cross_gen=None, g_at_cross=None)
-        r2.update(image_proxies(models, seed_img, Image.open(me["png"]).convert("RGB")))
-        r2.update(text_proxies(models, original_question(stats), str(me["text"]), object_word(stats, fc)))
-        r2["n_edits"] = me["n_edits"]
+    mc = minimal_crossing(run_dir)
+    if mc is not None:                               # primary view: the run's smallest crossing (MMBA's output)
+        mpng, mjson = mc
+        mj = json.loads(mjson.read_text())
+        r2 = dict(row, view="min", first_cross_eval=mj.get("eval_idx"), first_cross_gen=mj.get("generation"),
+                  g_at_cross=mj.get("g"))
+        r2.update(image_proxies(models, seed_img, Image.open(mpng).convert("RGB")))
+        r2.update(text_proxies(models, original_question(stats), str(mj.get("text", "")), object_word(stats, fc)))
+        r2["n_edits"] = mj.get("n_edits")
         out.append({c: r2.get(c) for c in COLUMNS})
     return out
 

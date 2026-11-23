@@ -123,6 +123,17 @@ class TestScore:
         assert bool(r["txt_edited"]) is True
         assert r["txt_minilm_cos"] == 0.5
 
+    def test_minimal_crossing_gives_a_second_view(self, tmp_path):
+        d = make_run(tmp_path, "r", seed_level=100, cross_level=140, text="What is the primary subject?")
+        assert [r for r in score.score_runs(tmp_path, FakeModels()).view] == ["first"]
+        Image.new("RGB", (32, 32), (105,) * 3).save(d / "min_cross.png")
+        (d / "min_cross.json").write_text(json.dumps({"text": "What is the main subject?", "g": -0.1, "eval_idx": 40,
+                                                       "generation": 1, "n_edits": 3}))
+        df = score.score_runs(tmp_path, FakeModels()).set_index("view")
+        assert df.loc["min", "img_lpips"] == pytest.approx(5 / 255) and df.loc["first", "img_lpips"] == pytest.approx(40 / 255)
+        assert df.loc["min", "n_edits"] == 3 and df.loc["min", "first_cross_eval"] == 40
+        assert bool(df.loc["min", "txt_edited"]) is False
+
     def test_identical_text_and_image_give_neutral_row(self, tmp_path):
         make_run(tmp_path, "same", seed_level=100, cross_level=100)
         r = score.score_runs(tmp_path, FakeModels()).iloc[0]

@@ -227,7 +227,7 @@ def arm_main_tex(summary: pd.DataFrame, cost: pd.DataFrame, paired: pd.DataFrame
 
 def validity_main_tex(vct: pd.DataFrame, task_names: dict) -> str:
     """RQ3: per task and arm the image change (LPIPS against the unedited input) and the text change (visible
-    character edit fraction) at the first crossing; best value bold within each task."""
+    character edit fraction) at the minimal crossing; best value bold within each task."""
     rows = []
     for task in [t for t in dict.fromkeys(vct["task"]) if t in task_names]:     # the pooled "All" block is not shown
         g = vct[vct["task"] == task]
@@ -823,13 +823,15 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
             write_tex(tabs / "validity.tex", validity_table(v1))
             add_validity_numbers(num, v1)
             from mmb.analysis import validity_cost as vc
-            for view, stem, fam in (("first", "validity_cost", "EValid"), ("min_edit", "validity_cost_min", "EValidMin")):
+            # primary view: the minimal crossing (EValid*, validity_main); the first-crossing view is supplement only (EValidFirst*)
+            for view, stem, fam, lab in (("min", "validity_cost_min", "EValid", "minimal crossing"),
+                                         ("first", "validity_cost", "EValidFirst", "first crossing")):
                 vct = vc.validity_cost(vdf, df, grid_suts, view=view)
                 if len(vct):
                     write_tex(tabs / f"{stem}.tex", vc.table_tex(vct, TASK_NAMES, objective=(view == "first")))
-                    if view == "first":
+                    if view == "min":
                         write_tex(tabs / "validity_main.tex", validity_main_tex(vct, TASK_NAMES))
-                    vc.add_numbers(num, vct, fam)
+                    vc.add_numbers(num, vct, fam, lab)
                     write_tex(tabs / f"{stem.replace('cost', 'sensitivity')}.tex",
                               vc.sensitivity_tex(vc.sensitivity(vdf, df, grid_suts, view)))
 
