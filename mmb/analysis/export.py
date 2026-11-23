@@ -867,9 +867,18 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
                 gallery.plot_teaser(teaser, figs / "gallery.pdf", runs_root=runs_root)
             except FileNotFoundError as e:
                 logger.warning("teaser skipped: %s", e)
-    if minimal:
+    mdf = None
+    if runs_root is not None and Path(runs_root).exists():
+        from mmb.analysis import failure_types as ft, min_types as mtp
+        mdf = mtp.load_runs(runs_root)
+        if len(mdf):
+            write_tex(tabs / "arm_failure.tex", mtp.table_tex(mdf))
+            mtp.add_numbers(num, mdf, camel, f_num, f_pct)
+    elif minimal:
         from mmb.analysis import failure_types as ft
         mdf = ft.load_minimal(minimal)
+    if mdf is not None:
+        from mmb.analysis import failure_types as ft
         if len(mdf):
             add_failure_numbers(num, mdf)
             if figures:
