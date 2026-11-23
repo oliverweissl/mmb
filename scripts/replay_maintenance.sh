@@ -3,7 +3,8 @@
 # Run as its own transient unit so it survives the caller:
 #   systemd-run --user --unit mmb-replay -p WorkingDirectory=$PWD bash scripts/replay_maintenance.sh
 set -u
-PY="taskset -c ${PIN_CPUS:-0-3,8-31} /home/oliver/gardens/mmb/.venv/bin/python"
+PYBIN=/home/oliver/gardens/mmb/.venv/bin/python
+PY="taskset -c ${PIN_CPUS:-0-3,8-31} $PYBIN"
 export MMB_IMAGENET_DIR=$HOME/data/imagenet-val-hf
 log=runs/logs/replay.out
 echo "[$(date +%T)] stopping queue" >> $log
@@ -14,5 +15,5 @@ for s in ${AGREE_SUTS:-qwen internvl ministral}; do $PY scripts/agreement_replay
 echo "[$(date +%T)] replays done, restarting queue" >> $log
 systemd-run --user --unit mmb-queue14 -p WorkingDirectory=$PWD \
   -p StandardOutput=append:$PWD/runs/logs/MAIN/queue.out -p StandardError=append:$PWD/runs/logs/MAIN/queue.out \
-  --setenv=PY=$PY --setenv=MMB_IMAGENET_DIR=$MMB_IMAGENET_DIR \
+  --setenv=PY=$PYBIN --setenv=MMB_IMAGENET_DIR=$MMB_IMAGENET_DIR \
   /usr/bin/bash $PWD/scripts/run_queue_passes.sh configs/generated/MAIN runs/logs/MAIN "" 3 >> $log 2>&1
