@@ -61,11 +61,21 @@ def main():
         act = np.nonzero(G)[0]
         if len(act) == 0 or len(G) != man.image_dim + man.text_dim:
             continue
+        # Text of the crossing as scored (trace). Removing an IMAGE gene keeps it;
+        # removing a TEXT gene needs a re-render, which is only valid when this process
+        # reproduces the run's rendering (checked on the crossing itself).
+        c_text = mc["text"]
+        same_render = man.manipulate(candidates=None, weights=np.stack([G, G]))[1][0] == c_text
         cands = []
         for i in act:
+            if i >= man.image_dim and not same_render:
+                continue
             H = G.copy(); H[i] = 0; cands.append(H)
+        if not cands:
+            continue
         Hs = np.stack(cands if len(cands) > 1 else cands * 2)
         ims, txs = man.manipulate(candidates=None, weights=Hs)
+        txs = [c_text if int(np.nonzero(G != H)[0][0]) < man.image_dim else t for H, t in zip(cands, txs)] + txs[len(cands):]
         cats = tuple(st["categories"]); suffix = exp.answer_format.format(categories=", ".join(cats))
         ia, ib = st["target_classes"]; s0 = np.sign(st["anchor_g"]) or 1.0
         gs = []

@@ -21,7 +21,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from ..types import TokenSequence
-from .base import OperatorContext, deterministic_word_rng, severity_to_k_max
+from .base import stable_hash, OperatorContext, deterministic_word_rng, severity_to_k_max
 
 
 MIN_WORD_LEN = 4
@@ -52,7 +52,7 @@ class FragmentationOperator:
         self._severity = float(severity)
         self._k_max = severity_to_k_max(severity, override=k_max_override)
         self._min_word_len = int(min_word_len)
-        self._salt = hash(("fragmentation", self._severity, self._min_word_len, self._k_max)) & 0xFFFFFFFF
+        self._salt = stable_hash(("fragmentation", self._severity, self._min_word_len, self._k_max))
 
     @property
     def severity(self) -> float:

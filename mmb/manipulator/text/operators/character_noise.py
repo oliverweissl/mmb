@@ -23,7 +23,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from ..types import TokenSequence
-from .base import OperatorContext, deterministic_word_rng, severity_to_k_max
+from .base import stable_hash, OperatorContext, deterministic_word_rng, severity_to_k_max
 
 
 # Homoglyphs: Latin → visually-identical character from another Unicode block.
@@ -97,7 +97,7 @@ class CharacterNoiseOperator:
         self._severity = float(severity)
         self._k_max = severity_to_k_max(severity, override=k_max_override)
         self._modes = tuple(modes)
-        self._salt = hash(("character_noise", self._severity, self._modes, self._k_max)) & 0xFFFFFFFF
+        self._salt = stable_hash(("character_noise", self._severity, self._modes, self._k_max))
 
     @property
     def severity(self) -> float:

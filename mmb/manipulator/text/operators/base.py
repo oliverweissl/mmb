@@ -126,6 +126,13 @@ def severity_to_k_max(
     return min(1 + int(4 * severity), hard_cap)
 
 
+def stable_hash(obj) -> int:
+    """Process-independent 32-bit hash (Python's hash() is salted per process,
+    which made text renderings irreproducible across processes)."""
+    import zlib
+    return zlib.crc32(repr(obj).encode("utf-8")) & 0xFFFFFFFF
+
+
 def deterministic_word_rng(salt: int, word: str, k: int) -> np.random.Generator:
     """Reproducible RNG keyed by (operator-salt, current-word, gene-value).
 
@@ -139,5 +146,5 @@ def deterministic_word_rng(salt: int, word: str, k: int) -> np.random.Generator:
     bucket value get the same output, which is the property the
     optimizer needs for fitness reproducibility.
     """
-    h = hash((salt, word, int(k))) & 0xFFFFFFFF
+    h = stable_hash((salt, word, int(k)))
     return np.random.default_rng(h)

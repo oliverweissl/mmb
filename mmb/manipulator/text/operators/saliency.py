@@ -25,7 +25,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from ..types import TokenSequence
-from .base import OperatorContext, deterministic_word_rng, severity_to_k_max
+from .base import stable_hash, OperatorContext, deterministic_word_rng, severity_to_k_max
 
 
 MIN_WORD_LEN = 2
@@ -100,7 +100,7 @@ class SaliencyOperator:
         self._stop_words = stop_words
         self._function_pos = function_pos
         self._min_word_len = int(min_word_len)
-        self._salt = hash(("saliency", self._severity, self._min_word_len, self._k_max)) & 0xFFFFFFFF
+        self._salt = stable_hash(("saliency", self._severity, self._min_word_len, self._k_max))
 
     @property
     def severity(self) -> float:
