@@ -259,6 +259,22 @@ class TestGallery:
             assert not t.duplicated(["example", "sut"]).any()
             assert t.groupby("example").cell_id.nunique().max() == 1      # a row compares SUTs on one cell
 
+    def test_minimal_selection_needs_a_stored_minimal_crossing(self, tree, tmp_path):
+        import shutil
+        _, csv = tree
+        df = export.st.load_results([csv])
+        d = df[df.sut.isin(export.GRID_SUTS)]
+        assert gallery.select_runs(d, "a0_directed", 2, minimal=True).empty          # no min_cross.* anywhere
+        crossed = d[(d.arm == "a0_directed") & d.crossed]
+        for rd in crossed.run_dir:
+            p = Path(rd)
+            shutil.copy(p / "first_cross.png", p / "min_cross.png")
+            shutil.copy(p / "first_cross.json", p / "min_cross.json")
+        picks = gallery.select_runs(d, "a0_directed", 2, minimal=True)
+        assert len(picks) and not picks.duplicated(["task", "example", "sut"]).any()
+        out = gallery.plot_gallery(picks, tmp_path / "gm.pdf", minimal=True)
+        assert out.exists()
+
     def test_selection_prefers_small_text_distance(self):
         rows = []
         for cell, (t0, t1) in {"c1": (0.30, 0.40), "c2": (0.02, 0.20), "c3": (0.04, 0.12), "c4": (0.50, 0.50)}.items():

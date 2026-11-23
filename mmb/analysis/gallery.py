@@ -1,4 +1,4 @@
-"""Gallery figure: anchor beside first-crossing image, per task and SUT (the paper's teaser).
+"""Gallery figure: anchor beside the crossing image (--minimal: the minimal crossing min_cross.png, the teaser; else the first crossing), per task and SUT (the paper's teaser).
 
 Usage::
 
@@ -35,7 +35,7 @@ import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
 from PIL import Image  # noqa: E402
 
-from mmb.analysis.crossing_files import first_crossing  # noqa: E402
+from mmb.analysis.crossing_files import first_crossing, minimal_crossing  # noqa: E402
 from mmb.analysis.stats import load_results  # noqa: E402
 
 SUT_LABELS = {"qwen": "Qwen3.5-4B", "internvl": "InternVL3.5-4B", "ministral": "Ministral-3-3B",
@@ -44,7 +44,8 @@ TASK_LABELS = {"imagenet": "ImageNet pairs", "pope": "POPE yes/no"}
 
 
 def select_runs(df: pd.DataFrame, arm: str = "a0_directed", per_task: int = 2,
-                suts: list[str] | None = None, img_dominated_max: float = 0.05) -> pd.DataFrame:
+                suts: list[str] | None = None, img_dominated_max: float = 0.05, minimal: bool = False,
+                runs_root: Path | None = None) -> pd.DataFrame:
     """Rows of df (one per chosen run) with an added 'example' index and a 'kind'; see the module docstring.
 
     Text distance is the cosine distance of the text embedding at the first crossing (txt_mag_at_cross), image
@@ -53,6 +54,8 @@ def select_runs(df: pd.DataFrame, arm: str = "a0_directed", per_task: int = 2,
     d = df[(df["arm"] == arm) & df["crossed"].astype(bool)].copy()
     if suts:
         d = d[d["sut"].isin(suts)]
+    if minimal:
+        return _select_minimal(d, per_task, runs_root)
     if "mag_source" in d and (d["mag_source"] == "diag").any():
         d = d[d["mag_source"] == "diag"]
     has_mag = "txt_mag_at_cross" in d and d["txt_mag_at_cross"].notna().any()
@@ -87,6 +90,33 @@ def select_runs(df: pd.DataFrame, arm: str = "a0_directed", per_task: int = 2,
     return pd.concat(picks, ignore_index=True) if picks else d.iloc[0:0].assign(example=[], kind=[])
 
 
+def _select_minimal(d: pd.DataFrame, per_task: int, runs_root: Path | None) -> pd.DataFrame:
+    """Teaser selection on the minimal crossing (the method's output): runs with a stored minimal crossing, per task
+    the per_task cells that most SUTs cross, then the fewest genes at the minimal crossing (ties: fewest text genes);
+    one further image-only example (no text gene at the minimal crossing) when one exists."""
+    def has_min(rd) -> bool:
+        p = Path(rd)
+        if not p.is_absolute() and runs_root is not None and not p.exists():
+            p = runs_root / p
+        return minimal_crossing(p) is not None
+    d = d[[has_min(r) for r in d["run_dir"]]]
+    if "min_edits_cross" not in d or not len(d):
+        return d.iloc[0:0].assign(example=[], kind=[])
+    d = d.assign(_txt=d["edits_txt_at_min"].fillna(0) if "edits_txt_at_min" in d else 0)
+    picks = []
+    for task, t in d.groupby("task", sort=True):
+        best = t.sort_values(["min_edits_cross", "_txt", "run_dir"]).groupby(["cell_id", "sut"], as_index=False).first()
+        stat = best.groupby("cell_id").agg(n_sut=("sut", "nunique"), ed=("min_edits_cross", "mean"), tmin=("_txt", "min"))
+        order = stat.reset_index().sort_values(["n_sut", "ed", "cell_id"], ascending=[False, True, True])
+        chosen = list(order["cell_id"].head(per_task))
+        for ex, cell in enumerate(chosen):
+            picks.append(best[best["cell_id"] == cell].assign(example=ex, kind="cross"))
+        cand = order[(order["tmin"] == 0) & ~order["cell_id"].isin(chosen)]
+        if len(cand):
+            picks.append(best[best["cell_id"] == cand.iloc[0]["cell_id"]].assign(example=per_task, kind="img"))
+    return pd.concat(picks, ignore_index=True).drop(columns="_txt") if picks else d.iloc[0:0].assign(example=[], kind=[])
+
+
 def select_failures(df: pd.DataFrame, arm: str = "a0_directed", suts: list[str] | None = None) -> pd.DataFrame:
     """One typical failure per (task, SUT): among runs of arm without a crossing, the run with the median floor
     (not the best or the worst), so the row shows what a typical unsuccessful search looks like."""
@@ -116,7 +146,7 @@ def _closest_pareto(run_dir: Path):
     return best[1].with_suffix(".png"), best[2]
 
 
-def _load(run_dir: Path, runs_root: Path | None, fail: bool = False):
+def _load(run_dir: Path, runs_root: Path | None, fail: bool = False, minimal: bool = False):
     p = Path(run_dir)
     if not p.is_absolute() and runs_root is not None and not p.exists():
         p = runs_root / p
@@ -129,7 +159,7 @@ def _load(run_dir: Path, runs_root: Path | None, fail: bool = False):
         raw = Image.open(p / "origin.png").convert("RGB")
         side = min(raw.size)
         o = raw.crop(((raw.width - side) // 2, (raw.height - side) // 2, (raw.width + side) // 2, (raw.height + side) // 2))
-    found = first_crossing(p)
+    found = minimal_crossing(p) if minimal else first_crossing(p)
     c = Image.open(found[0]).convert("RGB") if found else None
     if found:
         fc = json.loads(found[1].read_text())
@@ -155,7 +185,7 @@ def _wrap(s: str, width: int, lines: int = 2) -> str:
 
 
 def plot_gallery(picks: pd.DataFrame, out: Path | str, *, runs_root: Path | None = None,
-                 width_in: float = 7.0, img_in: float = 0.85) -> Path:
+                 width_in: float = 7.0, img_in: float = 0.85, minimal: bool = False) -> Path:
     plt.rcParams.update({"pdf.fonttype": 42, "ps.fonttype": 42, "font.size": 6})
     tasks = [t for t in ("imagenet", "pope") if t in set(picks["task"])] or sorted(set(picks["task"]))
     suts = [s for s in SUT_LABELS if s in set(picks["sut"])] or sorted(set(picks["sut"]))
@@ -197,8 +227,8 @@ def plot_gallery(picks: pd.DataFrame, out: Path | str, *, runs_root: Path | None
                        transform=a.transAxes)
                 continue
             r = r.iloc[0]
-            stats, fc, o, c = _load(Path(r["run_dir"]), runs_root, fail)
-            for k, (img, cap) in enumerate(((o, "anchor"), (c, "closest input, no crossing" if fail else "first crossing"))):
+            stats, fc, o, c = _load(Path(r["run_dir"]), runs_root, fail, minimal)
+            for k, (img, cap) in enumerate(((o, "anchor"), (c, "closest input, no crossing" if fail else ("minimal crossing" if minimal else "first crossing")))):
                 a = axes(x0 + k * (img_in + 0.06), y0 + title_h, img_in, img_in)
                 if img is not None:
                     a.imshow(np.asarray(img))
@@ -242,6 +272,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--per-task", type=int, default=2)
     ap.add_argument("--runs-root", type=Path, default=None, help="base for relative run_dir values")
     ap.add_argument("--runs", type=Path, default=None, help="CSV task,sut,run_dir overriding the selection")
+    ap.add_argument("--minimal", action="store_true", help="show the minimal crossing (min_cross.png) instead of the first")
     ap.add_argument("--failures", action="store_true", help="add a typical no-crossing row (median floor) per task")
     ap.add_argument("--sut", action="append", default=[], help="restrict to these SUTs")
     args = ap.parse_args(argv)
@@ -250,12 +281,12 @@ def main(argv: list[str] | None = None) -> int:
         picks = pd.read_csv(args.runs)
         picks["example"] = picks.groupby(["task", "sut"]).cumcount()
     else:
-        picks = select_runs(df, args.arm, args.per_task, args.sut or None)
+        picks = select_runs(df, args.arm, args.per_task, args.sut or None, minimal=args.minimal, runs_root=args.runs_root)
     if args.failures and not args.runs:
         picks = pd.concat([picks.assign(kind="cross"), select_failures(df, args.arm, args.sut or None)], ignore_index=True)
     if picks.empty:
         raise SystemExit("no crossing runs to show")
-    print(f"wrote {plot_gallery(picks, args.out, runs_root=args.runs_root)}")
+    print(f"wrote {plot_gallery(picks, args.out, runs_root=args.runs_root, minimal=args.minimal)}")
     return 0
 
 

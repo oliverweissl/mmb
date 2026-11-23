@@ -28,7 +28,7 @@ import pandas as pd
 from PIL import Image
 
 from mmb.analysis.collect import _load_config, resolve_meta
-from mmb.analysis.crossing_files import first_crossing
+from mmb.analysis.crossing_files import first_crossing, minimal_crossing
 from mmb.validity.proxies import ProxyModels, image_proxies, text_proxies
 
 logger = logging.getLogger(__name__)
@@ -140,17 +140,6 @@ def min_edit_crossing(run_dir: Path) -> dict | None:
         return None
     png, text = arch[best[2]]
     return dict(png=png, text=text or str(df["decoded_text"].iloc[best[1]]), eval_idx=int(best[1]), n_edits=best[0][0])
-
-
-def minimal_crossing(run_dir: Path) -> tuple[Path, Path] | None:
-    """(png, json) of the run's smallest crossing: min_cross.* written by the tester (fewest edits, ties by the
-    smaller |g|), else the minimiser's minimal_cross.*; None if neither is stored (the run has no minimal view)."""
-    run_dir = Path(run_dir)
-    for stem in ("min_cross", "minimal_cross"):
-        png, js = run_dir / f"{stem}.png", run_dir / f"{stem}.json"
-        if png.exists() and js.exists():
-            return png, js
-    return None
 
 
 def score_run(run_dir: Path, models: ProxyModels, root: Path | None = None, defaults: dict | None = None) -> dict:

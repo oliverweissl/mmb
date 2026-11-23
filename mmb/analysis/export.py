@@ -869,13 +869,15 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
         if "probe_gen0" in df and df["probe_gen0"].notna().any():
             plots.plot_predictor_scatter(df[df["sut"].isin(set(grid_suts))], figs / "predictor-main.pdf", arm=ref)
         gdf = df[df["sut"].isin(set(grid_suts))]
-        picks = gallery.select_runs(gdf, ref, 2)
+        picks = gallery.select_runs(gdf, ref, 2, minimal=True, runs_root=runs_root)   # teaser: MMBA's minimal crossing
+        if not len(picks):
+            logger.warning("gallery: no run has a minimal crossing (min_cross.png) yet")
         fails = gallery.select_failures(gdf, ref)
         if len(fails):
             picks = pd.concat([picks.assign(kind="cross"), fails], ignore_index=True)
         if len(picks):
             try:
-                gallery.plot_gallery(picks, figs / "gallery.pdf", runs_root=runs_root)
+                gallery.plot_gallery(picks, figs / "gallery.pdf", runs_root=runs_root, minimal=True)
             except FileNotFoundError as e:
                 logger.warning("gallery skipped: %s", e)
     if minimal:
