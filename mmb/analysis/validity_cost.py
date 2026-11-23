@@ -223,6 +223,10 @@ def add_numbers(num, t: pd.DataFrame, family: str = "EValid", label: str = "firs
             num.add([family, "VisWithinOne"] + tail, f_pct(r["visone_share"], 0), "% of crossings visibly identical or within one character edit per word; " + d)
             num.add([family, "VisCharDist"] + tail, f_num(r["med_vis_char"], 3), "median visible character edit distance / length; " + d)
             num.add([family, "VisMinilm"] + tail, f_num(r["med_vis_cos"], 2), "median MiniLM cosine of the normalised questions; " + d)
+        if "n_partner" in r and r["n_partner"] and r["n_partner"] > 0:      # boundary pair: minimal crossing and its non-crossing neighbour
+            num.add([family, "NPartner"] + tail, str(int(r["n_partner"])), "runs with a stored non-crossing neighbour; " + d)
+            num.add([family, "MedPairLpips"] + tail, f_num(r["med_pair_lpips"], 2), f"median LPIPS between the {label} and its neighbour; " + d)
+            num.add([family, "MedPairVisChar"] + tail, f_num(r["med_pair_vis_char"], 3), f"median visible character change between the {label} and its neighbour; " + d)
         num.add([family, "RhoEvalLpips"] + tail, f_num(r["rho_eval_lpips"], 2, True), "Spearman, evaluations to first crossing vs LPIPS; " + d)
         num.add([family, "RhoEvalTxt"] + tail, f_num(r["rho_eval_txt"], 2, True), "Spearman, evaluations to first crossing vs text distance; " + d)
         num.add([family, "ObjTxtMed"] + tail, f_num(r["obj_med"], 3), "median text cosine of the search's own minimal-edit crossing (post hoc addition); " + d)
