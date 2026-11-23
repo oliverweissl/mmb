@@ -221,9 +221,13 @@ def arm_main_tex(summary: pd.DataFrame, vct: pd.DataFrame | None, paired: pd.Dat
             "pair_lpips": (vcol("med_pair_lpips"), 2), "pair_text": (vcol("med_pair_vis_char", 100), 1)}
     npart = vcol("n_partner")
     npt = ["--" if pd.isna(x) else f"{x:.0f}" for x in npart]
+    MIN_PARTNERS = 10                                  # pair distances are a property of the directed output; arms with few partners are not compared
     cells = {k: tf.bold_best([("--" if pd.isna(x) else f"{x:.{d}f}") for x in vals], vals, k,
                              [("--" if pd.isna(x) else f"{x:.{d}f}") for x in vals]) for k, (vals, d) in cols.items()}
     crossed_c = tf.bold_best(ct, crossed, "crossed", ct)
+    for k in ("pair_lpips", "pair_text"):
+        d_ = cols[k][1]
+        cells[k] = [("--" if pd.isna(x) or pd.isna(npart[i]) or npart[i] < MIN_PARTNERS else f"{x:.{d_}f}") for i, x in enumerate(cols[k][0])]   # neutral: no bold
     rows = [[st.tex_escape(st.arm_label(a)), str(int(n)), crossed_c[i], eff["crossed"][i], cells["lpips"][i],
              cells["text_change"][i], cells["txt_dist"][i], npt[i], cells["pair_lpips"][i], cells["pair_text"][i]] for i, (a, n) in enumerate(zip(arms, summary.n_runs))]
     return st._booktabs("lrrrrrrrrr", ["Arm", "Runs", tf.head(r"Crossing found (\% of runs)", "crossed"), r"vs directed (pp)",

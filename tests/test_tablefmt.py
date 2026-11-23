@@ -93,7 +93,7 @@ def test_arm_main_and_cost_tables():
     tex = ex.arm_main_tex(summary, vct, paired)
     rows = [l for l in tex.splitlines() if l.startswith(("Directed", "Random"))]
     assert "Crossing found" in tex and "Semantic text distance" in tex and "Image change" in tex and r"\uparrow" in tex and r"\downarrow" in tex
-    assert "Image distance across pair" in tex and "Pairs with partner" in tex and r"\textbf{0.05}" in rows[0]
+    assert "Image distance across pair" in tex and "Pairs with partner" in tex and "& 0.05 &" in rows[0]
     assert r"\textbf{90}" in rows[0] and r"\textbf{0.20}" in rows[0] and r"-40 \effL{}$^{\dagger}$" in rows[1]
     d = pd.DataFrame(dict(arm=["a0_directed", "a1_random_tiered"] * 2, crossed=[True] * 4, wall_s=[100.0, 200.0] * 2,
                           min_cross_eval=[300.0, 900.0] * 2))
