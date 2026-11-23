@@ -158,8 +158,8 @@ def _synthetic_minimal(tmp_path):
                          n_genes_min=img + txt, img_genes_min=img, txt_genes_min=txt, txt_zero_width=ops.get("zw", 0),
                          txt_homoglyph=ops.get("hg", 0), txt_typo_words=ops.get("ty", 0), txt_synonym_words=ops.get("sy", 0)))
     add("a0_directed", "internvl", "imagenet", True, 25, 0, 1, ty=1)        # one typo
-    add("a0_directed", "internvl", "imagenet", True, 90, 68, 0)              # image only, 50+ patches
-    add("a0_directed", "internvl", "imagenet", True, 30, 3, 0)               # image only, few patches
+    add("a0_directed", "internvl", "imagenet", True, 90, 6, 0)               # image only, 5+ regions
+    add("a0_directed", "internvl", "imagenet", True, 30, 1, 0)               # image only, one region
     add("a0_directed", "internvl", "imagenet", False, 40, 0, 0)              # did not re-verify
     add("a1_random_tiered", "internvl", "imagenet", True, 6, 0, 2, sy=2)
     add("a1_random_tiered", "internvl", "imagenet", True, 8, 1, 1)
@@ -178,7 +178,7 @@ def test_failure_types_classify_summarise_and_plot(tmp_path):
     s = ft.summary(df)
     top = s[(s.sut == "All") & (s.task == "All") & (s.group == "directed")].iloc[0]
     assert top.n == 4 and top.n_verified == 3 and abs(top.verified_share - 0.75) < 1e-9
-    assert top.med_genes_min == 3 and abs(top.share_text_typo - 1 / 3) < 1e-9 and abs(top.one_gene_share - 1 / 3) < 1e-9
+    assert top.med_genes_min == 1 and abs(top.share_text_typo - 1 / 3) < 1e-9 and abs(top.one_gene_share - 2 / 3) < 1e-9
     assert ft.figure(df, tmp_path / "f.pdf", {"internvl": "InternVL3.5-4B"}, {"imagenet": "ImageNet"}) and (tmp_path / "f.pdf").exists()
 
 
@@ -189,4 +189,4 @@ def test_failure_numbers_are_digit_free_macros(tmp_path):
     ex.add_failure_numbers(num, ft.load_minimal([_synthetic_minimal(tmp_path)]))
     names = {r["macro"]: r["value"] for r in num.rows}
     assert names["EFailShareTextTypoDirectedInternvlImagenet"] == "33"
-    assert names["EFailVerifiedDirectedAllAll"] == "75" and names["EFailMedGenesMinDirectedAllAll"] == "3"
+    assert names["EFailVerifiedDirectedAllAll"] == "75" and names["EFailMedGenesMinDirectedAllAll"] == "1"

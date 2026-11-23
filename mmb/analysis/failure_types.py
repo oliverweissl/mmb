@@ -5,7 +5,7 @@ arm, rng_seed, verified, n_genes_first, n_genes_min, img_genes_min, txt_genes_mi
 txt_typo_words, txt_synonym_words, txt_visible_identical, ...). A row is classified only if it verified, i.e. the stored
 crossing was re-scored as a robust crossing and then reduced to a 1-minimal flipping perturbation.
 
-Types: image-only by patch-count bin, text-only by the dominant text operator, and joint (image and text genes).
+Types: image-only by region-count bin (1, 2-4, 5+), text-only by the dominant text operator, and joint (image and text genes).
 """
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ import pandas as pd
 
 #: (key, label) in plotting order
 TYPES = [
-    ("image_few", "Image, 1-9 patches"), ("image_mid", "Image, 10-49 patches"), ("image_many", "Image, 50+ patches"),
+    ("image_few", "Image, 1 region"), ("image_mid", "Image, 2-4 regions"), ("image_many", "Image, 5+ regions"),
     ("text_typo", "Text, typo"), ("text_homoglyph", "Text, homoglyph"), ("text_zero_width", "Text, zero-width"),
     ("text_synonym", "Text, near-synonym"), ("text_other", "Text, other"), ("joint", "Image and text"),
 ]
@@ -28,7 +28,7 @@ TYPE_WORDS = dict(image_few="ImageFew", image_mid="ImageMid", image_many="ImageM
                   text_homoglyph="TextHomoglyph", text_zero_width="TextZeroWidth", text_synonym="TextSynonym",
                   text_other="TextOther", joint="Joint")
 GROUPS = [("directed", "Directed arm"), ("others", "Other arms")]
-IMAGE_BINS = ((1, 9, "image_few"), (10, 49, "image_mid"), (50, 10 ** 9, "image_many"))
+IMAGE_BINS = ((1, 1, "image_few"), (2, 4, "image_mid"), (5, 10 ** 9, "image_many"))   # image genes = regions (64 per image)
 #: tie order between text operators
 TEXT_OPS = (("txt_typo_words", "text_typo"), ("txt_synonym_words", "text_synonym"),
             ("txt_homoglyph", "text_homoglyph"), ("txt_zero_width", "text_zero_width"))
