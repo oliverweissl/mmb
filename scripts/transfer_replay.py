@@ -35,6 +35,8 @@ def main() -> None:
     ap.add_argument("--out", type=Path, required=True)
     ap.add_argument("--device", default="cuda")
     a = ap.parse_args()
+    from mmb.runners.run_boundary_test import _warm_up_numba
+    _warm_up_numba()
 
     from mmb.manipulator.image.codec import VQGANCodec
     from mmb.manipulator.image.loading import load_vqgan

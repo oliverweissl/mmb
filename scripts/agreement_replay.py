@@ -41,6 +41,10 @@ def main() -> None:
     ap.add_argument("--device", default="cuda")
     ap.add_argument("--limit", type=int, default=0)
     a = ap.parse_args()
+    from mmb.runners.run_boundary_test import _disable_hub_kernels, _warm_up_numba
+    _warm_up_numba()
+    if a.sut != "ministral":
+        _disable_hub_kernels()
 
     from mmb.manipulator.image.codec import VQGANCodec
     from mmb.manipulator.image.loading import load_vqgan

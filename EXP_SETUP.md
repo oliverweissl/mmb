@@ -106,3 +106,8 @@ could not be verified here (no OpenVINO stack). Thesis-era numbers are therefore
 - Fix: `stable_hash` (CRC32) in mmb/manipulator/text/operators (base, character_noise, saliency, fragmentation).
 - Repair: scripts/fix_text_from_trace.py sets min_cross texts from trace `decoded_text` (81 fixed); neighbours differing by an image gene keep the crossing text; others re-scored by scripts/partner_replay.py (scored text kept for image-gene partners).
 - Re-run: scripts/replay_maintenance.sh (pauses queue; partner, agreement, transfer replays; restarts queue).
+
+## 2026-11-23 — Confirmation + replays
+- scripts/confirm_crossings.py run for qwen/internvl/ministral (search output kept in min_cross_search.json). Must be re-run after each grid block (it skips confirmed runs).
+- Agreement (greedy answer == teacher-forced argmax) at the crossing: qwen 84%, internvl 76%, ministral 79%; anchors 100/84/100%.
+- agreement/transfer replays now warm up numba and disable hub kernels (qwen segfault); maintenance script pins CPUs.
