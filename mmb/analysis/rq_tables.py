@@ -176,11 +176,23 @@ def ablation(df: pd.DataFrame, vdf: pd.DataFrame) -> pd.DataFrame:
     """Pooled metrics per RQ4 variant (all SUTs and tasks, seed 0). 'w/o Phase 2' is the first crossing of the full method
     (no partner and no run time of its own)."""
     df = df[df["rng_seed"] == 0] if "rng_seed" in df else df
+    keys = [k for k in ("task", "sut", "seed_idx") if k in df]
+
+    def cover(d: pd.DataFrame) -> set:
+        return set(map(tuple, d[keys].astype(str).values)) if keys else set()
+
+    full_cover = None
     rows = []
     for label, pre, view in VARIANTS:
         d = df[df["arm"].map(prefix) == pre]
         if d.empty:
             rows.append(dict(label=label, pre=pre, n_runs=0))
+            continue
+        if full_cover is None:
+            full_cover = cover(d)
+        elif not full_cover <= cover(d):
+            # a variant is shown only once it covers every seed input, model and task of the full method
+            rows.append(dict(label=label, pre=pre, n_runs=0, n_partial=len(d)))
             continue
         v = vdf[(vdf["view"] == view) & vdf["run_dir"].isin(set(d["run_dir"]))] if "view" in vdf else vdf.iloc[0:0]
         r = metrics(d, v)
