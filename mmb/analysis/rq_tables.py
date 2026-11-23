@@ -114,24 +114,24 @@ def grouped_tex(m: pd.DataFrame, cols: list[tuple], methods=METHODS) -> str:
     """One block per SUT, inside it one band per task (rows: methods present); best value per band and column in bold."""
     k = len(cols)
     head = ["Method"] + [_head(lab, key) for (_, key, lab, _d) in cols]
-    lines = [r"\\begin{tabular}{l" + "r" * k + "}", r"\\toprule", " & ".join(head) + r" \\\\"]
+    lines = [r"\begin{tabular}{l" + "r" * k + "}", r"\toprule", " & ".join(head) + r" \\"]
     for s in [x for x in SUT_NAMES if x in set(m["sut"])]:
-        lines += [r"\\midrule", rf"\\multicolumn{{{1 + k}}}{{l}}{{\\emph{{{SUT_NAMES[s]}}}}} \\\\"]
+        lines += [r"\midrule", rf"\multicolumn{{{1 + k}}}{{l}}{{\emph{{{SUT_NAMES[s]}}}}} \\"]
         for t in [x for x in TASK_NAMES if x in set(m["task"])]:
             ms = m[(m["sut"] == s) & (m["task"] == t)]
             arms = sorted({a for a in ms["arm"] if prefix(a) in methods}, key=lambda a: methods.index(prefix(a)))
             if not arms:
                 continue
-            lines.append(rf"\\multicolumn{{{1 + k}}}{{l}}{{\\hspace{{1em}}{TASK_NAMES[t]}}} \\\\")
+            lines.append(rf"\multicolumn{{{1 + k}}}{{l}}{{\hspace{{1em}}{TASK_NAMES[t]}}} \\")
             cells = {}
             for (col, key, _lab, dec) in cols:
                 vals = [float(ms[ms["arm"] == a].iloc[0][col]) for a in arms]
                 txt = [_fmt(x, dec) for x in vals]
                 cells[col] = tf.bold_best(txt, vals, key, txt)
             for i, a in enumerate(arms):
-                lines.append(" & ".join([r"\\hspace{2em}" + st.tex_escape(st.arm_label(a))] + [cells[col][i] for (col, *_r) in cols]) + r" \\\\")
-    lines += [r"\\bottomrule", r"\\end{tabular}"]
-    return "\\n".join(lines) + "\\n"
+                lines.append(" & ".join([r"\hspace{2em}" + st.tex_escape(st.arm_label(a))] + [cells[col][i] for (col, *_r) in cols]) + r" \\")
+    lines += [r"\bottomrule", r"\end{tabular}"]
+    return "\n".join(lines) + "\n"
 
 
 def rq1_tex(m: pd.DataFrame) -> str:
@@ -186,4 +186,19 @@ def add_ablation_numbers(num, a: pd.DataFrame) -> None:
             continue
         for col, nm in names.items():
             if col in r and not pd.isna(r[col]):
-                num.add(["EAbl", nm, key], f"{r[col]:.{0 if col in ('CR', 'first_cross_eval', 'wall', 'n_runs', 'd_edit') else 2}f}", f"ablation variant {r['label']}, pooled over SUTs and tasks, seed 0: {col}")
+                num.add(["EAbl", nm, key], f"{r[col]:.{0 if col in ('CR', 'SCR', 'first_cross_eval', 'wall', 'n_runs', 'd_edit') else 2}f}", f"ablation variant {r['label']}, pooled over SUTs and tasks, seed 0: {col}")
+
+
+POOL_NAMES = {"CR": "Cr", "S": "S", "SCR": "Scr", "lpips_bp": "LpipsBp", "d_edit": "DEdit", "d_sem": "DSem",
+              "first_cross_eval": "Calls", "min_cross_eval": "CallsMin", "wall": "Wall", "n_partner": "NPartner"}
+
+
+def add_pooled_numbers(num, df: pd.DataFrame, vdf: pd.DataFrame, arm_short) -> None:
+    """Macros ERqPool<Metric><Arm>: the table metrics pooled over all SUTs and tasks and all seeds, per arm (prose of RQ1 and RQ2)."""
+    vmin = vdf[vdf["view"] == "min"]
+    for arm, d in df.groupby("arm"):
+        r = metrics(d, vmin[vmin["arm"] == arm])
+        for col, nm in POOL_NAMES.items():
+            if col in r and not pd.isna(r[col]):
+                dec = 0 if col in ("CR", "SCR", "first_cross_eval", "min_cross_eval", "wall", "d_edit", "n_partner") else 2
+                num.add(["ERqPool", nm, arm_short(arm)], f"{r[col]:.{dec}f}", f"table metric {col} pooled over SUTs, tasks and seeds, arm {arm}")

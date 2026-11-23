@@ -679,6 +679,7 @@ def _rq_tables(rq, tabs: Path, df: pd.DataFrame, vdf: pd.DataFrame, grid_suts, n
     abl = rq.ablation(gd, gv)
     write_tex(tabs / "arm_ablation.tex", rq.ablation_tex(abl))
     rq.add_ablation_numbers(num, abl)
+    rq.add_pooled_numbers(num, gd, vdf[vdf["sut"].isin(grid_suts)], arm_short)
 
 
 def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid_suts=GRID_SUTS,
