@@ -272,7 +272,7 @@ def paired_vs_reference(df: pd.DataFrame, ref_arm: str, arms: Sequence[str] | No
 
 ARM_LABELS = {"a0": "Directed", "a1": "Random", "a3": "GA", "a4": "NSGA-II",
               "a5": "MIMICRY-style", "a7": "Image-only", "a8": "Hill climber",
-              "a9": "DeepJanus-style"}
+              "a9": "DeepJanus-style", "a6": "Text-only", "x1": "w/o guidance", "x2": "Patch edits"}
 
 
 def arm_label(arm: str) -> str:

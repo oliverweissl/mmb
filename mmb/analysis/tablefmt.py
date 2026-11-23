@@ -27,7 +27,7 @@ DIRECTION: dict[str, str] = {
     "first_cross_eval": DOWN, "evals": DOWN, "floor": DOWN, "min_edits": DOWN, "min_edits_x": DOWN, "edits_img_x": DOWN, "edits_txt_x": DOWN, "hv_edits": UP,
     "img_mag": DOWN, "txt_mag": DOWN, "wall": DOWN, "min_cross_eval": DOWN, "sut_calls": DOWN, "hv_mag": UP, "chardist": DOWN,
     # validity proxies
-    "lpips": DOWN, "txt_dist": DOWN, "text_change": DOWN, "lpips_share": UP, "txt_share": UP, "both_share": UP, "cons_share": UP,
+    "lpips": DOWN, "lpips_bp": DOWN, "stealth": UP, "scr": UP, "d_edit": DOWN, "d_sem": DOWN, "txt_dist": DOWN, "text_change": DOWN, "lpips_share": UP, "txt_share": UP, "both_share": UP, "cons_share": UP,
     "vis_cos": UP, "vis_identical": UP, "vis_within_one": UP, "obj_txt_dist": DOWN, "obj_share": UP,
     "clip": UP, "dino": UP, "ssim": UP, "minilm": UP, "word_edit": DOWN,
 }

@@ -24,7 +24,7 @@ def test_generation_zero_and_budget_30_are_neutral():
     tex = st.budgets_tex(curve, [30, 100])
     header = [l for l in tex.splitlines() if l.startswith("Arm")][0]
     assert header.count("uparrow") == 1 and header.split("&")[1].count("uparrow") == 0   # arrow only on the larger budget
-    row = [l for l in tex.splitlines() if l.startswith("Directed")][0]
+    row = [l for l in tex.splitlines() if "Directed" in l][0]
     assert row.split("&")[1].count("textbf") == 0 and row.split("&")[2].count("textbf") == 1
 
 
@@ -82,27 +82,29 @@ def test_cohens_dz():
     assert abs(tf.cohens_dz([1.0, 3.0]) - (2.0 / (2 ** 0.5))) < 1e-9 and np.isnan(tf.cohens_dz([1.0]))
 
 
-def test_arm_main_and_cost_tables():
-    from mmb.analysis import export as ex
-    summary = pd.DataFrame(dict(arm=["a0_directed", "a1_random_tiered"], n_runs=[36, 36], share_crossed=[0.9, 0.5],
-                                median_first_cross_eval=[120.0, 600.0]))
-    vct = pd.DataFrame(dict(arm=["a0_directed", "a1_random_tiered"], med_lpips=[0.2, 0.3], med_vis_char=[0.0, 0.1], med_txt=[0.01, 0.05],
-                            n_partner=[30, 20], med_pair_lpips=[0.05, 0.08], med_pair_vis_char=[0.0, 0.02]))
-    paired = pd.DataFrame(dict(arm=["a1_random_tiered"] * 4, metric=["crossed", "first_cross_eval", "min_edits_x", "wall"],
-                               diff=[-0.40, 5.0, 60.0, 1.0], dz=[-1.3, 0.7, 0.2, 0.1], p_holm=[0.004, 0.2, 0.03, 0.5]))
-    tex = ex.arm_main_tex(summary, vct, paired)
-    rows = [l for l in tex.splitlines() if l.startswith(("Directed", "Random"))]
-    assert "Crossing found" in tex and "Semantic text distance" in tex and "Image change" in tex and r"\uparrow" in tex and r"\downarrow" in tex
-    assert "Image distance across pair" in tex and "Pairs with partner" in tex and "& 0.05 &" in rows[0]
-    assert r"\textbf{90}" in rows[0] and r"\textbf{0.20}" in rows[0] and r"-40 \effL{}$^{\dagger}$" in rows[1]
-    d = pd.DataFrame(dict(arm=["a0_directed", "a1_random_tiered"] * 2, crossed=[True] * 4, wall_s=[100.0, 200.0] * 2,
-                          min_cross_eval=[300.0, 900.0] * 2))
-    cost = pd.DataFrame(dict(arm=["a0_directed", "a1_random_tiered"], med_edits_x=[20.0, 80.0]))
-    c = ex.arm_cost_tex(d, summary, cost, paired)
-    crow = [l for l in c.splitlines() if l.startswith(("Directed", "Random"))]
-    assert "Runtime" in c and "Calls to minimal crossing" in c
-    assert r"\textbf{100}" in crow[0] and r"\textbf{20}" in crow[0] and r"+0.20 \effS{}$^{\dagger}$" in crow[1]
-    assert "star" not in tex + c
+def test_rq_tables_blocks_bold_and_partner_rule():
+    from mmb.analysis import rq_tables as rq
+    rows = []
+    for t in ("imagenet", "pope"):
+        for a, cr, lp, np_ in (("a0_directed", 90.0, 0.05, 20), ("a1_random_tiered", 50.0, 0.08, 2)):
+            rows.append(dict(task=t, sut="qwen", arm=a, n_runs=10, CR=cr, S=0.9, SCR=cr * 0.9, lpips_bp=lp if np_ >= 3 else float("nan"), n_partner=np_,
+                             d_edit=0.0 if a.startswith("a0") else 10.0, d_sem=0.01, first_cross_eval=50.0 if a.startswith("a0") else 90.0,
+                             min_cross_eval=400.0, wall=170.0))
+    m = pd.DataFrame(rows)
+    t1 = rq.rq1_tex(m)
+    assert "Qwen3.5-4B" in t1 and "ImageNet" in t1 and "POPE" in t1 and r"\uparrow" in t1 and r"\downarrow" in t1 and "SCR" in t1
+    d_row = [l for l in t1.splitlines() if "Directed" in l][0]
+    r_row = [l for l in t1.splitlines() if "Random" in l][0]
+    assert r"\textbf{90}" in d_row and r"\textbf{0.05}" not in r_row and "--" in r_row            # random has 2 partners: no value
+    t2 = rq.rq2_tex(m)
+    assert "Runtime (s)" in t2 and "Calls to first" in t2 and r"\textbf{50}" in t2
+    ab = rq.ablation(pd.DataFrame(dict(arm=["a0_directed"] * 4, rng_seed=0, crossed=[True, True, True, False], first_cross_eval=[10, 20, 30, 40],
+                                      wall_s=100.0, min_cross_eval=[50, 60, 70, float("nan")], run_dir=list("abcd"), edits_img_at_min=2, edits_txt_at_min=0)),
+                     pd.DataFrame(dict(view=["min"] * 3 + ["first"] * 3, run_dir=list("abcabc"), vis_char_dist=0.0, txt_minilm_cos=1.0,
+                                       has_partner=True, pair_lpips=0.02, txt_edited=False, img_lpips=0.1)))
+    tab = rq.ablation_tex(ab)
+    assert "Full" in tab and "w/o Phase 2" in tab and "Variant" in tab
+    assert ab.loc[ab.label == "w/o Phase 2", "lpips_bp"].isna().all()
 
 
 def test_validity_and_generalization_main_tables():

@@ -195,75 +195,6 @@ def keyed_summary_tex(frames: list[tuple[list[str], pd.DataFrame]], key_headers:
 # ---------------------------------------------------------------------------
 
 
-def _effect_cols(arms: list[str], keys: list[str], eff: dict) -> dict:
-    return {k: ["--" if eff.get((a, k)) is None else tf.effect_cell(_effect_text(eff[(a, k)], k), eff[(a, k)]["dz"], eff[(a, k)]["p_holm"])
-                for a in arms] for k in keys}
-
-
-def _eff_map(paired: pd.DataFrame | None) -> dict:
-    return {} if paired is None or not len(paired) else {(r.arm, r.metric): r._asdict() for r in paired.itertuples()}
-
-
-def arm_main_tex(summary: pd.DataFrame, vct: pd.DataFrame | None, paired: pd.DataFrame | None) -> str:
-    """RQ1 (effectiveness): per arm the share of runs that found a crossing (with the effect size against the directed
-    arm: pp, magnitude bullet, dagger after Holm) and what the crossings look like at the minimal crossing: image
-    change (LPIPS), visible text change (% of characters) and semantic text distance (1 - MiniLM cosine); medians
-    over the crossings of the arm, all tasks pooled."""
-    arms = list(summary["arm"])
-    eff = _effect_cols(arms, ["crossed"], _eff_map(paired))
-    v = vct.set_index("arm") if vct is not None and len(vct) else pd.DataFrame()
-
-    def vcol(c, scale=1.0):
-        return [float(v.loc[a, c]) * scale if a in v.index and c in v else float("nan") for a in arms]
-    crossed = [100 * float(x) for x in summary.share_crossed]
-    ct = ["--" if pd.isna(x) else f"{x:.0f}" for x in crossed]
-    cols = {"lpips": (vcol("med_lpips"), 2), "text_change": (vcol("med_vis_char", 100), 0), "txt_dist": (vcol("med_txt"), 2),
-            "pair_lpips": (vcol("med_pair_lpips"), 2), "pair_text": (vcol("med_pair_vis_char", 100), 1)}
-    npart = vcol("n_partner")
-    npt = ["--" if pd.isna(x) else f"{x:.0f}" for x in npart]
-    MIN_PARTNERS = 10                                  # pair distances are a property of the directed output; arms with few partners are not compared
-    cells = {k: tf.bold_best([("--" if pd.isna(x) else f"{x:.{d}f}") for x in vals], vals, k,
-                             [("--" if pd.isna(x) else f"{x:.{d}f}") for x in vals]) for k, (vals, d) in cols.items()}
-    crossed_c = tf.bold_best(ct, crossed, "crossed", ct)
-    for k in ("pair_lpips", "pair_text"):
-        d_ = cols[k][1]
-        cells[k] = [("--" if pd.isna(x) or pd.isna(npart[i]) or npart[i] < MIN_PARTNERS else f"{x:.{d_}f}") for i, x in enumerate(cols[k][0])]   # neutral: no bold
-    rows = [[st.tex_escape(st.arm_label(a)), str(int(n)), crossed_c[i], eff["crossed"][i], cells["lpips"][i],
-             cells["text_change"][i], cells["txt_dist"][i], npt[i], cells["pair_lpips"][i], cells["pair_text"][i]] for i, (a, n) in enumerate(zip(arms, summary.n_runs))]
-    return st._booktabs("lrrrrrrrrr", ["Arm", "Runs", tf.head(r"Crossing found (\% of runs)", "crossed"), r"vs directed (pp)",
-                                    tf.head("Image change (LPIPS)", "lpips"), tf.head(r"Text change (\% of characters)", "text_change"),
-                                    tf.head("Semantic text distance", "txt_dist"), "Pairs with partner",
-                                    tf.head("Image distance across pair (LPIPS)", "pair_lpips"), tf.head(r"Text change across pair (\% of characters)", "pair_text")], rows)
-
-
-def arm_cost_tex(d: pd.DataFrame, summary: pd.DataFrame, cost: pd.DataFrame, paired: pd.DataFrame | None) -> str:
-    """RQ2 (efficiency): per arm the median wall-clock time of a run, the model calls to the first crossing, the calls at
-    which the smallest crossing was found and the
-    genes of the smallest crossing; effect sizes against the directed arm (Cohen's d_z, bullet, dagger after Holm)."""
-    eff_m = _eff_map(paired)
-    arms = list(summary["arm"])
-    cost = cost.set_index("arm")
-    g = d.groupby("arm")
-
-    def med(col):
-        return [float(g[col].median().get(a, float("nan"))) if col in d else float("nan") for a in arms]
-    cols = {"wall": med("wall_s"), "first_cross_eval": [float(x) for x in summary.median_first_cross_eval],
-            "min_cross_eval": [float(d[(d["arm"] == a) & d["crossed"].astype(bool)]["min_cross_eval"].median()) if "min_cross_eval" in d else float("nan") for a in arms],
-            "min_edits_x": [float(cost.loc[a, "med_edits_x"]) if a in cost.index else float("nan") for a in arms]}
-    eff = _effect_cols(arms, list(cols), eff_m)
-    cells = {}
-    for k, vals in cols.items():
-        t = ["--" if pd.isna(x) else f"{x:.0f}" for x in vals]
-        cells[k] = tf.bold_best(t, vals, k, t)
-    heads = {"wall": "Runtime (s)", "first_cross_eval": "Calls to first crossing", "min_cross_eval": "Calls to minimal crossing",
-             "min_edits_x": "Minimal edits"}
-    rows = [[st.tex_escape(st.arm_label(a))] + sum(([cells[k][i], eff[k][i]] for k in cols), []) for i, a in enumerate(arms)]
-    hdr = ["Arm"]
-    for k in cols:
-        hdr += [tf.head(heads[k], k), r"vs dir. ($d$)"]
-    return st._booktabs("l" + "rr" * len(cols), hdr, rows)
-
-
 def validity_main_tex(vct: pd.DataFrame, task_names: dict) -> str:
     """RQ3: per task and arm the image change (LPIPS against the unedited input) and the text change (visible
     character edit fraction) at the minimal crossing; best value bold within each task."""
@@ -739,6 +670,17 @@ def validity_table(vdf: pd.DataFrame) -> str:
 # ---------------------------------------------------------------------------
 
 
+def _rq_tables(rq, tabs: Path, df: pd.DataFrame, vdf: pd.DataFrame, grid_suts, num) -> None:
+    """Main-text tables: RQ1 (effectiveness and quality), RQ2 (efficiency), RQ4 (ablation, pooled, seed 0)."""
+    gd, gv = df[df["sut"].isin(grid_suts)], vdf[vdf["sut"].isin(grid_suts)]
+    cells_m = rq.by_cell(gd, gv)
+    write_tex(tabs / "arm_main.tex", rq.rq1_tex(cells_m))
+    write_tex(tabs / "arm_cost.tex", rq.rq2_tex(cells_m))
+    abl = rq.ablation(gd, gv)
+    write_tex(tabs / "arm_ablation.tex", rq.ablation_tex(abl))
+    rq.add_ablation_numbers(num, abl)
+
+
 def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid_suts=GRID_SUTS,
            validity: Path | None = None, runs_root: Path | None = None, n_boot: int = st.N_BOOT,
            figures: bool = True, agree: list[Path] | None = None,
@@ -763,7 +705,6 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
         num.datastatus, n_ok, n_plan = data_status(df, planned, Path(planned).resolve().parents[2])
         logger.info("data status: %s (%d of %d planned configurations complete)", num.datastatus, n_ok, n_plan)
     sc = scopes(df, grid_suts)
-    _arm_state: dict = {}
     budgets = list(st.DEFAULT_BUDGETS)
     num.add(["EOne", "Runs", "Total"], str(len(df)), "runs in the results CSV")
     if "complete" in df:
@@ -800,10 +741,6 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
                 write_tex(tabs / "per" / f"{stem}_paired.tex", st.paired_tex(res["paired"]))
         if (sut, task) == ("All", "All"):
             write_tex(tabs / "e1.tex", st.summary_tex(res["summary"]))
-            _arm_paired = pr.paired_table(d, ref, [m for m in pr.DEFAULT_METRICS + ("wall", "min_cross_eval") if pr.METRICS[m][0] in d.columns],
-                                          n_boot=n_boot) if ref in arms else None
-            _arm_state.update(summary=res["summary"], d=d, cost=cost_summary(d, n_boot), paired=_arm_paired)
-            write_tex(tabs / "arm_cost.tex", arm_cost_tex(d, res["summary"], _arm_state["cost"], _arm_paired))
             write_tex(tabs / "e1_budgets.tex", st.budgets_tex(res["curve"], budgets))
             if "paired" in res:
                 write_tex(tabs / "e1_paired.tex", st.paired_tex(res["paired"]))
@@ -865,6 +802,9 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
             write_tex(tabs / "validity.tex", validity_table(v1))
             add_validity_numbers(num, v1)
             from mmb.analysis import validity_cost as vc
+            from mmb.analysis import rq_tables as rq
+            if {"sut", "task", "arm", "view"} <= set(vdf.columns):
+                _rq_tables(rq, tabs, df, vdf, grid_suts, num)
             # primary view: the minimal crossing (EValid*, validity_main); the first-crossing view is supplement only (EValidFirst*)
             for view, stem, fam, lab in (("min", "validity_cost_min", "EValid", "minimal crossing"),
                                          ("first", "validity_cost", "EValidFirst", "first crossing")):
@@ -873,8 +813,6 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
                     write_tex(tabs / f"{stem}.tex", vc.table_tex(vct, TASK_NAMES, objective=(view == "first")))
                     if view == "min":
                         write_tex(tabs / "validity_main.tex", validity_main_tex(vct, TASK_NAMES))
-                        if _arm_state:
-                            write_tex(tabs / "arm_main.tex", arm_main_tex(_arm_state["summary"], vct[vct["task"] == "All"], _arm_state["paired"]))
                     vc.add_numbers(num, vct, fam, lab)
                     write_tex(tabs / f"{stem.replace('cost', 'sensitivity')}.tex",
                               vc.sensitivity_tex(vc.sensitivity(vdf, df, grid_suts, view)))
