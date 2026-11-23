@@ -82,22 +82,25 @@ def test_cohens_dz():
     assert abs(tf.cohens_dz([1.0, 3.0]) - (2.0 / (2 ** 0.5))) < 1e-9 and np.isnan(tf.cohens_dz([1.0]))
 
 
-def test_arm_main_table_effects_bold_and_headers():
+def test_arm_main_and_cost_tables():
     from mmb.analysis import export as ex
     summary = pd.DataFrame(dict(arm=["a0_directed", "a1_random_tiered"], n_runs=[36, 36], share_crossed=[0.9, 0.5],
                                 median_first_cross_eval=[120.0, 600.0]))
-    cost = pd.DataFrame(dict(arm=["a0_directed", "a1_random_tiered"], med_edits_x=[20.0, 80.0]))
-    paired = pd.DataFrame(dict(arm=["a1_random_tiered"] * 3, metric=["crossed", "first_cross_eval", "min_edits_x"],
-                               diff=[-0.40, 5.0, 60.0], dz=[-1.3, 0.7, 0.2], p_holm=[0.004, 0.2, 0.03]))
-    tex = ex.arm_main_tex(summary, cost, paired)
+    vct = pd.DataFrame(dict(arm=["a0_directed", "a1_random_tiered"], med_lpips=[0.2, 0.3], med_vis_char=[0.0, 0.1], med_txt=[0.01, 0.05]))
+    paired = pd.DataFrame(dict(arm=["a1_random_tiered"] * 4, metric=["crossed", "first_cross_eval", "min_edits_x", "wall"],
+                               diff=[-0.40, 5.0, 60.0, 1.0], dz=[-1.3, 0.7, 0.2, 0.1], p_holm=[0.004, 0.2, 0.03, 0.5]))
+    tex = ex.arm_main_tex(summary, vct, paired)
     rows = [l for l in tex.splitlines() if l.startswith(("Directed", "Random"))]
-    assert "Crossing rate" in tex and "Model calls to first crossing" in tex and "Minimal edits" in tex
-    assert r"\uparrow" in tex and r"\downarrow" in tex
-    assert r"\textbf{90}" in rows[0] and r"\textbf{120}" in rows[0] and r"\textbf{20}" in rows[0]
-    assert r"-40 \effL{}$^{\dagger}$" in rows[1]                                  # crossing rate: pp, large, significant
-    assert r"+0.70 \effM{} &" in rows[1].replace("\\\\", "&") or r"+0.70 \effM{}" in rows[1]
-    assert r"+0.20 \effS{}$^{\dagger}$" in rows[1]
-    assert "star" not in tex and "$^{*" not in tex and "p_" not in tex
+    assert "Crossing found" in tex and "Semantic text distance" in tex and "Image change" in tex and r"\uparrow" in tex and r"\downarrow" in tex
+    assert r"\textbf{90}" in rows[0] and r"\textbf{0.20}" in rows[0] and r"-40 \effL{}$^{\dagger}$" in rows[1]
+    d = pd.DataFrame(dict(arm=["a0_directed", "a1_random_tiered"] * 2, crossed=[True] * 4, wall_s=[100.0, 200.0] * 2,
+                          min_cross_eval=[300.0, 900.0] * 2, sut_calls=[1400.0, 1500.0] * 2))
+    cost = pd.DataFrame(dict(arm=["a0_directed", "a1_random_tiered"], med_edits_x=[20.0, 80.0]))
+    c = ex.arm_cost_tex(d, summary, cost, paired)
+    crow = [l for l in c.splitlines() if l.startswith(("Directed", "Random"))]
+    assert "Runtime" in c and "Calls to minimal crossing" in c and "SUT calls run" in c
+    assert r"\textbf{100}" in crow[0] and r"\textbf{20}" in crow[0] and r"+0.20 \effS{}$^{\dagger}$" in crow[1]
+    assert "star" not in tex + c
 
 
 def test_validity_and_generalization_main_tables():

@@ -83,6 +83,8 @@ EXTRA_COLUMNS = [
     "crossed_robust", "crossed_robust_at_gen0", "first_cross_eval_robust",
     # predictors of E2b (see mmb.analysis.predictors)
     "anchor_g", "prior_g", "probe_gen0", "min_gen0", "answer_words_a", "answer_words_b",
+    # cost of the run: the evaluation at which its smallest crossing was found, and the SUT forward passes actually run
+    "min_cross_eval", "sut_calls",
 ]
 #: Cost-of-crossing columns (see mmb.analysis.cost).
 COST_COLUMNS = [
@@ -461,6 +463,8 @@ def load_run(
             (gens and len(gen) and int(gen.max()) + 1 >= int(gens)) or "early_stop" in stats
             or (not gens and n_evals > 0)
         ),
+        "min_cross_eval": _min_cross_eval(run_dir),
+        "sut_calls": stats.get("cache_misses", float("nan")),
         "anchor_source": res["anchor_source"],
         "seed_idx": stats.get("seed_idx"),
         "anchor_g": res["anchor_g"],
@@ -471,6 +475,15 @@ def load_run(
         "answer_words_b": len(str(stats.get("class_b", "")).split()) or None,
     }
     return {c: row.get(c) for c in COLUMNS}
+
+
+def _min_cross_eval(run_dir: Path) -> float:
+    """Evaluation index (1-based) at which the run's smallest crossing was evaluated (min_cross.json), else NaN."""
+    p = Path(run_dir) / "min_cross.json"
+    try:
+        return float(json.loads(p.read_text())["eval_idx"]) + 1 if p.is_file() else float("nan")
+    except (ValueError, KeyError, TypeError):
+        return float("nan")
 
 
 def collect(

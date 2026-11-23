@@ -44,10 +44,12 @@ METRICS = {
     "img_mag": ("best_img_mag_cross", "num", None, -1),
     "txt_mag": ("best_txt_mag_cross", "num", None, -1),
     "chardist": ("min_txt_chardist_cross", "num", None, -1),
+    "wall": ("wall_s", "num", None, -1),
+    "min_cross_eval": ("min_cross_eval", "num", None, -1),   # evaluation at which the smallest crossing was found
 }
 MAG_METRICS = ("hv_mag", "img_mag", "txt_mag")
 #: edit counts exist only for runs that crossed; "min_edits" is the same count censored at all genes for the others
-CROSS_ONLY = ("min_edits_x", "edits_img_x", "edits_txt_x")
+CROSS_ONLY = ("min_edits_x", "edits_img_x", "edits_txt_x", "min_cross_eval")
 MIN_PAIRS_CROSS_ONLY = 3
 DEFAULT_METRICS = ("crossed", "first_cross_eval", "floor", "min_edits_x", "edits_img_x", "edits_txt_x", "min_edits", "hv_edits")
 CLUSTER = "cluster_id"
