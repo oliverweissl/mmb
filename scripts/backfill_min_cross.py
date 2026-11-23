@@ -24,7 +24,9 @@ done = 0
 cache = {}
 for st_path in sorted(root.rglob("stats.json")):
     d = st_path.parent
-    if (d / "min_cross.json").exists() or not (d / "trace.parquet").exists():
+    need_min = not (d / "min_cross.json").exists()
+    need_nb = not (d / "min_cross_neighbour.json").exists()
+    if not (need_min or need_nb) or not (d / "trace.parquet").exists():
         continue
     st = json.loads(st_path.read_text())
     meta = st.get("run_meta", {})
@@ -61,7 +63,25 @@ for st_path in sorted(root.rglob("stats.json")):
     G = np.asarray(r["genotype"], dtype=np.int64)
     if len(G) != man.image_dim + man.text_dim:
         print("layout mismatch", d); continue
-    imgs, txts = man.manipulate(candidates=None, weights=np.stack([G, G]))
+    # boundary partner from the trace only (no VLM here): C minus one edit, not crossing
+    seen = {}
+    for rr in rows:
+        H = np.asarray(rr["genotype"], dtype=np.int64)
+        dd = np.nonzero(H != G)[0]
+        if len(dd) == 1 and H[dd[0]] == 0 and G[dd[0]] != 0:
+            gg = rr["logprobs"][ia] - rr["logprobs"][ib]
+            if sign0 * gg >= 0:
+                seen[int(dd[0])] = gg
+    nb = None
+    if seen:
+        i = min(seen, key=lambda j: abs(seen[j])); nb = G.copy(); nb[i] = 0
+    imgs, txts = man.manipulate(candidates=None, weights=np.stack([G, G if nb is None else nb]))
+    if nb is not None and need_nb:
+        imgs[1].save(d / "min_cross_neighbour.png")
+        (d / "min_cross_neighbour.json").write_text(json.dumps({"g": float(seen[i]), "n_edits": int((nb != 0).sum()),
+            "text": txts[1], "genotype": nb.tolist(), "from_trace": True, "nb_extra_calls": 0, "backfilled": True}, indent=2))
+    if not need_min:
+        done += 1; continue
     imgs[0].save(d / "min_cross.png")
     suffix = exp.answer_format.format(categories=", ".join(st["categories"]))
     (d / "min_cross.json").write_text(json.dumps({

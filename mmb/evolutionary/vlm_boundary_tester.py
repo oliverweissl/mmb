@@ -488,6 +488,7 @@ class VLMBoundaryTester(SMOO):
         answer_suffix = self._config.answer_format.format(
             categories=", ".join(answer_categories),
         )
+        self._current_categories = tuple(scored_categories)
 
         # 1. Prepare manipulator with just the question prompt. The
         #    seed's L0 target class is forwarded so cone-filter mode can
@@ -804,8 +805,47 @@ class VLMBoundaryTester(SMOO):
             return
         _, r, g, k = best
         G = np.asarray(r["genotype"], dtype=np.int64)
-        imgs, txts = self._manipulator.manipulate(candidates=None, weights=np.stack([G, G]))
+        # Boundary partner: a non-crossing input one edit away (C minus one edit),
+        # closest to the border. Taken from the trace if evaluated there (MMBA's
+        # Phase 2 evaluates such resets); otherwise the resets are scored now
+        # (extra calls outside the search budget, counted in nb_extra_calls).
+        act = np.nonzero(G)[0]
+        nb, nb_g, extra = None, None, 0
+        seen = {}
+        for rr in rows:
+            H = np.asarray(rr["genotype"], dtype=np.int64)
+            d = np.nonzero(H != G)[0]
+            if len(d) == 1 and H[d[0]] == 0 and G[d[0]] != 0:
+                gg = rr["logprobs"][ia] - rr["logprobs"][ib]
+                if sign0 * gg >= 0:
+                    seen[int(d[0])] = gg
+        if seen:
+            i = min(seen, key=lambda j: abs(seen[j]))
+            nb = G.copy(); nb[i] = 0; nb_g = float(seen[i])
+        elif 0 < len(act) <= 64:
+            cands = []
+            for i in act:
+                H = G.copy(); H[i] = 0; cands.append(H)
+            Hs = np.stack(cands if len(cands) > 1 else cands * 2)
+            ims, txs = self._manipulator.manipulate(candidates=None, weights=Hs)
+            cats = tuple(self._current_categories) if getattr(self, "_current_categories", None) else None
+            if cats is not None and hasattr(self._sut, "process_batch"):
+                lp = self._sut.process_batch(ims[:len(cands)], [t + answer_suffix for t in txs[:len(cands)]], cats)
+                gs = (lp[:, ia] - lp[:, ib]).float().cpu().numpy()
+                extra = len(cands)
+                ok = [j for j in range(len(cands)) if sign0 * gs[j] >= 0]
+                if ok:
+                    j = min(ok, key=lambda j: abs(gs[j]))
+                    nb = cands[j]; nb_g = float(gs[j])
+        stack = [G, G] if nb is None else [G, nb]
+        imgs, txts = self._manipulator.manipulate(candidates=None, weights=np.stack(stack))
         imgs[0].save(run_dir / "min_cross.png")
+        if nb is not None:
+            imgs[1].save(run_dir / "min_cross_neighbour.png")
+            with open(run_dir / "min_cross_neighbour.json", "w") as f:
+                json.dump({"g": nb_g, "n_edits": int((nb != 0).sum()), "text": txts[1],
+                           "full_prompt": txts[1] + answer_suffix, "genotype": nb.tolist(),
+                           "from_trace": extra == 0, "nb_extra_calls": extra}, f, indent=2)
         with open(run_dir / "min_cross.json", "w") as f:
             json.dump({"eval_idx": k + 1, "generation": r["generation"], "individual": r["individual"],
                        "g": float(g), "n_edits": int((G != 0).sum()), "text": txts[0],
