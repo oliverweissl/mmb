@@ -267,9 +267,10 @@ def plot_gallery(picks: pd.DataFrame, out: Path | str, *, runs_root: Path | None
 
 def select_teaser(df: pd.DataFrame, ref: str = "a0_directed", rand: str = "a1_random_tiered",
                   runs_root: Path | None = None, suts: list[str] | None = None) -> list[dict]:
-    """Two teaser examples, each a (cell, SUT, seed) on which the directed arm and the random arm both crossed and both have a
-    stored minimal crossing: the directed run with the fewest genes that changes the question (a mixed example) and the one with the
-    fewest genes that changes no text gene (an image example). Returns dicts with the two run rows."""
+    """Two teaser examples, each a (cell, SUT, seed) on which MMBA and random search both crossed and both have a stored
+    minimal crossing: an ImageNet row whose MMBA minimal crossing changes image regions and a POPE row whose MMBA minimal
+    crossing changes the text, each the pair whose edit difference (random minus MMBA) is closest to the task's median
+    difference. Returns dicts with the two run rows."""
     def ok(d):
         d = d[d["crossed"].astype(bool)]
         if suts:
@@ -288,14 +289,25 @@ def select_teaser(df: pd.DataFrame, ref: str = "a0_directed", rand: str = "a1_ra
     m = a.merge(b, on=keys, suffixes=("", "_r"))
     if m.empty:
         return []
-    m = m.assign(_txt=m["edits_txt_at_min"].fillna(0)).sort_values(["task", "min_edits_cross", "run_dir"], ascending=[False, True, True])
+    m = m.assign(_txt=m["edits_txt_at_min"].fillna(0), _img=m["edits_img_at_min"].fillna(0),
+                 _diff=m["min_edits_cross_r"] - m["min_edits_cross"])
     out = []
-    for kind, sel in (("mixed", m[m["_txt"] > 0]), ("image", m[m["_txt"] == 0])):
-        if len(sel):
-            r = sel.iloc[0]
-            out.append(dict(kind=kind, task=r["task"], sut=r["sut"], cell_id=r["cell_id"],
-                            dir=dict(run_dir=r["run_dir"], n=int(r["min_edits_cross"]), img=int(r["edits_img_at_min"]), txt=int(r["edits_txt_at_min"])),
-                            rnd=dict(run_dir=r["run_dir_r"], n=int(r["min_edits_cross_r"]), img=int(r["edits_img_at_min_r"]), txt=int(r["edits_txt_at_min_r"]))))
+    # Fixed rule: one ImageNet row whose MMBA minimal crossing changes image regions, one POPE row whose MMBA minimal
+    # crossing changes the text; within each, the pair whose edit difference (random minus MMBA) is closest to the
+    # task's median difference over all matched pairs; ties: fewer MMBA edits, then run_dir.
+    for kind, task, need in (("image", "imagenet", "_img"), ("text", "pope", "_txt")):
+        mt = m[m["task"] == task]
+        if mt.empty:
+            continue
+        med = float(mt["_diff"].median())
+        sel = mt[mt[need] > 0]
+        if sel.empty:
+            sel = mt
+        sel = sel.assign(_dist=(sel["_diff"] - med).abs()).sort_values(["_dist", "min_edits_cross", "run_dir"])
+        r = sel.iloc[0]
+        out.append(dict(kind=kind, task=r["task"], sut=r["sut"], cell_id=r["cell_id"], median_diff=med,
+                        dir=dict(run_dir=r["run_dir"], n=int(r["min_edits_cross"]), img=int(r["edits_img_at_min"]), txt=int(r["edits_txt_at_min"])),
+                        rnd=dict(run_dir=r["run_dir_r"], n=int(r["min_edits_cross_r"]), img=int(r["edits_img_at_min_r"]), txt=int(r["edits_txt_at_min_r"]))))
     return out
 
 
