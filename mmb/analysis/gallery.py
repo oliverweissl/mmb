@@ -324,7 +324,9 @@ def _answer_line(stats: dict, fc: dict) -> str:
     def pref(g):
         return (a if g > 0 else b), float(np.exp(abs(g)))
     (p0, r0), (p1, r1) = pref(float(g0)), pref(float(g1))
-    return f"answer: {p0} ({r0:.0f}x as likely) → {p1} ({r1:.1f}x)"
+    def odds(r):
+        return f"{r:.0f}x" if r >= 10 else f"{r:.1f}x"
+    return f"answer: {p0} ({odds(r0)} as likely) → {p1} ({odds(r1)})"
 
 
 def plot_teaser(examples: list[dict], out: Path | str, *, runs_root: Path | None = None, width_in: float = 7.0) -> Path:
