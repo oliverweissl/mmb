@@ -83,8 +83,8 @@ EXTRA_COLUMNS = [
     "crossed_robust", "crossed_robust_at_gen0", "first_cross_eval_robust",
     # predictors of E2b (see mmb.analysis.predictors)
     "anchor_g", "prior_g", "probe_gen0", "min_gen0", "answer_words_a", "answer_words_b",
-    # cost of the run: the evaluation at which its smallest crossing was found, and the SUT forward passes actually run
-    "min_cross_eval", "sut_calls",
+    # cost of the run: the evaluation at which its smallest crossing was found
+    "min_cross_eval",
 ]
 #: Cost-of-crossing columns (see mmb.analysis.cost).
 COST_COLUMNS = [
@@ -464,7 +464,6 @@ def load_run(
             or (not gens and n_evals > 0)
         ),
         "min_cross_eval": _min_cross_eval(run_dir),
-        "sut_calls": stats.get("cache_misses", float("nan")),
         "anchor_source": res["anchor_source"],
         "seed_idx": stats.get("seed_idx"),
         "anchor_g": res["anchor_g"],

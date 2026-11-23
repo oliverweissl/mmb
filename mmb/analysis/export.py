@@ -230,7 +230,7 @@ def arm_main_tex(summary: pd.DataFrame, vct: pd.DataFrame | None, paired: pd.Dat
 
 def arm_cost_tex(d: pd.DataFrame, summary: pd.DataFrame, cost: pd.DataFrame, paired: pd.DataFrame | None) -> str:
     """RQ2 (efficiency): per arm the median wall-clock time of a run, the model calls to the first crossing, the calls at
-    which the smallest crossing was found, the SUT forward passes actually run (the rest were cache hits) and the
+    which the smallest crossing was found and the
     genes of the smallest crossing; effect sizes against the directed arm (Cohen's d_z, bullet, dagger after Holm)."""
     eff_m = _eff_map(paired)
     arms = list(summary["arm"])
@@ -247,15 +247,13 @@ def arm_cost_tex(d: pd.DataFrame, summary: pd.DataFrame, cost: pd.DataFrame, pai
     for k, vals in cols.items():
         t = ["--" if pd.isna(x) else f"{x:.0f}" for x in vals]
         cells[k] = tf.bold_best(t, vals, k, t)
-    sc = med("sut_calls")
-    sct = ["--" if pd.isna(x) else f"{x:.0f}" for x in sc]
     heads = {"wall": "Runtime (s)", "first_cross_eval": "Calls to first crossing", "min_cross_eval": "Calls to minimal crossing",
              "min_edits_x": "Minimal edits"}
-    rows = [[st.tex_escape(st.arm_label(a)), sct[i]] + sum(([cells[k][i], eff[k][i]] for k in cols), []) for i, a in enumerate(arms)]
-    hdr = ["Arm", "SUT calls run"]
+    rows = [[st.tex_escape(st.arm_label(a))] + sum(([cells[k][i], eff[k][i]] for k in cols), []) for i, a in enumerate(arms)]
+    hdr = ["Arm"]
     for k in cols:
         hdr += [tf.head(heads[k], k), r"vs dir. ($d$)"]
-    return st._booktabs("lr" + "rr" * len(cols), hdr, rows)
+    return st._booktabs("l" + "rr" * len(cols), hdr, rows)
 
 
 def validity_main_tex(vct: pd.DataFrame, task_names: dict) -> str:
