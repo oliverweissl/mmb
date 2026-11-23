@@ -783,6 +783,34 @@ class VLMBoundaryTester(SMOO):
     # Single generation
     # ------------------------------------------------------------------
 
+    def _save_min_cross(self, run_dir, target_classes, answer_suffix) -> None:
+        import pyarrow.parquet as pq
+        anchor = getattr(self, "_anchor_eval", None)
+        tp = run_dir / "trace.parquet"
+        if anchor is None or not tp.exists():
+            return
+        ia, ib = target_classes
+        sign0 = np.sign(anchor["anchor_g"]) or 1.0
+        rows = pq.read_table(tp, columns=["generation", "individual", "genotype", "logprobs"]).to_pylist()
+        best = None
+        for k, r in enumerate(rows):
+            g = r["logprobs"][ia] - r["logprobs"][ib]
+            if sign0 * g < 0:
+                n = sum(1 for v in r["genotype"] if v)
+                key = (n, abs(g), k)
+                if best is None or key < best[0]:
+                    best = (key, r, g, k)
+        if best is None:
+            return
+        _, r, g, k = best
+        G = np.asarray(r["genotype"], dtype=np.int64)
+        imgs, txts = self._manipulator.manipulate(candidates=None, weights=np.stack([G, G]))
+        imgs[0].save(run_dir / "min_cross.png")
+        with open(run_dir / "min_cross.json", "w") as f:
+            json.dump({"eval_idx": k + 1, "generation": r["generation"], "individual": r["individual"],
+                       "g": float(g), "n_edits": int((G != 0).sum()), "text": txts[0],
+                       "full_prompt": txts[0] + answer_suffix, "genotype": G.tolist()}, f, indent=2)
+
     def _maybe_save_first_cross(self, gen, genotypes, images, texts, logits, target_classes):
         """Save the first evaluated individual whose pair contrast g has the
         opposite sign of the anchor reference (first_cross.png/.json), for
@@ -1025,6 +1053,13 @@ class VLMBoundaryTester(SMOO):
                         f,
                         indent=2,
                     )
+
+        # -- Smallest crossing of the run (fewest edits; MMBA: final minimal
+        #    crossing), rendered for validity proxies, gallery and replays.
+        try:
+            self._save_min_cross(run_dir, target_classes, answer_suffix)
+        except Exception as exc:  # noqa: BLE001 -- diagnostic artefact only
+            logger.warning("could not save min_cross: %s", exc)
 
         # -- Origin image -------------------------------------------------
         seed.image.save(run_dir / "origin.png")
