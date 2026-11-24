@@ -94,6 +94,13 @@ def f_num(x: float, d: int = 2, sign: bool = False) -> str:
     return "n/a" if pd.isna(x) else (f"{x:+.{d}f}" if sign else f"{x:.{d}f}")
 
 
+def f_smart(x: float, d: int = 3, sign: bool = False) -> str:
+    """Like f_num, but integral values (medians of counts) without decimals."""
+    if not pd.isna(x) and float(x).is_integer():
+        return f_num(x, 0, sign)
+    return f_num(x, d, sign)
+
+
 def f_p(p: float) -> str:
     if pd.isna(p):
         return "n/a"
@@ -441,12 +448,18 @@ def add_cluster_numbers(num: Numbers, sut: str, task: str, t: pd.DataFrame) -> N
     for _, r in t.iterrows():
         tail = [PAIRED_METRIC_NAMES[r.metric], arm_short(r.arm), camel(sut), camel(task)]
         d = f"{r.arm} vs {r.ref}, {r.metric}, {sut}, {task}, {int(r.n_pairs)} pairs in {int(r.n_cells)} cells"
+        if r.metric == "crossed":           # shares as percent, their difference in percentage points
+            fv = lambda x, sign=False: f_num(100 * x, 1, sign)
+            unit = " (%; difference in percentage points)"
+        else:
+            fv = lambda x, sign=False: f_smart(x, 3, sign)
+            unit = ""
         for f, v, what in (("Pairs", str(int(r.n_pairs)), "matched pairs"),
-                           ("RefValue", f_num(r.ref_value, 3), "reference value (share or median)"),
-                           ("ArmValue", f_num(r.arm_value, 3), "arm value (share or median)"),
-                           ("Diff", f_num(r["diff"], 3, True), r.diff_name + " (arm - ref)"),
-                           ("DiffLo", f_num(r.diff_lo, 3, True), "cell-cluster bootstrap 95% CI lower"),
-                           ("DiffHi", f_num(r.diff_hi, 3, True), "cell-cluster bootstrap 95% CI upper"),
+                           ("RefValue", fv(r.ref_value), "reference value (share or median)" + unit),
+                           ("ArmValue", fv(r.arm_value), "arm value (share or median)" + unit),
+                           ("Diff", fv(r["diff"], True), r.diff_name + " (arm - ref)" + unit),
+                           ("DiffLo", fv(r.diff_lo, True), "cell-cluster bootstrap 95% CI lower"),
+                           ("DiffHi", fv(r.diff_hi, True), "cell-cluster bootstrap 95% CI upper"),
                            ("P", f_p(r.p), "raw p (exact McNemar / Wilcoxon)"),
                            ("PHolm", f_p(r.p_holm), "Holm-adjusted p across arms")):
             num.add(["ETwoA", f] + tail, v, f"{what}; {d}")
@@ -683,6 +696,27 @@ def _rq_tables(rq, tabs: Path, df: pd.DataFrame, vdf: pd.DataFrame, grid_suts, n
     rq.add_pooled_numbers(num, gd, vdf[vdf["sut"].isin(grid_suts)], arm_short)
 
 
+def complete_blocks(df: pd.DataFrame, ref: str = "a0_directed", grid_suts=GRID_SUTS) -> pd.DataFrame:
+    """Drop the runs of every (method, rng seed) block that does not yet cover all (task, SUT, seed input) keys the
+    reference method has for that rng seed on the grid SUTs, so a method enters tables and figures only with a
+    complete balanced block (a queue still running a block must not leak partial rows)."""
+    if ref not in set(df["arm"]):
+        return df
+    keys = ["task", "sut", "cell_id"]
+    grid = df["sut"].isin(list(grid_suts))
+    keep = pd.Series(True, index=df.index)
+    for (arm, seed), g in df[grid].groupby(["arm", "rng_seed"]):
+        if arm == ref:
+            continue
+        need = set(map(tuple, df[grid & (df["arm"] == ref) & (df["rng_seed"] == seed)][keys].drop_duplicates().to_numpy()))
+        have = set(map(tuple, g[keys].drop_duplicates().to_numpy()))
+        if need and not need <= have:
+            logger.info("held back: %s seed %s (%d of %d seed inputs x models x tasks)", arm, seed,
+                        len(need & have), len(need))
+            keep &= ~((df["arm"] == arm) & (df["rng_seed"] == seed))
+    return df[keep]
+
+
 def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid_suts=GRID_SUTS,
            validity: Path | None = None, runs_root: Path | None = None, n_boot: int = st.N_BOOT,
            figures: bool = True, agree: list[Path] | None = None,
@@ -702,6 +736,7 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
         if len(adf) and "run_dir" in adf:
             v = adf.drop_duplicates("run_dir").set_index("run_dir")["cross_verified"]
             df["verified"] = df["run_dir"].map(v)
+    df = complete_blocks(df, ref, grid_suts)
     num = Numbers()
     if planned is not None:
         num.datastatus, n_ok, n_plan = data_status(df, planned, Path(planned).resolve().parents[2])
