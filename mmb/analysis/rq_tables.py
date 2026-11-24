@@ -172,11 +172,61 @@ def rq2_tex(m: pd.DataFrame) -> str:
     return grouped_tex(m, [WL, FC, MC])
 
 
+ABL_KEYS = ("task", "sut", "seed_idx")
+#: RQ4 table columns: (column, direction key, header, decimals); per-run values come from ablation_runs()
+ABL_COLS = (("CR", "crossed", r"CR (\%)", 0), ("SCR", "scr", r"SCR (\%)", 0), ("lpips", "lpips", "LPIPS", 2),
+            ("edits", "min_edits_x", "Edits", 0), ("first_cross_eval", "first_cross_eval", "Calls to first", 0),
+            ("wall", "wall", "Runtime (s)", 0))
+#: per-run column, paired test ("binary": McNemar; "num": Wilcoxon), pairs restricted to runs where both crossed
+ABL_TESTS = {"CR": ("crossed", "binary", False), "SCR": ("scr", "num", False), "lpips": ("lpips", "num", True),
+             "edits": ("edits", "num", True), "first_cross_eval": ("first_cross_eval", "num", False),
+             "wall": ("wall", "num", False)}
+
+
+def _abl_keys(df: pd.DataFrame) -> list[str]:
+    return [k for k in ABL_KEYS if k in df]
+
+
+def _first_edits(run_dir) -> float:
+    import json
+    from pathlib import Path
+    p = Path(str(run_dir)) / "first_cross.json"
+    if not p.exists():
+        return float("nan")
+    g = json.loads(p.read_text()).get("genotype")
+    return float(np.count_nonzero(np.asarray(g, dtype=float))) if g is not None else float("nan")
+
+
+def ablation_runs(df: pd.DataFrame, vdf: pd.DataFrame, view: str) -> pd.DataFrame:
+    """One row per run: the per-run values behind the RQ4 columns, for the minimal ('min') or first ('first') crossing."""
+    v = vdf[vdf["view"] == view] if "view" in vdf else vdf.iloc[0:0]
+    v = vc.prepare(v) if len(v) else v
+    cols = ["run_dir", "img_lpips", "vis_char_dist", "n_edits"]
+    r = df.merge(v[[c for c in cols if c in v]].drop_duplicates("run_dir"), on="run_dir", how="left")
+    crossed = _truthy(r["crossed"])
+    if view == "first":     # channels changed at the first crossing are not stored per run; S uses the edited channels' change
+        r = r.assign(edits_img_at_min=np.where(pd.to_numeric(r["img_lpips"], errors="coerce") > 0, 1, 0),
+                     edits_txt_at_min=np.where(pd.to_numeric(r["vis_char_dist"], errors="coerce") > 0, 1, 0))
+    s = r.apply(_stealth, axis=1) if len(r) else pd.Series(dtype=float)
+    out = pd.DataFrame({k: r[k] for k in _abl_keys(r)})
+    out["run_dir"] = r["run_dir"]
+    out["crossed"] = crossed.astype(float)
+    out["scr"] = np.where(crossed, 100.0 * s.fillna(0.0), 0.0)
+    out["lpips"] = pd.to_numeric(r["img_lpips"], errors="coerce").where(crossed)
+    if view == "first":     # edits of the first crossing: non-zero genes of its stored genotype
+        out["edits"] = pd.Series([_first_edits(p) for p in r["run_dir"]], index=r.index, dtype=float).where(crossed)
+    else:
+        out["edits"] = pd.to_numeric(r["n_edits"], errors="coerce").where(crossed) if "n_edits" in r else np.nan
+    out["first_cross_eval"] = pd.to_numeric(r["first_cross_eval"], errors="coerce")
+    out["wall"] = pd.to_numeric(r["wall_s"], errors="coerce") if view == "min" else np.nan
+    return out
+
+
 def ablation(df: pd.DataFrame, vdf: pd.DataFrame) -> pd.DataFrame:
     """Pooled metrics per RQ4 variant (all SUTs and tasks, seed 0). 'w/o Phase 2' is the first crossing of the full method
-    (no partner and no run time of its own)."""
+    (no run time of its own). A variant is listed only once it covers every seed input, model and task of the full method."""
     df = df[df["rng_seed"] == 0] if "rng_seed" in df else df
-    keys = [k for k in ("task", "sut", "seed_idx") if k in df]
+    keys = _abl_keys(df)
 
     def cover(d: pd.DataFrame) -> set:
         return set(map(tuple, d[keys].astype(str).values)) if keys else set()
@@ -191,35 +241,90 @@ def ablation(df: pd.DataFrame, vdf: pd.DataFrame) -> pd.DataFrame:
         if full_cover is None:
             full_cover = cover(d)
         elif not full_cover <= cover(d):
-            # a variant is shown only once it covers every seed input, model and task of the full method
             rows.append(dict(label=label, pre=pre, n_runs=0, n_partial=len(d)))
             continue
         v = vdf[(vdf["view"] == view) & vdf["run_dir"].isin(set(d["run_dir"]))] if "view" in vdf else vdf.iloc[0:0]
         r = metrics(d, v)
+        runs = ablation_runs(d, vdf, view)
+        r["edits"] = float(runs["edits"].median()) if runs["edits"].notna().any() else np.nan
+        r["SCR"] = float(runs["scr"].mean())
         if view == "first":
             r.update(lpips_bp=np.nan, wall=np.nan, min_cross_eval=np.nan)
-        rows.append(dict(label=label, pre=pre, **r))
+        rows.append(dict(label=label, pre=pre, view=view, _runs=runs, **r))
     return pd.DataFrame(rows)
 
 
-def ablation_tex(a: pd.DataFrame) -> str:
-    cols = [CR, SR, LP, DE, DS, FC, WL]
+def ablation_effects(a: pd.DataFrame) -> pd.DataFrame:
+    """Paired comparison of every listed variant with the full method per RQ4 column: pairs matched on
+    (task, model, seed input) at seed 0; McNemar for CR, Wilcoxon signed-rank otherwise (crossing-only metrics on
+    pairs where both runs crossed); Cohen's d_z of the pair differences; Holm across variants within a column.
+    A comparison whose pair differences are all zero (identical by construction) gets no test."""
     a = a[a["n_runs"] > 0].reset_index(drop=True)
+    if a.empty:
+        return pd.DataFrame()
+    full = a.iloc[0]["_runs"]
+    keys = _abl_keys(full)
+    if not keys:
+        return pd.DataFrame()
+    rows = []
+    for i in range(1, len(a)):
+        var = a.iloc[i]["_runs"]
+        m = full.merge(var, on=keys, suffixes=("_ref", "_arm"))
+        for col, (c, kind, cross_only) in ABL_TESTS.items():
+            pf = m[[c + "_ref", c + "_arm"]].astype(float).dropna()
+            if cross_only:
+                pf = pf[(m.loc[pf.index, "crossed_ref"] > 0) & (m.loc[pf.index, "crossed_arm"] > 0)]
+            n = len(pf)
+            diff = (pf[c + "_arm"] - pf[c + "_ref"]).to_numpy()
+            if n < 3 or np.all(diff == 0):
+                rows.append(dict(i=i, col=col, n=n, dz=np.nan, p=np.nan, same=bool(n and np.all(diff == 0))))
+                continue
+            if kind == "binary":
+                p = st.mcnemar_exact(pf[c + "_ref"].to_numpy() > 0.5, pf[c + "_arm"].to_numpy() > 0.5)["p"]
+            else:
+                p = st.wilcoxon_paired(pf[c + "_ref"].to_numpy(), pf[c + "_arm"].to_numpy())["p"]
+            rows.append(dict(i=i, col=col, n=n, dz=tf.cohens_dz(diff), p=p, same=False,
+                             diff=float(np.mean(diff)) if kind == "binary" else float(np.median(diff))))
+    e = pd.DataFrame(rows)
+    if e.empty:
+        return e
+    e["p_holm"] = np.nan
+    for col in set(e["col"]):
+        idx = e.index[(e["col"] == col) & e["p"].notna()]
+        if len(idx):
+            e.loc[idx, "p_holm"] = st.holm(e.loc[idx, "p"].to_numpy())
+    return e
+
+
+def ablation_tex(a: pd.DataFrame, e: pd.DataFrame | None = None) -> str:
+    """RQ4 table: absolute values per variant (bold: best of the column); each variant cell carries the magnitude bullet of
+    its paired effect against the full method and a dagger when the Holm-corrected paired test is significant."""
+    a = a[a["n_runs"] > 0].reset_index(drop=True)
+    e = ablation_effects(a) if e is None else e
     cells = {}
-    for (col, key, _lab, dec) in cols:
+    for (col, key, _lab, dec) in ABL_COLS:
         vals = [float(x) for x in a[col]]
         txt = [_fmt(x, dec) for x in vals]
-        cells[col] = tf.bold_best(txt, vals, key, txt)
-    lines = [r"\begin{tabular}{l" + "r" * len(cols) + "}", r"\toprule", " & ".join(["Variant"] + [_head(lab, key) for (_, key, lab, _d) in cols]) + r" \\", r"\midrule"]
+        out = tf.bold_best(txt, vals, key, txt)
+        for i in range(1, len(a)):
+            hit = e[(e["i"] == i) & (e["col"] == col)] if len(e) else e
+            if txt[i] == "--" or hit.empty or bool(hit.iloc[0]["same"]):
+                continue
+            h = hit.iloc[0]
+            m = tf.magnitude(h["dz"])
+            out[i] = out[i] + (" " + tf.BULLET[m] if m else "") + (tf.DAGGER if tf._ok(h["p_holm"]) and h["p_holm"] < tf.ALPHA else "")
+        cells[col] = out
+    lines = [r"\begin{tabular}{l" + "r" * len(ABL_COLS) + "}", r"\toprule",
+             " & ".join(["Variant"] + [_head(lab, key) for (_, key, lab, _d) in ABL_COLS]) + r" \\", r"\midrule"]
     for i, r in a.iterrows():
         lab = r["label"] if r["label"].startswith("Full") else st.tex_escape(r["label"])
-        lines.append(" & ".join([lab] + [cells[col][i] for (col, *_r) in cols]) + r" \\")
+        lines.append(" & ".join([lab] + [cells[col][i] for (col, *_r) in ABL_COLS]) + r" \\")
     lines += [r"\bottomrule", r"\end{tabular}"]
     return "\n".join(lines) + "\n"
 
 
 def add_ablation_numbers(num, a: pd.DataFrame) -> None:
-    names = {"CR": "Cr", "S": "S", "SCR": "Scr", "lpips": "Lpips", "lpips_bp": "LpipsBp", "d_edit": "DEdit", "d_sem": "DSem", "first_cross_eval": "Calls", "wall": "Wall", "n_runs": "Runs"}
+    names = {"CR": "Cr", "S": "S", "SCR": "Scr", "lpips": "Lpips", "lpips_bp": "LpipsBp", "d_edit": "DEdit", "d_sem": "DSem", "first_cross_eval": "Calls", "wall": "Wall", "n_runs": "Runs", "edits": "Edits"}
     for _, r in a.iterrows():
         key = VARIANT_KEYS.get(r["pre"], r["pre"])
         if r["label"] == "w/o Phase 2":
@@ -228,7 +333,23 @@ def add_ablation_numbers(num, a: pd.DataFrame) -> None:
             continue
         for col, nm in names.items():
             if col in r and not pd.isna(r[col]):
-                num.add(["EAbl", nm, key], f"{r[col]:.{0 if col in ('CR', 'SCR', 'first_cross_eval', 'wall', 'n_runs', 'd_edit') else 2}f}", f"ablation variant {r['label']}, pooled over SUTs and tasks, seed 0: {col}")
+                num.add(["EAbl", nm, key], f"{r[col]:.{0 if col in ('CR', 'SCR', 'first_cross_eval', 'wall', 'n_runs', 'd_edit', 'edits') else 2}f}", f"ablation variant {r['label']}, pooled over SUTs and tasks, seed 0: {col}")
+
+
+def add_ablation_effect_numbers(num, a: pd.DataFrame, e: pd.DataFrame) -> None:
+    """EAbl{Dz,PHolm,Diff}<Column><Variant>: the paired comparison of each RQ4 variant with the full method."""
+    names = {"CR": "Cr", "SCR": "Scr", "lpips": "Lpips", "edits": "Edits", "first_cross_eval": "Calls", "wall": "Wall"}
+    a = a[a["n_runs"] > 0].reset_index(drop=True)
+    for _, h in e.iterrows() if len(e) else []:
+        r = a.iloc[int(h["i"])]
+        key = "NoPhaseTwo" if r["label"] == "w/o Phase 2" else VARIANT_KEYS.get(r["pre"], r["pre"])
+        what = f"RQ4 {r['label']} vs full method, {h['col']}"
+        if tf._ok(h["dz"]):
+            num.add(["EAbl", "Dz", names[h["col"]], key], f"{h['dz']:+.2f}", f"paired Cohen's d_z, {what}")
+        if tf._ok(h["p_holm"]):
+            p = float(h["p_holm"])
+            num.add(["EAbl", "PHolm", names[h["col"]], key], "<0.001" if p < 0.001 else f"{p:.3f}", f"Holm-corrected p, {what}")
+        num.add(["EAbl", "Pairs", names[h["col"]], key], str(int(h["n"])), f"matched pairs, {what}")
 
 
 POOL_NAMES = {"lpips": "Lpips", "CR": "Cr", "S": "S", "SCR": "Scr", "lpips_bp": "LpipsBp", "d_edit": "DEdit", "d_sem": "DSem",

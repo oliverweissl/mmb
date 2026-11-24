@@ -677,8 +677,10 @@ def _rq_tables(rq, tabs: Path, df: pd.DataFrame, vdf: pd.DataFrame, grid_suts, n
     write_tex(tabs / "arm_main.tex", rq.rq1_tex(cells_m))
     write_tex(tabs / "arm_cost.tex", rq.rq2_tex(cells_m))
     abl = rq.ablation(gd, gv)
-    write_tex(tabs / "arm_ablation.tex", rq.ablation_tex(abl))
+    abl_e = rq.ablation_effects(abl)
+    write_tex(tabs / "arm_ablation.tex", rq.ablation_tex(abl, abl_e))
     rq.add_ablation_numbers(num, abl)
+    rq.add_ablation_effect_numbers(num, abl, abl_e)
     rq.add_pooled_numbers(num, gd, vdf[vdf["sut"].isin(grid_suts)], arm_short)
 
 

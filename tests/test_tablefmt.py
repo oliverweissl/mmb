@@ -198,3 +198,21 @@ def test_failure_numbers_are_digit_free_macros(tmp_path):
     names = {r["macro"]: r["value"] for r in num.rows}
     assert names["EFailShareTextTypoDirectedInternvlImagenet"] == "33"
     assert names["EFailVerifiedDirectedAllAll"] == "75" and names["EFailMedGenesMinDirectedAllAll"] == "1"
+
+
+def test_ablation_effect_markers():
+    """Variant cells carry the magnitude bullet and the dagger of the paired comparison with the full method."""
+    n = 30
+    base = dict(task="imagenet", sut="qwen", rng_seed=0, wall_s=100.0)
+    rows = []
+    for i in range(n):
+        rows.append(dict(base, arm="a0_directed", seed_idx=i, run_dir=f"a0/{i}", crossed=True, first_cross_eval=50 + i))
+        rows.append(dict(base, arm="a6_text_only", seed_idx=i, run_dir=f"a6/{i}", crossed=i < 3, first_cross_eval=1500 if i >= 3 else 900))
+    df = pd.DataFrame(rows)
+    vdf = pd.DataFrame(dict(run_dir=[f"a0/{i}" for i in range(n)], view="min", img_lpips=0.2, vis_char_dist=0.0, n_edits=10))
+    from mmb.analysis import rq_tables as rq
+    ab = rq.ablation(df, vdf)
+    e = rq.ablation_effects(ab)
+    tab = rq.ablation_tex(ab, e)
+    row = next(l for l in tab.splitlines() if l.startswith("Text only"))
+    assert r"\effL{}$^{\dagger}$" in row and r"\textbf{100}" in tab
