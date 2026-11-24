@@ -114,3 +114,8 @@ could not be verified here (no OpenVINO stack). Thesis-era numbers are therefore
 
 ## 2026-11-23 — LLaVA on both tasks
 - Every SUT must cover every task: added C0/C1 LLaVA-NeXT (NF4) POPE configs (a0, a1; seeds 0, 1), same cells/budget as the other SUTs. make_main_queue.py updated accordingly (do NOT re-run it: it deletes the current queue names).
+
+## 2026-11-24 — Seed-1 block done; baseline blocks queued
+- A1 (seed 1, MMBA + random, 3 SUTs x 2 tasks) finished 18:10; after_block A1 runs confirm/agreement/transfer replays, then restarts the queue at B0.
+- after_block hooks installed for B0, B1, C1 (units mmb-after-B0/B1/C1): each confirms crossings when its block is complete.
+- Remaining: B0/B1 (GA, NSGA-II, MIMICRY-style, image-only, hill climber, DeepJanus-style; seeds 0/1; 72 runs), C0/C1 (LLaVA POPE; 8 runs). Estimated ~95 GPU-h.
