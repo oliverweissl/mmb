@@ -28,6 +28,7 @@ from scipy import stats as sps
 PROXIES = {
     "img_clip_cos": 1, "img_dino_cos": 1, "img_lpips": -1, "img_ssim": 1,
     "txt_minilm_cos": 1, "txt_word_edit": -1, "question_keyword_sim": 1, "question_content_kept": 1,
+    "vis_char_dist": -1,
 }
 N_BOOT = 10_000
 BOOT_SEED = 42

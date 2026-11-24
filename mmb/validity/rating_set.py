@@ -1,98 +1,117 @@
-"""Human validity study on MAIN crossings: item sampler and a static rating page.
+"""RQ3 human validity study: item sampler and one self-contained rating page.
 
 Usage::
 
-    python -m mmb.validity.rating_set results/MAIN.csv --out study/main_validity \
+    python -m mmb.validity.rating_set results/MAIN.csv --out study/rq3 \
         [--n 120] [--controls 24] [--arms a0_directed,a1_random_tiered,a8_hillclimb] \
-        [--agree results/agree_MAIN_qwen.csv ...] [--seed 42] [--runs-root runs/MAIN]
+        [--proxies results/validity_MAIN.csv] [--agree results/agree_MAIN_qwen.csv ...] [--seed 42]
+
+Stimuli are the MINIMAL crossings of the runs (min_cross.png/.json, else the minimiser's minimal_cross.*), i.e.
+the method's output. Edited items are spread evenly over the strata method x task x SUT (one per (seed input,
+SUT, method) at most); a method without crossing runs in the results is skipped with a warning (re-sample once
+its runs exist). Controls are codec reconstructions of unedited seed inputs (anchor_recon.png), shown with the
+original question; they measure how often raters call an unchanged input invalid.
 
 writes into --out:
-  rate.html        one self-contained page (manifest inlined); open it in any browser, no server
-  items/*.png      the stimuli (blind ids); first-crossing images, plus unedited anchors as controls
-  manifest.json    what the page shows (no arm, SUT or outcome)
-  key.csv          PRIVATE key: item_id -> task, sut, arm, cell_id, rng_seed, stratum, run_dir, ground truth
-Hand rate.html together with the items/ folder to raters; they download a ratings CSV at the end and send it
-back. Nothing is uploaded, no cookies, no analytics; the page keeps a draft in the browser's localStorage so a
-reload does not lose answers, and "Download" works at any time.
+  rate.html        the rater view: one self-contained file (images embedded as base64), nothing else needed
+  rater_view.json  what the page shows (no method, SUT or outcome)
+  items/*.png      the stimuli under their blind ids (for the analyst)
+  manifest.csv     PRIVATE key: item_id, stratum, run_id, run_dir, method (arm), task, sut, seed input (cell_id,
+                   rng_seed), candidate answers, ground truth, original and shown question, proxies (img_lpips,
+                   vis_char_dist of the minimal crossing; 0 for controls). Keep it with the analyst.
 
-Protocol (the HS-01 pair phase, adapted to the two MAIN tasks):
-  imagenet: image + the (edited) question + five options: the pair's two class words (display order randomised
-            per rater and item), "Something else", "Nothing recognizable", "I can't tell"; valid = the
-            anchor class word.
-  pope:     "Does the image contain a <object>?" (Yes / No / I can't tell) and "Does the question below still
-            ask whether the image contains a <object>?" (Yes / No / I can't tell); valid = the answer to
-            the first equals the ground truth and the second is Yes.
-  all:      5-point comprehensibility of the question shown.
-Edited items are sampled evenly over (task, arm), spread over SUTs and cells; controls are the unedited
-anchors (resized to the stimulus size) of other cells and are rated in the same page, in random order.
+Per item the page shows the image, the original question and the question shown to the model side by side, and asks
+  (a) imagenet: "Does the image still show a <seed class>?"   pope: "Is there a <object> in the image?"
+      (Yes / No / I can't tell);
+  (b) "Is the question on the right still the same question as the original on the left?" (Yes / No / I can't tell).
+Valid = (a) matches the seed (imagenet: Yes; pope: the ground truth) and (b) is Yes. Ratings download as JSON
+(primary) or CSV. Nothing is uploaded; a draft is kept in the browser's localStorage.
 
-The consent text lives in manifest["consent"]; the default below follows the properties recorded for HS-01
-(anonymous, voluntary, no names or contact data, can stop at any time) and MUST be replaced by the verbatim
-HS-01 consent text before any rater sees it (--consent-file).
+The consent text lives in the page; the default below MUST be replaced by the verbatim study consent text
+before any rater sees it (--consent-file).
 """
 from __future__ import annotations
 
 import argparse
+import base64
+import io
 import json
 import random
-import shutil
+import warnings
 from pathlib import Path
 
 import pandas as pd
 from PIL import Image
 
+from mmb.analysis.crossing_files import minimal_crossing
+
 DEFAULT_ARMS = ("a0_directed", "a1_random_tiered", "a8_hillclimb")
 DEFAULT_CONSENT = (
-    "CONSENT TEXT PLACEHOLDER - replace with the verbatim HS-01 consent text before use (--consent-file).\n"
+    "CONSENT TEXT PLACEHOLDER - replace with the verbatim consent text before use (--consent-file).\n"
     "This study asks how well people understand images and short questions that are shown to an AI system. "
     "Taking part is voluntary and anonymous: no name, e-mail address or other identifying data is collected, "
     "and you may stop at any time by closing the page. Your answers are saved as a file on your own computer "
     "that you send back yourself. By ticking the box you confirm that you are at least 18 years old and agree to take part."
 )
+PROXY_COLS = ("img_lpips", "vis_char_dist")
 
 
 def _stimulus_size(df: pd.DataFrame) -> tuple[int, int]:
     for d in df["run_dir"]:
-        p = Path(d) / "first_cross.png"
-        if p.exists():
-            return Image.open(p).size
+        mc = minimal_crossing(Path(d))
+        if mc is not None:
+            return Image.open(mc[0]).size
     return (256, 256)
 
 
-def _load_run(run_dir: Path):
-    stats = json.loads((run_dir / "stats.json").read_text())
-    fc = json.loads((run_dir / "first_cross.json").read_text()) if (run_dir / "first_cross.json").exists() else {}
-    return stats, fc
-
-
 def sample_edited(df: pd.DataFrame, n: int, arms, seed: int, verified: set[str] | None = None) -> pd.DataFrame:
-    """n crossing runs, even over (task, arm), round-robin over SUTs, random cells within; one per (cell, sut, arm)."""
+    """n runs with a minimal crossing, spread as evenly as possible over the (arm, task, sut) strata (a stratum that
+    runs short passes its quota on), random seed inputs within; one per (cell, sut, arm). Arms with no crossing run
+    are skipped with a warning."""
     rng = random.Random(seed)
     d = df[df["crossed"].astype(bool) & df["arm"].isin(arms)].copy()
     if verified is not None:
         d = d[d["run_dir"].isin(verified)]
-    d = d.sort_values(["first_cross_eval", "run_dir"]).drop_duplicates(["task", "sut", "arm", "cell_id"])
-    strata = sorted({(t, a) for t, a in zip(d["task"], d["arm"])})
+    d = d[[minimal_crossing(Path(p)) is not None for p in d["run_dir"]]]
+    for a in arms:
+        if a not in set(d["arm"]):
+            warnings.warn(f"method {a}: no runs with a minimal crossing; skipped (re-sample once its runs exist)")
+    d = d.sort_values(["min_cross_eval" if "min_cross_eval" in d else "first_cross_eval", "run_dir"])
+    d = d.drop_duplicates(["task", "sut", "arm", "cell_id"])
+    strata = sorted({(a, t, s) for a, t, s in zip(d["arm"], d["task"], d["sut"])})
     if not strata:
         return d.iloc[0:0]
-    per = max(1, n // len(strata))
-    picks = []
-    for t, a in strata:
-        g = d[(d["task"] == t) & (d["arm"] == a)]
-        by_sut = {s: list(x.index) for s, x in g.groupby("sut")}
-        for idxs in by_sut.values():
-            rng.shuffle(idxs)
-        chosen, order = [], sorted(by_sut)
-        while len(chosen) < per and any(by_sut[s] for s in order):
-            for s in order:
-                if by_sut[s] and len(chosen) < per:
-                    chosen.append(by_sut[s].pop())
-        picks.append(g.loc[chosen])
-    return pd.concat(picks)
+    pools = {}
+    for a, t, s in strata:
+        idx = sorted(d.index[(d["arm"] == a) & (d["task"] == t) & (d["sut"] == s)])
+        rng.shuffle(idx)
+        pools[(a, t, s)] = idx
+    # exactly n items when the runs allow it: n // strata each, the remainder to randomly ordered strata, and the
+    # quota of a stratum that runs short goes to the strata that still have runs
+    quota = {k: 0 for k in strata}
+    order = list(strata)
+    rng.shuffle(order)
+    left = n
+    while left > 0:
+        open_ = [k for k in order if quota[k] < len(pools[k])]
+        if not open_:
+            break
+        for k in sorted(open_, key=lambda k: quota[k]):
+            if left == 0:
+                break
+            if quota[k] == min(quota[j] for j in open_):
+                quota[k] += 1
+                left -= 1
+    return pd.concat([d.loc[pools[k][:quota[k]]] for k in strata])
+
+
+def _data_uri(path: Path) -> str:
+    return "data:image/png;base64," + base64.b64encode(Path(path).read_bytes()).decode("ascii")
 
 
 def build(results: Path, out: Path, *, n: int = 120, controls: int = 24, arms=DEFAULT_ARMS, seed: int = 42,
-          agree: list[Path] | None = None, runs_root: Path | None = None, consent: str = DEFAULT_CONSENT) -> dict:
+          agree: list[Path] | None = None, runs_root: Path | None = None, consent: str = DEFAULT_CONSENT,
+          proxies: Path | None = None) -> dict:
     df = pd.read_csv(results)
     if runs_root is not None:
         df["run_dir"] = [str(p) if Path(p).exists() else str(Path(runs_root) / p) for p in df["run_dir"]]
@@ -101,10 +120,16 @@ def build(results: Path, out: Path, *, n: int = 120, controls: int = 24, arms=DE
         a = pd.concat([pd.read_csv(p) for p in agree])
         ok = a["cross_verified"].astype(str).str.lower().isin(("true", "1", "1.0"))
         verified = set(a.loc[ok, "run_dir"])
+    prox = {}
+    if proxies is not None and Path(proxies).exists():
+        p = pd.read_csv(proxies)
+        if "view" in p:
+            p = p[p["view"] == "min"]
+        prox = {Path(r).name: {c: r2.get(c) for c in PROXY_COLS} for r, r2 in zip(p["run_dir"], p.to_dict("records"))}
     size = _stimulus_size(df)
     edited = sample_edited(df, n, arms, seed, verified)
     rng = random.Random(seed + 1)
-    # controls: anchors of cells not among the edited ones when possible, even over tasks
+    # controls: seed inputs not among the edited ones when possible, even over tasks
     used = set(zip(edited["task"], edited["cell_id"]))
     pool = df.drop_duplicates(["task", "cell_id"])
     pool = pool.assign(_used=[(t, c) in used for t, c in zip(pool["task"], pool["cell_id"])]).sort_values("_used")
@@ -118,37 +143,45 @@ def build(results: Path, out: Path, *, n: int = 120, controls: int = 24, arms=DE
         rest = [i for i in idx if g.loc[i, "_used"]]
         rng.shuffle(free)
         rng.shuffle(rest)
-        ctrl_rows += [g.loc[i] for i in (free + rest)[:need]]       # prefer cells that have no edited item
+        ctrl_rows += [g.loc[i] for i in (free + rest)[:need]]       # prefer seed inputs that have no edited item
     ids = [f"it{k:04d}" for k in rng.sample(range(1, 9999), len(edited) + len(ctrl_rows))]
     out = Path(out)
     (out / "items").mkdir(parents=True, exist_ok=True)
     items, key = [], []
 
     def item_from(run_dir: Path, item_id: str, stratum: str, row) -> None:
-        stats, fc = _load_run(run_dir)
+        stats = json.loads((run_dir / "stats.json").read_text())
         meta = stats.get("seed_metadata") or {}
         task = row["task"]
         ca, cb = stats.get("class_a"), stats.get("class_b")
         q0 = meta.get("prompt_template") or stats.get("prompt_template") or ""
         if stratum == "edited":
-            img, text = Image.open(run_dir / "first_cross.png").convert("RGB"), fc.get("text") or q0
-        else:   # anchors are shown as the SUT sees them: the codec reconstruction, not the raw photograph
+            png, js = minimal_crossing(run_dir)
+            mc = json.loads(js.read_text())
+            img, text = Image.open(png).convert("RGB"), mc.get("text") or q0
+            pv = prox.get(run_dir.name, {})
+        else:   # controls are shown as the SUT sees them: the codec reconstruction, not the raw photograph
             from mmb.validity.score import anchor_reference
             img, text = anchor_reference(run_dir)[0], q0
+            pv = {c: 0.0 for c in PROXY_COLS}
         if img.size != size:
             img = img.resize(size, Image.BICUBIC)
         img.save(out / "items" / f"{item_id}.png")
-        it = {"id": item_id, "type": "pope" if task == "pope" else "pair", "image": f"items/{item_id}.png", "question": text}
-        if it["type"] == "pair":
-            it["options"] = [ca, cb]
-        else:
+        it = {"id": item_id, "task": "pope" if task == "pope" else "imagenet", "image": f"items/{item_id}.png",
+              "original": q0, "question": text}
+        if task == "pope":
             it["object"] = meta.get("object") or "object"
+        else:
+            it["label"] = ca
         items.append(it)
-        key.append(dict(item_id=item_id, stratum=stratum, task=task, sut=row["sut"], arm=row["arm"] if stratum == "edited" else "",
+        cands = [ca, cb] if task != "pope" else ["Yes", "No"]
+        key.append(dict(item_id=item_id, stratum=stratum, run_id=run_dir.name, task=task, sut=row["sut"],
+                        arm=row["arm"] if stratum == "edited" else "",
                         cell_id=row["cell_id"], rng_seed=row["rng_seed"], run_dir=str(run_dir),
+                        candidates="|".join(str(c) for c in cands),
                         anchor_label=ca if task != "pope" else "", gt=(meta.get("gt") or "") if task == "pope" else "",
                         object=meta.get("object") or "", original_question=q0, shown_question=text,
-                        g_cross=fc.get("g", "") if stratum == "edited" else ""))
+                        **{c: pv.get(c, "") for c in PROXY_COLS}))
 
     k = 0
     for _, row in edited.iterrows():
@@ -156,11 +189,14 @@ def build(results: Path, out: Path, *, n: int = 120, controls: int = 24, arms=DE
     for row in ctrl_rows:
         item_from(Path(row["run_dir"]), ids[k], "control", row); k += 1
     rng.shuffle(items)
-    manifest = {"version": 1, "n_items": len(items), "consent": consent, "items": items}
-    (out / "manifest.json").write_text(json.dumps(manifest, indent=1, ensure_ascii=False))
-    pd.DataFrame(key).to_csv(out / "key.csv", index=False)
-    (out / "rate.html").write_text(RATING_HTML.replace("__MANIFEST__", json.dumps(manifest, ensure_ascii=False).replace("</", "<\\/")))
-    return {"edited": len(edited), "controls": len(ctrl_rows), "out": str(out)}
+    view = {"version": 2, "n_items": len(items), "consent": consent, "items": items}
+    (out / "rater_view.json").write_text(json.dumps(view, indent=1, ensure_ascii=False))
+    pd.DataFrame(key).to_csv(out / "manifest.csv", index=False)
+    embedded = dict(view, items=[dict(i, image=_data_uri(out / i["image"])) for i in items])
+    (out / "rate.html").write_text(RATING_HTML.replace("__MANIFEST__", json.dumps(embedded, ensure_ascii=False).replace("</", "<\\/")))
+    counts = edited.groupby(["arm", "task", "sut"]).size().to_dict() if len(edited) else {}
+    return {"edited": len(edited), "controls": len(ctrl_rows), "strata": {"/".join(k): v for k, v in counts.items()},
+            "out": str(out)}
 
 
 RATING_HTML = r"""<!DOCTYPE html>
@@ -173,6 +209,7 @@ fieldset{margin:.8em 0;border:1px solid #bbb}legend{font-weight:600}
 label{display:block;margin:.2em 0;cursor:pointer}
 button{font-size:1em;padding:.4em 1em;margin:.3em .3em .3em 0}
 .q{background:#f3f3f3;padding:.5em .8em;border-radius:4px;font-size:1.05em}
+.pair{display:flex;gap:1em}.pair>div{flex:1}
 .small{color:#555;font-size:.9em}
 progress{width:100%}
 </style></head><body>
@@ -180,7 +217,7 @@ progress{width:100%}
 <script>
 "use strict";
 var M = __MANIFEST__;
-var KEY = "ratings_draft_v1";
+var KEY = "ratings_draft_v2";
 var state = JSON.parse(localStorage.getItem(KEY) || "null");
 function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
 function hash(s){var h=2166136261;for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
@@ -210,36 +247,34 @@ function show(){
   var p=el("progress",{max:state.order.length,value:state.pos});app.appendChild(p);
   app.appendChild(el("p",{"class":"small",text:"Item "+(state.pos+1)+" of "+state.order.length}));
   app.appendChild(el("img",{src:it.image,alt:"stimulus"}));
-  app.appendChild(el("div",{"class":"q",text:it.question}));
-  var order="";var q1,q2=null;
-  if(it.type==="pair"){
-    var two=shuffle(it.options,r);order=two.join("|");
-    app.appendChild(el("p",{text:"What is the main subject of the image?"}));
-    q1=radios("a",[{value:two[0],label:two[0]},{value:two[1],label:two[1]},{value:"__else",label:"Something else"},{value:"__nothing",label:"Nothing recognizable"},{value:"__cant",label:"I can't tell"}]);
-  }else{
-    app.appendChild(el("p",{text:"Does the image contain a "+it.object+"?"}));
-    q1=radios("a",[{value:"yes",label:"Yes"},{value:"no",label:"No"},{value:"__cant",label:"I can't tell"}]);
-    q2=radios("b",[{value:"yes",label:"Yes"},{value:"no",label:"No"},{value:"__cant",label:"I can't tell"}]);
-  }
-  app.appendChild(q1);
-  if(q2){app.appendChild(el("p",{text:"Does the question above still ask whether the image contains a "+it.object+"?"}));app.appendChild(q2);}
-  app.appendChild(el("p",{text:"How easy is the question above to understand? (1 = not at all, 5 = perfectly)"}));
-  var q3=radios("c",[1,2,3,4,5].map(function(v){return{value:String(v),label:String(v)};}));app.appendChild(q3);
+  var pair=el("div",{"class":"pair"});
+  var left=el("div");left.appendChild(el("p",{"class":"small",text:"Original question"}));left.appendChild(el("div",{"class":"q",text:it.original}));
+  var right=el("div");right.appendChild(el("p",{"class":"small",text:"Question shown"}));right.appendChild(el("div",{"class":"q",text:it.question}));
+  pair.appendChild(left);pair.appendChild(right);app.appendChild(pair);
+  var yn=[{value:"yes",label:"Yes"},{value:"no",label:"No"},{value:"__cant",label:"I can't tell"}];
+  app.appendChild(el("p",{text:it.task==="pope"?"Is there a "+it.object+" in the image?":"Does the image still show a "+it.label+"?"}));
+  var q1=radios("a",yn);app.appendChild(q1);
+  app.appendChild(el("p",{text:"Is the question shown still the same question as the original?"}));
+  var q2=radios("b",yn);app.appendChild(q2);
   var next=el("button",{text:"Next"});next.onclick=function(){
-    var a=chosen("a"),b=q2?chosen("b"):"",c=chosen("c");
-    if(a===null||c===null||(q2&&b===null)){alert("Please answer every question.");return;}
-    state.rows.push({rater_id:state.rater,item_id:it.id,order_index:state.pos,answer:a,answer_question_still_asked:b,comprehensibility:c,shown_option_order:order,rt_ms:Date.now()-t0,client_time:new Date().toISOString()});
+    var a=chosen("a"),b=chosen("b");
+    if(a===null||b===null){alert("Please answer every question.");return;}
+    state.rows.push({rater_id:state.rater,item_id:it.id,order_index:state.pos,answer_content:a,answer_same_question:b,rt_ms:Date.now()-t0,client_time:new Date().toISOString()});
     state.pos++;save();show();};
   app.appendChild(next);
-  app.appendChild(el("button",{text:"Download answers so far"})).onclick=download;
+  app.appendChild(el("button",{text:"Download answers so far"})).onclick=function(){download("json");};
 }
-function csv(){var cols=["rater_id","item_id","order_index","answer","answer_question_still_asked","comprehensibility","shown_option_order","rt_ms","client_time"];
+var COLS=["rater_id","item_id","order_index","answer_content","answer_same_question","rt_ms","client_time"];
+function csv(){
   function q(v){v=String(v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;}
-  return [cols.join(",")].concat(state.rows.map(function(r){return cols.map(function(c){return q(r[c]);}).join(",");})).join("\n");}
-function download(){var b=new Blob([csv()],{type:"text/csv"});var a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="ratings_"+state.rater+".csv";document.body.appendChild(a);a.click();a.remove();}
+  return [COLS.join(",")].concat(state.rows.map(function(r){return COLS.map(function(c){return q(r[c]);}).join(",");})).join("\n");}
+function download(kind){
+  var body=kind==="csv"?csv():JSON.stringify({rater_id:state.rater,version:M.version,rows:state.rows},null,1);
+  var b=new Blob([body],{type:kind==="csv"?"text/csv":"application/json"});var a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="ratings_"+state.rater+"."+kind;document.body.appendChild(a);a.click();a.remove();}
 function done(){app.innerHTML="";app.appendChild(el("h2",{text:"Done - thank you"}));
   app.appendChild(el("p",{text:"Please download your answers and send the file back to the person who gave you this page."}));
-  app.appendChild(el("button",{text:"Download answers (CSV)"})).onclick=download;}
+  app.appendChild(el("button",{text:"Download answers (JSON)"})).onclick=function(){download("json");};
+  app.appendChild(el("button",{text:"Download answers (CSV)"})).onclick=function(){download("csv");};}
 if(state&&state.order&&state.pos<state.order.length){
   app.appendChild(el("p",{text:"A draft from this browser was found (item "+(state.pos+1)+" of "+state.order.length+")."}));
   var c=el("button",{text:"Continue"});c.onclick=show;app.appendChild(c);
@@ -256,6 +291,8 @@ def main(argv=None) -> int:
     ap.add_argument("--n", type=int, default=120)
     ap.add_argument("--controls", type=int, default=24)
     ap.add_argument("--arms", default=",".join(DEFAULT_ARMS))
+    ap.add_argument("--proxies", type=Path, default=Path("results/validity_MAIN.csv"),
+                    help="mmb.validity.score CSV; img_lpips and vis_char_dist of the minimal crossing go into manifest.csv")
     ap.add_argument("--agree", type=Path, nargs="*", default=[], help="keep only single-item verified crossings")
     ap.add_argument("--runs-root", type=Path, default=None)
     ap.add_argument("--consent-file", type=Path, default=None)
@@ -263,7 +300,7 @@ def main(argv=None) -> int:
     a = ap.parse_args(argv)
     consent = a.consent_file.read_text() if a.consent_file else DEFAULT_CONSENT
     print(build(a.results, a.out, n=a.n, controls=a.controls, arms=a.arms.split(","), seed=a.seed,
-                agree=a.agree or None, runs_root=a.runs_root, consent=consent))
+                agree=a.agree or None, runs_root=a.runs_root, consent=consent, proxies=a.proxies))
     return 0
 
 

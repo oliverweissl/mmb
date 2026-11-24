@@ -617,10 +617,10 @@ def human_tex(s: pd.DataFrame) -> str:
     rows = []
     for _, r in s.iterrows():
         rows.append([st.tex_escape(r["stratum"]), st.tex_escape(TASK_NAMES.get(r["task"], r["task"])),
-                     st.tex_escape(st.arm_label(r["arm"]) if isinstance(r["arm"], str) and r["arm"] else "unedited anchor"),
+                     st.tex_escape(st.arm_label(r["arm"]) if isinstance(r["arm"], str) and r["arm"] else "unedited control"),
                      str(int(r["items"])), f"{r['valid_share']:.2f} [{r['lo']:.2f}, {r['hi']:.2f}]",
-                     f"{r['mean_comprehensibility']:.1f}", f"{100 * r['cant_share']:.0f}"])
-    return st._booktabs("lllrrrr", ["Stratum", "Task", "Arm", "Items", "Valid share [95\\% CI]", "Comprehens.", "Can't tell (\\%)"], rows)
+                     f"{100 * r['cant_share']:.0f}"])
+    return st._booktabs("lllrrr", ["Stratum", "Task", "Method", "Items", "Valid share [95\\% CI]", "Can't tell (\\%)"], rows)
 
 
 def add_human_numbers(num: Numbers, s: pd.DataFrame) -> None:
@@ -631,7 +631,6 @@ def add_human_numbers(num: Numbers, s: pd.DataFrame) -> None:
         num.add(["EHuman", "Share"] + tail, f_pct(r["valid_share"]), "valid share (%); " + d)
         num.add(["EHuman", "Ci"] + tail, f"[{100 * r['lo']:.0f}--{100 * r['hi']:.0f}]", "95% bootstrap CI over items (%); " + d)
         num.add(["EHuman", "Items"] + tail, str(int(r["items"])), "items; " + d)
-        num.add(["EHuman", "Comprehensibility"] + tail, f_num(r["mean_comprehensibility"], 1), "mean 5-point comprehensibility; " + d)
 
 
 def add_validity_numbers(num: Numbers, vdf: pd.DataFrame) -> None:

@@ -229,3 +229,19 @@ The paper's research questions are regrouped by the property they address, as op
 - Search scores candidates in batches. For crossings whose margin is at the numeric resolution of bf16 logits, the sign of g can depend on the batch composition.
 - The reported minimal crossing is the smallest trace crossing (fewest edits; ties: larger |g|) whose decision change reproduces when the input is scored alone; its partner (minus one edit) must not cross when scored alone. No threshold is involved. Applied identically to every arm (scripts/confirm_crossings.py); extra calls are recorded (confirm_calls, nb_extra_calls) and are about 1 per run.
 - Effect on seed 0: minimal edits unchanged (MMBA 12.2, random 23.1 vs 22.9 before); single-input verification 100% on all SUTs.
+
+## 2026-11-24 — RQ3 human validity study on MAIN minimal crossings
+- Items: the minimal crossing (the method's output, min_cross.*) of 120 runs, spread evenly over method x task x SUT
+  (methods: MMBA, random search, hill climber; tasks: ImageNet, POPE; SUTs: all four once their runs exist),
+  at most one item per (seed input, SUT, method), only crossings confirmed by single-input re-scoring; fixed seed 42.
+  Plus 24 controls: codec reconstructions of unedited seed inputs with the original question (12 per task).
+- Page: one offline HTML file (images embedded); blind (no method/SUT/outcome shown); item order random per rater.
+  Per item: (a) ImageNet "Does the image still show a <seed class>?" / POPE "Is there a <object> in the image?"
+  (Yes/No/Can't tell); (b) "Is the question shown still the same question as the original?" (shown side by side).
+- Valid := (a) matches the seed input (ImageNet: yes; POPE: ground truth) and (b) yes. Target 3 raters per item.
+- Analysis (mmb.validity.analyze_ratings): valid share per method x task with 95% item-clustered bootstrap CIs;
+  Krippendorff alpha (nominal) and Gwet AC1 per question; calibration of LPIPS and visible-text distance against
+  the per-item human validity (Spearman, AUC for share >= 0.5).
+- Commands: `python scripts/validity/sample_items.py results/MAIN.csv --out study/rq3 --agree results/agree_MAIN_*.csv`;
+  `python scripts/validity/analyze_ratings.py study/rq3/manifest.csv ratings_*.json`.
+- Re-sample after B0 (hill climber) and C0/C1 (LLaVA) so all strata are filled; the sample is then frozen.

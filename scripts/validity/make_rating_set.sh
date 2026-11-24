@@ -3,9 +3,9 @@
 #   scripts/validity/make_rating_set.sh <results_csv> <out_dir> [n=120] [controls=24]
 # Env: PYTHON, AGREE (space-separated agreement_replay CSVs: keep only single-item verified crossings),
 #      CONSENT_FILE (verbatim HS-01 consent text; REQUIRED before real use).
-# Then: give <out_dir>/rate.html and <out_dir>/items/ to raters, collect their ratings_*.csv and run
-#   python -m mmb.validity.analyze_ratings <out_dir>/key.csv ratings_*.csv --out results/validity_human.csv
-# key.csv holds arm/SUT per item and must stay with the analyst.
+# Then: give <out_dir>/rate.html (self-contained) to raters, collect their ratings_*.json and run
+#   python scripts/validity/analyze_ratings.py <out_dir>/manifest.csv ratings_*.json --out results/validity_human.csv
+# manifest.csv holds method/SUT per item and must stay with the analyst.
 set -euo pipefail
 PY="${PYTHON:-python}"
 RES="${1:?results csv}"; OUT="${2:?out dir}"; N="${3:-120}"; C="${4:-24}"
