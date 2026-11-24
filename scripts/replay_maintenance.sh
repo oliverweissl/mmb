@@ -10,7 +10,7 @@ log=runs/logs/replay.out
 echo "[$(date +%T)] stopping queue" >> $log
 systemctl --user stop mmb-queue14; pkill -f "[m]mb.runners.run_boundary_test"; sleep 10
 for s in ${CONFIRM_SUTS-qwen internvl ministral}; do $PY scripts/confirm_crossings.py runs/MAIN --sut $s >> $log 2>&1; echo "confirm $s exit $?" >> $log; done
-for s in ${AGREE_SUTS:-qwen internvl ministral}; do $PY scripts/agreement_replay.py runs/MAIN --sut $s --out results/agree_MAIN_$s.csv >> $log 2>&1; echo "agree $s exit $?" >> $log; done
+for s in ${AGREE_SUTS-qwen internvl ministral}; do $PY scripts/agreement_replay.py runs/MAIN --sut $s --out results/agree_MAIN_$s.csv >> $log 2>&1; echo "agree $s exit $?" >> $log; done
 [ -n "${SKIP_TRANSFER:-}" ] || $PY scripts/transfer_replay.py runs/MAIN --out results/transfer_MAIN.csv >> $log 2>&1
 echo "[$(date +%T)] replays done, restarting queue" >> $log
 systemd-run --user --unit mmb-queue14 -p WorkingDirectory=$PWD \

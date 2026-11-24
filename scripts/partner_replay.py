@@ -22,6 +22,7 @@ def main():
     from mmb.manipulator.text.composite import CompositeTextManipulator
     from mmb.manipulator.vlm_manipulator import VLMManipulator
     from mmb.runners.run_boundary_test import _disable_hub_kernels, load_config
+    from mmb.config import apply_modality
     if a.sut != "ministral":
         _disable_hub_kernels()
     todo = []
@@ -40,7 +41,7 @@ def main():
         m = st["run_meta"]
         cfgp = next(Path("configs/generated/MAIN").glob(f"*__s{m['rng_seed']}__{m['task']}__{m['sut']}__{m['arm']}.yaml"))
         cfg = yaml.safe_load(cfgp.read_text()); cfg["device"] = "cuda"
-        exp = load_config(cfg)
+        exp = apply_modality(load_config(cfg))  # same modality handling as the runner
         if comps is None:
             comps = init_shared_components(exp, ImageNetCache(dirs=exp.cache_dirs))
         key = (m["task"], m["arm"])
