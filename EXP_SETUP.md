@@ -119,3 +119,4 @@ could not be verified here (no OpenVINO stack). Thesis-era numbers are therefore
 - A1 (seed 1, MMBA + random, 3 SUTs x 2 tasks) finished 18:10; after_block A1 runs confirm/agreement/transfer replays, then restarts the queue at B0.
 - after_block hooks installed for B0, B1, C1 (units mmb-after-B0/B1/C1): each confirms crossings when its block is complete.
 - Remaining: B0/B1 (GA, NSGA-II, MIMICRY-style, image-only, hill climber, DeepJanus-style; seeds 0/1; 72 runs), C0/C1 (LLaVA POPE; 8 runs). Estimated ~95 GPU-h.
+- 2026-11-24 19:46: added block D1x = the RQ4 ablations (x1 unguided, x2 patch edits, a6 text-only) on rng seed 1 (18 configs, copies of A0x with seed 1), so RQ4 has the same two random seeds as RQ1/RQ2. Runs after C1 (~18 GPU-h); unit mmb-after-D1x confirms crossings.

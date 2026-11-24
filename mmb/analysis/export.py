@@ -626,6 +626,42 @@ def add_transfer_numbers(num: Numbers, rows: list[dict]) -> None:
             num.add(["ETransfer", "MeanOffDiagonalN", camel(task)], str(n), f"crossing-destination pairs behind the pooled share, {task}")
 
 
+def add_transfer_paired(num: Numbers, tdf: pd.DataFrame, ref: str = "a0_directed") -> None:
+    """Paired transfer test: per source run the share of other SUTs whose answer the crossing flips; runs of each
+    arm are matched to the reference on (task, source SUT, rng seed, seed input); Wilcoxon signed-rank on the
+    differences (zero differences dropped, Pratt would keep them), Holm across arms."""
+    from scipy.stats import wilcoxon
+    t = tdf.copy()
+    key = t["run_dir"].astype(str).str.extract(r"_s(\d+)_seed_(\d+)_")
+    t["cell_idx"] = key[1]
+    t = t.dropna(subset=["cell_idx"])
+    t["flip"] = t["flipped_on_dst"].astype(str).str.lower().isin(("true", "1", "1.0"))
+    per = t.groupby(["arm", "task", "src_sut", "rng_seed", "cell_idx"])["flip"].mean().reset_index()
+    keys = ["task", "src_sut", "rng_seed", "cell_idx"]
+    a = per[per["arm"] == ref]
+    rows = []
+    for arm in sorted(set(per["arm"]) - {ref}):
+        m = a.merge(per[per["arm"] == arm], on=keys, suffixes=("_ref", "_arm"))
+        if len(m) < 5:
+            continue
+        diff = m["flip_arm"] - m["flip_ref"]
+        p = float(wilcoxon(diff, zero_method="wilcox").pvalue) if (diff != 0).any() else 1.0
+        rows.append(dict(arm=arm, n=len(m), ref=float(m["flip_ref"].mean()), val=float(m["flip_arm"].mean()),
+                         diff=float(diff.mean()), p=p))
+    if not rows:
+        return
+    ps = st.holm([r["p"] for r in rows]) if hasattr(st, "holm") else [min(1.0, r["p"] * len(rows)) for r in rows]
+    for r, ph in zip(rows, ps):
+        tail = [arm_short(r["arm"])]
+        d = f"transfer, {r['arm']} vs {ref}, {r['n']} matched crossing runs (both crossed)"
+        num.add(["ETransferPaired", "N"] + tail, str(r["n"]), "matched pairs; " + d)
+        num.add(["ETransferPaired", "RefShare"] + tail, f_pct(r["ref"]), "mean share of other SUTs flipped, reference (%); " + d)
+        num.add(["ETransferPaired", "ArmShare"] + tail, f_pct(r["val"]), "mean share of other SUTs flipped, arm (%); " + d)
+        num.add(["ETransferPaired", "Diff"] + tail, f_num(100 * r["diff"], 1, True), "arm minus reference (pp); " + d)
+        num.add(["ETransferPaired", "P"] + tail, f_p(r["p"]), "Wilcoxon signed-rank p; " + d)
+        num.add(["ETransferPaired", "PHolm"] + tail, f_p(ph), "Holm across arms; " + d)
+
+
 def human_tex(s: pd.DataFrame) -> str:
     rows = []
     for _, r in s.iterrows():
@@ -694,6 +730,21 @@ def _rq_tables(rq, tabs: Path, df: pd.DataFrame, vdf: pd.DataFrame, grid_suts, n
     rq.add_ablation_numbers(num, abl)
     rq.add_ablation_effect_numbers(num, abl, abl_e)
     rq.add_pooled_numbers(num, gd, vdf[vdf["sut"].isin(grid_suts)], arm_short)
+
+
+def add_teaser_numbers(num: Numbers, facts: list[dict]) -> None:
+    """Macros for the Fig. 1 rows (ETeaserImagenet*/ETeaserPope*), so the introduction quotes the figure it shows."""
+    def odds(r):
+        return f"{r:.0f}" if r >= 10 else f"{r:.1f}"
+    for f in facts:
+        row = ["ETeaser", camel(f["task"])]
+        d = f"Fig. 1 row, {f['task']}"
+        for k, v in (("Sut", f["sut"]), ("Before", f["before"]), ("After", f["after"]), ("Object", f["obj"]),
+                     ("OddsBefore", odds(f["odds_before"])), ("OddsAfter", odds(f["odds_after"]))):
+            num.add(row + [k], st.tex_escape(str(v)), f"{k}; {d}")
+        for who, e in (("Dir", f["dir"]), ("Rnd", f["rnd"])):
+            for k in ("n", "img", "txt"):
+                num.add(row + [who, {"n": "Edits", "img": "Img", "txt": "Txt"}[k]], str(int(e[k])), f"{who} {k}; {d}")
 
 
 def complete_blocks(df: pd.DataFrame, ref: str = "a0_directed", grid_suts=GRID_SUTS) -> pd.DataFrame:
@@ -876,6 +927,7 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
                         if n:
                             num.add(["ETransferArm", "Share", arm_short(arm_name), camel(task_name)], f_pct(m), f"pooled share of crossings flipping another SUT (%), arm {arm_name}, {task_name}")
                             num.add(["ETransferArm", "N", arm_short(arm_name), camel(task_name)], str(n), f"crossing-destination pairs behind it, arm {arm_name}, {task_name}")
+                add_transfer_paired(num, tdf, ref)
 
     if len(pt):
         write_tex(tabs / "generalization_main.tex", generalization_main_tex(pt, trows))
@@ -901,6 +953,7 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
         else:
             try:
                 gallery.plot_teaser(teaser, figs / "gallery.pdf", runs_root=runs_root)
+                add_teaser_numbers(num, gallery.teaser_facts(teaser, runs_root=runs_root))
             except FileNotFoundError as e:
                 logger.warning("teaser skipped: %s", e)
     mdf = None

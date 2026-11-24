@@ -64,14 +64,14 @@ def plot_crossing_curve(
         n = int(c["n"].iloc[0])
         ax.fill_between(c["budget"], c["boot_lo"], c["boot_hi"], color=col, alpha=0.18, linewidth=0)
         ax.plot(c["budget"], c["share"], color=col, linestyle=LINESTYLES[i % len(LINESTYLES)],
-                linewidth=1.3 if arm == ref_arm else 1.0, label=arm_label(arm),
+                linewidth=1.3 if arm == ref_arm else 1.0, label="MMBA" if arm == ref_arm else arm_label(arm),
                 marker=MARKERS[i % len(MARKERS)], markevery=(i % 5, 12), markersize=3)
     for v in vlines:
         ax.axvline(v, color="0.6", linewidth=0.5, linestyle=":")
     ax.set_xscale("log")
     ax.set_xlim(1, max_budget)
     ax.set_ylim(0, 1.02)
-    ax.set_xlabel("model evaluations")
+    ax.set_xlabel("model calls")
     ax.set_ylabel("share of runs crossed")
     ax.grid(True, which="major", color="0.9", linewidth=0.4)
     ax.legend(fontsize=5.5, frameon=False, loc="upper center", bbox_to_anchor=(0.5, -0.28), ncol=2,

@@ -319,6 +319,28 @@ def _vis(s: str) -> str:
     return "".join(chr(0xA6) if ch in _ZERO_WIDTH else ch for ch in s)
 
 
+def _looks_same(a: str, b: str) -> bool:
+    """True when two strings render identically to a reader (NFKC, zero-width removed, homoglyphs mapped)."""
+    from mmb.validity.proxies import normalise_visible
+    return normalise_visible(a) == normalise_visible(b)
+
+
+def teaser_facts(examples: list[dict], runs_root: Path | None = None) -> list[dict]:
+    """Per teaser row the facts the introduction quotes: model, candidates, preferred answer and odds before/after,
+    and the edit counts of both crossings (so the text is generated with the figure and cannot drift from it)."""
+    out = []
+    for ex in examples:
+        stats, fc, _, _ = _load(Path(ex["dir"]["run_dir"]), runs_root, False, True)
+        a, b = stats.get("class_a"), stats.get("class_b")
+        g0, g1 = float(stats.get("anchor_g")), float(fc.get("g"))
+        out.append(dict(task=ex["task"], sut=SUT_LABELS.get(ex["sut"], ex["sut"]), a=a, b=b,
+                        before=a if g0 > 0 else b, after=a if g1 > 0 else b,
+                        odds_before=float(np.exp(abs(g0))), odds_after=float(np.exp(abs(g1))),
+                        obj=(stats.get("seed_metadata") or {}).get("object") or "",
+                        dir=ex["dir"], rnd=ex["rnd"]))
+    return out
+
+
 def diff_image(o: Image.Image, c: Image.Image) -> np.ndarray:
     """Amplified absolute difference of two equally sized images (mean over channels), scaled to its 99.5th percentile; zeros where unchanged."""
     d = np.abs(np.asarray(o, float) - np.asarray(c, float)).mean(axis=2)
@@ -378,7 +400,13 @@ def plot_teaser(examples: list[dict], out: Path | str, *, runs_root: Path | None
             q0 = (stats.get("seed_metadata") or {}).get("prompt_template") or stats.get("prompt_template") or ""
             q1 = fc.get("text") or ""
             e = ex[role]
-            lines = [f"{e['n']} edit{'' if e['n'] == 1 else 's'}: {e['img']} of 64 image regions, {e['txt']} text", "Q': " + (_wrap(_vis(q1), 30, 2) if q1 and q1 != q0 else "unchanged"),
+            if e["txt"] == 0 or not q1:
+                qline = "Q': unchanged"
+            elif q1 == q0 or _looks_same(q0, q1):
+                qline = f"Q': looks unchanged ({e['txt']} invisible character edit{'' if e['txt'] == 1 else 's'})"
+            else:
+                qline = "Q': " + _wrap(_vis(q1), 30, 2)
+            lines = [f"{e['n']} edit{'' if e['n'] == 1 else 's'}: {e['img']} of 64 image regions, {e['txt']} text", qline,
                      _answer_line(stats, fc)]
             a = axes(x0 + k * (img_in + gap), y0 + img_in + 0.03, 2 * img_in + gap, txt_h)
             a.text(0.0, 1, "\n".join(lines), va="top", ha="left", fontsize=5, linespacing=1.15, transform=a.transAxes)
