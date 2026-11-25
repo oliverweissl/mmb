@@ -718,15 +718,18 @@ def validity_table(vdf: pd.DataFrame) -> str:
 # ---------------------------------------------------------------------------
 
 
-def _rq_tables(rq, tabs: Path, df: pd.DataFrame, vdf: pd.DataFrame, grid_suts, num) -> None:
-    """Main-text tables: RQ1 (effectiveness and quality), RQ2 (efficiency), RQ4 (ablation, pooled, seed 0)."""
+def _rq_tables(rq, tabs: Path, df: pd.DataFrame, vdf: pd.DataFrame, grid_suts, num, marks: dict | None = None) -> None:
+    """Main-text tables: RQ1 (effectiveness and quality), RQ2 (efficiency), RQ4 (ablation, pooled, seed 0).
+    marks: arm id -> superscript mark on its row label (see method_marks); a note row explains each mark used."""
     gd, gv = df[df["sut"].isin(grid_suts)], vdf[vdf["sut"].isin(grid_suts)]
+    marks = {a: m for a, m in (marks or {}).items() if a in set(gd["arm"])}
     cells_m = rq.by_cell(gd, gv)
-    write_tex(tabs / "arm_main.tex", rq.rq1_tex(cells_m))
-    write_tex(tabs / "arm_cost.tex", rq.rq2_tex(cells_m))
+    write_tex(tabs / "arm_main.tex", rq.rq1_tex(cells_m, marks))
+    write_tex(tabs / "arm_cost.tex", rq.rq2_tex(cells_m, marks))
     abl = rq.ablation(gd, gv)
     abl_e = rq.ablation_effects(abl)
-    write_tex(tabs / "arm_ablation.tex", rq.ablation_tex(abl, abl_e))
+    abl_marks = {rq.prefix(a): m.replace(r"\S", "") for a, m in marks.items()}     # RQ4 is seed 0 for every variant
+    write_tex(tabs / "arm_ablation.tex", rq.ablation_tex(abl, abl_e, {k: v for k, v in abl_marks.items() if v != "$^{}$"}))
     rq.add_ablation_numbers(num, abl)
     rq.add_ablation_effect_numbers(num, abl, abl_e)
     rq.add_pooled_numbers(num, gd, vdf[vdf["sut"].isin(grid_suts)], arm_short)
@@ -768,6 +771,39 @@ def complete_blocks(df: pd.DataFrame, ref: str = "a0_directed", grid_suts=GRID_S
     return df[keep]
 
 
+def pending_confirmation(df: pd.DataFrame) -> set[str]:
+    """run_dirs whose minimal crossing has not been confirmed by single-input scoring yet (scripts/confirm_crossings.py
+    has not run on them). Their min_cross.json is the search's batched output, so every minimal-crossing metric of
+    these runs (calls to minimal, LPIPS, edit distances, stealth) is withheld; crossing share and calls to the first
+    crossing come from the trace for every method alike and stay."""
+    if "min_confirmed" not in df:
+        return set()
+    ok = df["min_confirmed"].astype(str).str.lower().isin(("true", "1", "1.0"))
+    out = set(df.loc[~ok, "run_dir"])
+    if out:
+        arms = sorted(set(df.loc[df["run_dir"].isin(out), "arm"]))
+        logger.info("minimal crossings pending confirmation: %d runs (%s); minimal-crossing metrics withheld", len(out), ", ".join(arms))
+    return out
+
+
+def method_marks(df: pd.DataFrame, ref: str, pending: set[str]) -> tuple[dict[str, str], dict[str, str]]:
+    """Per arm id: (table marks, legend suffix). \\S = fewer rng seeds than the reference so far; \\ddagger = minimal
+    crossings pending single-input confirmation."""
+    ref_seeds = set(df.loc[df["arm"] == ref, "rng_seed"])
+    marks, suffix = {}, {}
+    for arm, d in df.groupby("arm"):
+        seeds = set(d["rng_seed"])
+        m = ""
+        if ref_seeds and seeds < ref_seeds:
+            m += r"\S"
+            suffix[arm] = " (seed " + ", ".join(str(int(s)) for s in sorted(seeds)) + ")"
+        if d["run_dir"].isin(pending).any():
+            m += r"\ddagger"
+        if m:
+            marks[arm] = "$^{" + m + "}$"
+    return marks, suffix
+
+
 def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid_suts=GRID_SUTS,
            validity: Path | None = None, runs_root: Path | None = None, n_boot: int = st.N_BOOT,
            figures: bool = True, agree: list[Path] | None = None,
@@ -788,7 +824,12 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
             v = adf.drop_duplicates("run_dir").set_index("run_dir")["cross_verified"]
             df["verified"] = df["run_dir"].map(v)
     df = complete_blocks(df, ref, grid_suts)
+    pending = pending_confirmation(df)
+    df["min_pending"] = df["run_dir"].isin(pending)
+    if pending:      # minimal crossings of these runs are the search's own, not yet confirmed by single-input scoring
+        df.loc[df["min_pending"], "min_cross_eval"] = np.nan
     num = Numbers()
+    num.add(["EPending", "Confirm", "Runs"], str(len(pending)), "runs whose minimal crossing awaits single-input confirmation (minimal-crossing metrics withheld)")
     if planned is not None:
         num.datastatus, n_ok, n_plan = data_status(df, planned, Path(planned).resolve().parents[2])
         logger.info("data status: %s (%d of %d planned configurations complete)", num.datastatus, n_ok, n_plan)
@@ -885,6 +926,8 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
 
     if validity is not None and Path(validity).exists():
         vdf = pd.read_csv(validity)
+        if len(vdf) and pending and "view" in vdf:      # unconfirmed minimal crossings never enter a table
+            vdf = vdf[~((vdf["view"] == "min") & vdf["run_dir"].isin(pending))]
         if len(vdf):
             v1 = vdf[vdf["view"] == "first"] if "view" in vdf else vdf
             write_tex(tabs / "validity.tex", validity_table(v1))
@@ -892,7 +935,7 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
             from mmb.analysis import validity_cost as vc
             from mmb.analysis import rq_tables as rq
             if {"sut", "task", "arm", "view"} <= set(vdf.columns):
-                _rq_tables(rq, tabs, df, vdf, grid_suts, num)
+                _rq_tables(rq, tabs, df, vdf, grid_suts, num, method_marks(df, ref, pending)[0])
             # primary view: the minimal crossing (EValid*, validity_main); the first-crossing view is supplement only (EValidFirst*)
             for view, stem, fam, lab in (("min", "validity_cost_min", "EValid", "minimal crossing"),
                                          ("first", "validity_cost", "EValidFirst", "first crossing")):
@@ -941,7 +984,8 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
     if figures:
         grid_df = sc.get(("All", "All"))
         if grid_df is not None:
-            plots.plot_crossing_curve(grid_df, figs / "crossing-curve.pdf", ref_arm=ref, vlines=[206], n_boot=n_boot)
+            plots.plot_crossing_curve(grid_df, figs / "crossing-curve.pdf", ref_arm=ref, vlines=[206], n_boot=n_boot,
+                                      label_suffix=method_marks(grid_df, ref, pending)[1])
         if len(pt):
             pr.plot_per_cell_diff(df, figs / "per-cell-diff.pdf", ref, "a1_random_tiered")
         if "probe_gen0" in df and df["probe_gen0"].notna().any():

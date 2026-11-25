@@ -50,7 +50,8 @@ METRICS = ("crossed", "first_cross_eval", "floor")
 
 def load_results(paths: Sequence[Path | str]) -> pd.DataFrame:
     df = pd.concat([pd.read_csv(p) for p in paths], ignore_index=True)
-    for c in ("crossed", "crossed_at_gen0", "label_flip", "reached_band", "complete", "crossed_robust", "crossed_robust_at_gen0"):
+    for c in ("crossed", "crossed_at_gen0", "label_flip", "reached_band", "complete", "crossed_robust", "crossed_robust_at_gen0",
+              "min_confirmed"):
         if c in df:
             df[c] = df[c].astype(str).str.lower().isin(("true", "1", "1.0"))
     return df

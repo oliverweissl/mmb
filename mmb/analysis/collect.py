@@ -85,6 +85,8 @@ EXTRA_COLUMNS = [
     "anchor_g", "prior_g", "probe_gen0", "min_gen0", "answer_words_a", "answer_words_b",
     # cost of the run: the evaluation at which its smallest crossing was found
     "min_cross_eval",
+    # the single-input confirmation (scripts/confirm_crossings.py) has run on this run: its min_cross.json, if any, is confirmed
+    "min_confirmed",
 ]
 #: Cost-of-crossing columns (see mmb.analysis.cost).
 COST_COLUMNS = [
@@ -464,6 +466,7 @@ def load_run(
             or (not gens and n_evals > 0)
         ),
         "min_cross_eval": _min_cross_eval(run_dir),
+        "min_confirmed": (Path(run_dir) / "min_cross_search.json").is_file(),
         "anchor_source": res["anchor_source"],
         "seed_idx": stats.get("seed_idx"),
         "anchor_g": res["anchor_g"],

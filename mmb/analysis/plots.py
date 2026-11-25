@@ -46,8 +46,11 @@ def plot_crossing_curve(
     seed: int = BOOT_SEED,
     cluster_col: str | None = None,
     height_in: float = 2.3,
+    label_suffix: dict[str, str] | None = None,
 ) -> Path:
-    """Write the figure to *out* (PDF by extension) and return its path."""
+    """Write the figure to *out* (PDF by extension) and return its path. label_suffix: arm -> text appended to its legend label
+    (e.g. ' (seed 0)' for a method that so far has fewer rng seeds than the reference)."""
+    label_suffix = label_suffix or {}
     max_budget = int(max_budget or df["budget"].max())
     grid = budget_grid(max_budget)
     curve = curve_with_bands(df, grid, n_boot=n_boot, seed=seed, cluster_col=cluster_col)
@@ -64,7 +67,7 @@ def plot_crossing_curve(
         n = int(c["n"].iloc[0])
         ax.fill_between(c["budget"], c["boot_lo"], c["boot_hi"], color=col, alpha=0.18, linewidth=0)
         ax.plot(c["budget"], c["share"], color=col, linestyle=LINESTYLES[i % len(LINESTYLES)],
-                linewidth=1.3 if arm == ref_arm else 1.0, label="MMBA" if arm == ref_arm else arm_label(arm),
+                linewidth=1.3 if arm == ref_arm else 1.0, label=("MMBA" if arm == ref_arm else arm_label(arm)) + label_suffix.get(arm, ""),
                 marker=MARKERS[i % len(MARKERS)], markevery=(i % 5, 12), markersize=3)
     for v in vlines:
         ax.axvline(v, color="0.6", linewidth=0.5, linestyle=":")

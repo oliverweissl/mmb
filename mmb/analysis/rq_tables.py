@@ -90,6 +90,8 @@ def metrics(d: pd.DataFrame, v: pd.DataFrame, v_first: pd.DataFrame | None = Non
     out["d_sem"] = float((1.0 - pd.to_numeric(vv["vis_minilm_cos"], errors="coerce")).median()) if len(vv) and "vis_minilm_cos" in vv else np.nan   # visible text, like d_edit
     hp = _truthy(vv["has_partner"]) if len(vv) and "has_partner" in vv else pd.Series(dtype=bool)
     out["n_partner"] = int(hp.sum())
+    if n and "min_pending" in d and d["min_pending"].astype(bool).all():
+        out["n_partner"] = np.nan          # no confirmed minimal crossing yet: partner count unknown
     out["lpips_bp"] = float(pd.to_numeric(vv.loc[hp, "pair_lpips"], errors="coerce").median()) if hp.sum() >= MIN_PARTNERS else np.nan
     return out
 
@@ -112,11 +114,23 @@ def _head(label: str, key: str) -> str:
     return tf.head(label, key)
 
 
-def _method_label(arm: str) -> str:
-    return r"\sysname" if prefix(arm) == "a0" else st.tex_escape(st.arm_label(arm))
+def _method_label(arm: str, marks: dict | None = None) -> str:
+    lab = r"\sysname" if prefix(arm) == "a0" else st.tex_escape(st.arm_label(arm))
+    return lab + (marks or {}).get(arm, "")
 
 
-def blocks_tex(heads: list[str], blocks: list[tuple[str, list[tuple[str, list[list[str]]]]]]) -> str:
+#: explanation of each row mark (see mmb.analysis.export.method_marks), printed as a note row under the table
+MARK_NOTES = ((r"\S", r"$^{\S}$\,seed 0 only so far (\sysname{} and Random: seeds 0 and 1)."),
+              (r"\ddagger", r"$^{\ddagger}$\,minimal crossing not yet confirmed by single-input re-scoring: its columns are withheld (--)."))
+
+
+def note_rows(marks: dict | None, n_cols: int) -> list[str]:
+    used = "".join((marks or {}).values())
+    return [rf"\multicolumn{{{n_cols}}}{{l}}{{\footnotesize {txt}}} \\" for key, txt in MARK_NOTES if key in used]
+
+
+def blocks_tex(heads: list[str], blocks: list[tuple[str, list[tuple[str, list[list[str]]]]]],
+               notes: list[str] | None = None) -> str:
     """Model | Task | rows: the model name rotated by 90 degrees in a multirow spanning its rows, the task in a multirow
     spanning its methods. blocks: [(model label, [(task label, [[method, cell, ...], ...]), ...]), ...]."""
     k = len(heads)
@@ -130,18 +144,18 @@ def blocks_tex(heads: list[str], blocks: list[tuple[str, list[tuple[str, list[li
         first_model = True
         for ti, (task, rows) in enumerate(tasks):
             if ti:
-                lines.append(rf"\cmidrule{{2-{2 + k - 1}}}")
+                lines.append(rf"\cmidrule{{2-{2 + k}}}")
             for ri, row in enumerate(rows):
                 mcell = (rf"\multirow{{{n_model}}}{{*}}{{\rotatebox[origin=c]{{90}}{{\footnotesize {model}}}}}"
                          if first_model else "")
                 tcell = rf"\multirow{{{len(rows)}}}{{*}}{{{task}}}" if ri == 0 else ""
                 first_model = False
                 lines.append(" & ".join([mcell, tcell] + row) + r" \\")
-    lines += [r"\bottomrule", r"\end{tabular}"]
+    lines += [r"\bottomrule"] + list(notes or []) + [r"\end{tabular}"]
     return "\n".join(lines) + "\n"
 
 
-def grouped_tex(m: pd.DataFrame, cols: list[tuple], methods=METHODS) -> str:
+def grouped_tex(m: pd.DataFrame, cols: list[tuple], methods=METHODS, marks: dict | None = None) -> str:
     """One block per SUT (rotated model name), one band per task (rows: methods present); best value per band and
     column in bold."""
     heads = ["Method"] + [_head(lab, key) for (_, key, lab, _d) in cols]
@@ -158,18 +172,19 @@ def grouped_tex(m: pd.DataFrame, cols: list[tuple], methods=METHODS) -> str:
                 vals = [float(ms[ms["arm"] == a].iloc[0][col]) for a in arms]
                 txt = [_fmt(x, dec) for x in vals]
                 cells[col] = tf.bold_best(txt, vals, key, txt)
-            rows = [[_method_label(a)] + [cells[col][i] for (col, *_r) in cols] for i, a in enumerate(arms)]
+            rows = [[_method_label(a, marks)] + [cells[col][i] for (col, *_r) in cols] for i, a in enumerate(arms)]
             tasks.append((TASK_NAMES[t], rows))
         blocks.append((SUT_NAMES[s], tasks))
-    return blocks_tex(heads, blocks)
+    used = {a: mk for a, mk in (marks or {}).items() if a in set(m["arm"]) and prefix(a) in methods}
+    return blocks_tex(heads, blocks, note_rows(used, 2 + len(heads)))
 
 
-def rq1_tex(m: pd.DataFrame) -> str:
-    return grouped_tex(m, [CR, SC, SR, LP, DE, DS])
+def rq1_tex(m: pd.DataFrame, marks: dict | None = None) -> str:
+    return grouped_tex(m, [CR, SC, SR, LP, DE, DS], marks=marks)
 
 
-def rq2_tex(m: pd.DataFrame) -> str:
-    return grouped_tex(m, [WL, FC, MC])
+def rq2_tex(m: pd.DataFrame, marks: dict | None = None) -> str:
+    return grouped_tex(m, [WL, FC, MC], marks=marks)
 
 
 ABL_KEYS = ("task", "sut", "seed_idx")
@@ -212,6 +227,8 @@ def ablation_runs(df: pd.DataFrame, vdf: pd.DataFrame, view: str) -> pd.DataFram
     out["run_dir"] = r["run_dir"]
     out["crossed"] = crossed.astype(float)
     out["scr"] = np.where(crossed, 100.0 * s.fillna(0.0), 0.0)
+    if "min_pending" in r:       # minimal crossing awaiting confirmation: its stealth is unknown, not zero
+        out["scr"] = out["scr"].where(~r["min_pending"].astype(bool).to_numpy(), np.nan)
     out["lpips"] = pd.to_numeric(r["img_lpips"], errors="coerce").where(crossed)
     if view == "first":     # edits of the first crossing: non-zero genes of its stored genotype
         out["edits"] = pd.Series([_first_edits(p) for p in r["run_dir"]], index=r.index, dtype=float).where(crossed)
@@ -296,7 +313,7 @@ def ablation_effects(a: pd.DataFrame) -> pd.DataFrame:
     return e
 
 
-def ablation_tex(a: pd.DataFrame, e: pd.DataFrame | None = None) -> str:
+def ablation_tex(a: pd.DataFrame, e: pd.DataFrame | None = None, marks: dict | None = None) -> str:
     """RQ4 table: absolute values per variant (bold: best of the column); each variant cell carries the magnitude bullet of
     its paired effect against the full method and a dagger when the Holm-corrected paired test is significant."""
     a = a[a["n_runs"] > 0].reset_index(drop=True)
@@ -318,8 +335,11 @@ def ablation_tex(a: pd.DataFrame, e: pd.DataFrame | None = None) -> str:
              " & ".join(["Variant"] + [_head(lab, key) for (_, key, lab, _d) in ABL_COLS]) + r" \\", r"\midrule"]
     for i, r in a.iterrows():
         lab = r["label"] if r["label"].startswith("Full") else st.tex_escape(r["label"])
+        if r["label"] != "w/o Phase 2":          # marks are keyed by arm prefix (marks: prefix -> superscript)
+            lab += (marks or {}).get(r["pre"], "")
         lines.append(" & ".join([lab] + [cells[col][i] for (col, *_r) in ABL_COLS]) + r" \\")
-    lines += [r"\bottomrule", r"\end{tabular}"]
+    shown = {p: mk for p, mk in (marks or {}).items() if p in set(a["pre"])}
+    lines += [r"\bottomrule"] + note_rows(shown, 1 + len(ABL_COLS)) + [r"\end{tabular}"]
     return "\n".join(lines) + "\n"
 
 
