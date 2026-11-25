@@ -60,3 +60,13 @@ def test_complete_blocks_output_is_balanced():
     grid = ("qwen", "internvl")
     df = pd.DataFrame(_rows("a0_directed", 0, "abc", grid) + _rows("a3_ga_single", 0, "abc", ("qwen",)))
     check_balance(complete_blocks(df, "a0_directed", grid), grid)
+
+
+def test_pooled_rq_table_rows_are_task_by_method():
+    m = pd.DataFrame([dict(task=t, arm=a, CR=c, S=0.8, SCR=70.0, lpips=0.2, d_edit=0.0, d_sem=0.0,
+                           wall=100.0, first_cross_eval=40.0, min_cross_eval=900.0)
+                      for t in ("imagenet", "pope") for a, c in (("a0_directed", 99.0), ("a3_ga_single", 90.0))])
+    t = rq.rq1_pooled_tex(m, {"a3_ga_single": r"$^{\S}$"})
+    assert t.count(r"\multirow{2}{*}{ImageNet}") == 1 and t.count(r"\multirow{2}{*}{POPE}") == 1
+    assert t.count("GA$^{\\S}$") == 2 and r"\cmidrule{1-8}" in t and "seed 0 only" in t
+    assert r"\textbf{99}" in t

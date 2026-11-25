@@ -733,8 +733,12 @@ def _rq_tables(rq, tabs: Path, df: pd.DataFrame, vdf: pd.DataFrame, grid_suts, n
     gd, gv = df[df["sut"].isin(grid_suts)], vdf[vdf["sut"].isin(grid_suts)]
     marks = {a: m for a, m in (marks or {}).items() if a in set(gd["arm"])}
     cells_m = rq.by_cell(gd, gv)
-    write_tex(tabs / "arm_main.tex", rq.rq1_tex(cells_m, marks))
-    write_tex(tabs / "arm_cost.tex", rq.rq2_tex(cells_m, marks))
+    task_m = rq.by_task(gd, gv)              # main text: models pooled, rows = task x method
+    write_tex(tabs / "arm_main.tex", rq.rq1_pooled_tex(task_m, marks))
+    write_tex(tabs / "arm_cost.tex", rq.rq2_pooled_tex(task_m, marks))
+    rq.add_task_numbers(num, task_m, arm_short, camel)
+    write_tex(tabs / "arm_main_per_model.tex", rq.rq1_tex(cells_m, marks))     # supplement: per model x task
+    write_tex(tabs / "arm_cost_per_model.tex", rq.rq2_tex(cells_m, marks))
     abl = rq.ablation(gd, gv)
     abl_e = rq.ablation_effects(abl)
     abl_marks = {rq.prefix(a): m.replace(r"\S", "") for a, m in marks.items()}     # RQ4 is seed 0 for every variant
