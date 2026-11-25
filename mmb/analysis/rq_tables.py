@@ -28,14 +28,13 @@ MIN_PARTNERS = 3
 SUT_NAMES = {"qwen": "Qwen3.5-4B", "internvl": "InternVL3.5-4B", "ministral": "Ministral-3-3B", "llava": "LLaVA-NeXT-7B"}
 TASK_NAMES = {"imagenet": "ImageNet", "pope": "POPE"}
 #: search methods compared in RQ1 and RQ2 (arm-id prefixes, in table order)
-METHODS = ("a0", "a1", "a3", "a4", "a5", "a8", "a9")
+METHODS = ("a0", "a1", "a5", "a9")      # GA (a3), NSGA-II (a4), hill climber (a8) dropped 2026-11-25
 #: RQ4 variants: (label, arm prefix, crossing view)
 VARIANTS = (("Full \\sysname", "a0", "min"), ("w/o margin guidance", "x1", "min"), ("w/o Phase 2", "a0", "first"),
             ("Image only", "a7", "min"), ("Text only", "a6", "min"), ("Patch edits", "x2", "min"),
-            ("GA", "a3", "min"), ("NSGA-II", "a4", "min"), ("MIMICRY-style", "a5", "min"), ("Hill climber", "a8", "min"),
-            ("DeepJanus-style", "a9", "min"))
-VARIANT_KEYS = {"a0": "Full", "x1": "Unguided", "a7": "ImageOnly", "a6": "TextOnly", "x2": "Patch", "a3": "Ga", "a4": "Nsga",
-                "a5": "Mimicry", "a8": "Hill", "a9": "Janus"}
+            ("MIMICRY-style", "a5", "min"), ("DeepJanus-style", "a9", "min"))
+VARIANT_KEYS = {"a0": "Full", "x1": "Unguided", "a7": "ImageOnly", "a6": "TextOnly", "x2": "Patch",
+                "a5": "Mimicry", "a9": "Janus"}
 
 CR = ("CR", "crossed", r"CR (\%)", 0)
 SC = ("S", "stealth", r"$S$", 2)
@@ -177,66 +176,6 @@ def grouped_tex(m: pd.DataFrame, cols: list[tuple], methods=METHODS, marks: dict
         blocks.append((SUT_NAMES[s], tasks))
     used = {a: mk for a, mk in (marks or {}).items() if a in set(m["arm"]) and prefix(a) in methods}
     return blocks_tex(heads, blocks, note_rows(used, 2 + len(heads)))
-
-
-def by_task(df: pd.DataFrame, vdf: pd.DataFrame) -> pd.DataFrame:
-    """Metrics per (task, arm) pooled over the grid SUTs in df (main-text RQ1/RQ2 tables)."""
-    vmin = vdf[vdf["view"] == "min"] if "view" in vdf else vdf.iloc[0:0]
-    rows = []
-    for (task, arm), d in df.groupby(["task", "arm"]):
-        v = vmin[(vmin["task"] == task) & (vmin["arm"] == arm) & vmin["run_dir"].isin(set(d["run_dir"]))]
-        rows.append(dict(task=task, arm=arm, **metrics(d, v)))
-    return pd.DataFrame(rows)
-
-
-def pooled_tex(m: pd.DataFrame, cols: list[tuple], methods=METHODS, marks: dict | None = None) -> str:
-    """Task | Method | columns, models pooled: one band per task (multirow), rows = methods present; best value per
-    band and column in bold; note rows explain the row marks."""
-    heads = ["Method"] + [_head(lab, key) for (_, key, lab, _d) in cols]
-    k = len(heads)
-    lines = [r"\begin{tabular}{ll" + "r" * (k - 1) + "}", r"\toprule", " & ".join(["Task"] + heads) + r" \\", r"\midrule"]
-    first = True
-    for t in [x for x in TASK_NAMES if x in set(m["task"])]:
-        ms = m[m["task"] == t]
-        arms = sorted({a for a in ms["arm"] if prefix(a) in methods}, key=lambda a: methods.index(prefix(a)))
-        if not arms:
-            continue
-        if not first:
-            lines.append(rf"\cmidrule{{1-{1 + k}}}")
-        first = False
-        cells = {}
-        for (col, key, _lab, dec) in cols:
-            vals = [float(ms[ms["arm"] == a].iloc[0][col]) for a in arms]
-            txt = [_fmt(x, dec) for x in vals]
-            cells[col] = tf.bold_best(txt, vals, key, txt)
-        for i, a in enumerate(arms):
-            tcell = rf"\multirow{{{len(arms)}}}{{*}}{{{TASK_NAMES[t]}}}" if i == 0 else ""
-            lines.append(" & ".join([tcell, _method_label(a, marks)] + [cells[col][i] for (col, *_r) in cols]) + r" \\")
-    used = {a: mk for a, mk in (marks or {}).items() if a in set(m["arm"]) and prefix(a) in methods}
-    lines += [r"\bottomrule"] + note_rows(used, 1 + k) + [r"\end{tabular}"]
-    return "\n".join(lines) + "\n"
-
-
-def rq1_pooled_tex(m: pd.DataFrame, marks: dict | None = None) -> str:
-    return pooled_tex(m, [CR, SC, SR, LP, DE, DS], marks=marks)
-
-
-def rq2_pooled_tex(m: pd.DataFrame, marks: dict | None = None) -> str:
-    return pooled_tex(m, [WL, FC, MC], marks=marks)
-
-
-TASK_POOL_NAMES = {"CR": "Cr", "S": "S", "SCR": "Scr", "lpips": "Lpips", "d_edit": "DEdit", "d_sem": "DSem",
-                   "first_cross_eval": "Calls", "min_cross_eval": "CallsMin", "wall": "Wall", "n_runs": "Runs"}
-
-
-def add_task_numbers(num, m: pd.DataFrame, arm_short, camel) -> None:
-    """Macros ERqTask<Metric><Arm><Task>: the cells of the pooled RQ1/RQ2 tables (models pooled, per task)."""
-    for _, r in m.iterrows():
-        for col, nm in TASK_POOL_NAMES.items():
-            if col in r and not pd.isna(r[col]):
-                dec = 0 if col in ("CR", "SCR", "first_cross_eval", "min_cross_eval", "wall", "d_edit", "n_runs") else 2
-                num.add(["ERqTask", nm, arm_short(r["arm"]), camel(r["task"])], f"{float(r[col]):.{dec}f}",
-                        f"pooled RQ1/RQ2 table cell {col}, models pooled, arm {r['arm']}, task {r['task']}")
 
 
 def rq1_tex(m: pd.DataFrame, marks: dict | None = None) -> str:

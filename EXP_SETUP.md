@@ -128,3 +128,13 @@ could not be verified here (no OpenVINO stack). Thesis-era numbers are therefore
 - Minimal-crossing metrics of runs not yet confirmed by scripts/confirm_crossings.py (no min_cross_search.json) are withheld from the export ("--", rows marked); crossing share and calls to first crossing come from the trace for every method alike.
 - Progress at 11:55: 63 of 132 configs done (A0, A0x, A1, B0 a3/a4/a5, B0 a7 imagenet). Measured over B0: ~0.84 GPU-h per config (21 configs in 17.6 h).
 - Remaining: B0 a7 pope (3), a8 (6), a9 (6); B1 (36); D1x (18) = 69 configs, ~58 GPU-h plus confirmation replays => done about 2026-11-28 morning. After-block hooks: B0, B1, D1x.
+
+## 2026-11-25 (later) — GA, NSGA-II and hill climber dropped
+- User decision: the comparison methods are random search, the MIMICRY-style objective (a5) and the DeepJanus-style search (a9). GA (a3), NSGA-II (a4) and the hill climber (a8) are dropped. Ablations (a6, x1, x2) and image-only (a7) stay in RQ4.
+- Configs: B0_a8, B1_a3, B1_a4, B1_a8 (24) moved to configs/dropped_baselines_20261125/. The finished B0_a3/B0_a4 configs stay in configs/generated/MAIN so that after_block.sh B0 counts complete (30 B0 configs). MAIN now holds 108 configs.
+- Runs: the 216 finished a3/a4 seed-0 runs moved to runs/archive/dropped_baselines_20261125/<task>/<sut>/ (kept, not deleted). No a8 run existed.
+- Replays: scripts/confirm_crossings.py skips arms a3/a4/a8 (DROPPED_ARMS), and their runs are outside runs/MAIN, so the after-B0/B1 hooks spend no GPU time on them. mmb-after-B0 and mmb-after-B1 were restarted by C2 (after_block.sh counts configs only at start).
+- Export: arms a3/a4/a8 are filtered out before any table, macro or figure (export.DROPPED_ARMS). Validity rows are restricted to runs that pass the gates (before this, partial blocks and dropped arms leaked into validity.tex / ESeven* macros). RQ1/RQ2 main tables: model x task x {MMBA, Random, MIMICRY-style, DeepJanus-style}.
+- Holm families shrink (fewer methods), so some Holm-corrected p-values change; e.g. random vs MMBA crossing share on ImageNet alone, 0.059 -> 0.035.
+- RQ3 kit default arms: a0, a1, a5, a9 (was a0, a1, a8). Re-sample after a9 s0 is confirmed.
+- GPU: 63 of 108 configs done; 45 left (B0 a7 pope 2 + a9 6; B1 a5/a7/a9 18; D1x 18) at ~0.84 GPU-h per config => ~38 GPU-h plus replays => done about 2026-11-27 morning.

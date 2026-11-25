@@ -13,6 +13,9 @@ import argparse, json, shutil
 from pathlib import Path
 import numpy as np, yaml, pyarrow.parquet as pq
 
+#: arms dropped from the study (user decision 2026-11-25); their runs are archived and never confirmed
+DROPPED_ARMS = frozenset({"a3", "a4", "a8"})
+
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument("runs", type=Path); ap.add_argument("--sut", required=True)
     ap.add_argument("--force", action="store_true"); ap.add_argument("--max-tries", type=int, default=25)
@@ -35,6 +38,8 @@ def main():
         if not (d / "trace.parquet").exists() or (not a.force and (d / "min_cross_search.json").exists()):
             continue
         st = json.loads(st_p.read_text())
+        if str(st.get("run_meta", {}).get("arm", "")).split("_")[0] in DROPPED_ARMS:
+            continue                      # dropped baselines (2026-11-25): no GPU time for them
         if st.get("run_meta", {}).get("sut") == a.sut and "anchor_g" in st:
             todo.append((d, st))
     print(len(todo), "runs to confirm")

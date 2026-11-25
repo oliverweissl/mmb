@@ -48,6 +48,8 @@ logger = logging.getLogger(__name__)
 
 DIGITS = ["Zero", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine"]
 GRID_SUTS = ("qwen", "internvl", "ministral")
+#: arm prefixes dropped from the study (user decision 2026-11-25: GA, NSGA-II, hill climber); filtered before any output
+DROPPED_ARMS = frozenset({"a3", "a4", "a8"})
 PRIMARY_ARMS = ("a0_directed", "a1_random_tiered")
 SUT_NAMES = {"qwen": "Qwen3.5-4B (bf16)", "internvl": "InternVL3.5-4B (bf16)",
              "ministral": "Ministral-3-3B (bf16)", "llava": "LLaVA-NeXT-7B (NF4)"}
@@ -208,6 +210,7 @@ def validity_main_tex(vct: pd.DataFrame, task_names: dict) -> str:
     rows = []
     for task in [t for t in dict.fromkeys(vct["task"]) if t in task_names]:     # the pooled "All" block is not shown
         g = vct[vct["task"] == task]
+        g = g[pd.to_numeric(g["n_cross"], errors="coerce").fillna(0) > 0]    # no scored minimal crossing (e.g. pending confirmation): no row
         lp = [float(v) for v in g["med_lpips"]]
         tx = [100 * float(v) for v in g["med_vis_char"]]
         lc = [f"{v:.3f}" for v in lp]
@@ -733,12 +736,8 @@ def _rq_tables(rq, tabs: Path, df: pd.DataFrame, vdf: pd.DataFrame, grid_suts, n
     gd, gv = df[df["sut"].isin(grid_suts)], vdf[vdf["sut"].isin(grid_suts)]
     marks = {a: m for a, m in (marks or {}).items() if a in set(gd["arm"])}
     cells_m = rq.by_cell(gd, gv)
-    task_m = rq.by_task(gd, gv)              # main text: models pooled, rows = task x method
-    write_tex(tabs / "arm_main.tex", rq.rq1_pooled_tex(task_m, marks))
-    write_tex(tabs / "arm_cost.tex", rq.rq2_pooled_tex(task_m, marks))
-    rq.add_task_numbers(num, task_m, arm_short, camel)
-    write_tex(tabs / "arm_main_per_model.tex", rq.rq1_tex(cells_m, marks))     # supplement: per model x task
-    write_tex(tabs / "arm_cost_per_model.tex", rq.rq2_tex(cells_m, marks))
+    write_tex(tabs / "arm_main.tex", rq.rq1_tex(cells_m, marks))
+    write_tex(tabs / "arm_cost.tex", rq.rq2_tex(cells_m, marks))
     abl = rq.ablation(gd, gv)
     abl_e = rq.ablation_effects(abl)
     abl_marks = {rq.prefix(a): m.replace(r"\S", "") for a, m in marks.items()}     # RQ4 is seed 0 for every variant
@@ -867,6 +866,10 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
         if len(adf) and "run_dir" in adf:
             v = adf.drop_duplicates("run_dir").set_index("run_dir")["cross_verified"]
             df["verified"] = df["run_dir"].map(v)
+    gone = df["arm"].astype(str).str.split("_").str[0].isin(DROPPED_ARMS)
+    if gone.any():    # GA, NSGA-II, hill climber dropped 2026-11-25 (user decision): no table, macro or curve
+        logger.warning("dropped %d runs of dropped methods: %s", int(gone.sum()), sorted(set(df.loc[gone, "arm"])))
+        df = df[~gone]
     off = ~df["sut"].isin(list(grid_suts))
     if off.any():     # only the balanced grid is exported (LLaVA-NeXT dropped 2026-11-25: no row or macro for it)
         logger.warning("dropped %d runs of SUTs outside the grid: %s", int(off.sum()), sorted(set(df.loc[off, "sut"])))
@@ -969,6 +972,8 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
 
     if validity is not None and Path(validity).exists():
         vdf = pd.read_csv(validity)
+        if len(vdf) and "run_dir" in vdf:        # only runs that passed the gates (dropped methods, partial blocks)
+            vdf = vdf[vdf["run_dir"].isin(set(df["run_dir"]))]
         if len(vdf) and pending and "view" in vdf:      # unconfirmed minimal crossings never enter a table
             vdf = vdf[~((vdf["view"] == "min") & vdf["run_dir"].isin(pending))]
         if len(vdf):

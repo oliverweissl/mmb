@@ -3,7 +3,7 @@
 Usage::
 
     python -m mmb.validity.rating_set results/MAIN.csv --out study/rq3 \
-        [--n 120] [--controls 24] [--arms a0_directed,a1_random_tiered,a8_hillclimb] \
+        [--n 120] [--controls 24] [--arms a0_directed,a1_random_tiered,a5_mimicry_objective,a9_deepjanus] \
         [--proxies results/validity_MAIN.csv] [--agree results/agree_MAIN_qwen.csv ...] [--seed 42]
 
 Stimuli are the MINIMAL crossings of the runs (min_cross.png/.json, else the minimiser's minimal_cross.*), i.e.
@@ -45,7 +45,7 @@ from PIL import Image
 
 from mmb.analysis.crossing_files import minimal_crossing
 
-DEFAULT_ARMS = ("a0_directed", "a1_random_tiered", "a8_hillclimb")
+DEFAULT_ARMS = ("a0_directed", "a1_random_tiered", "a5_mimicry_objective", "a9_deepjanus")   # hill climber dropped 2026-11-25
 DEFAULT_CONSENT = (
     "CONSENT TEXT PLACEHOLDER - replace with the verbatim consent text before use (--consent-file).\n"
     "This study asks how well people understand images and short questions that are shown to an AI system. "

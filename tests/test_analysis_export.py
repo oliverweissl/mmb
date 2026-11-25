@@ -15,7 +15,7 @@ from test_analysis_fixtures import write_run  # noqa: E402
 from mmb.analysis import collect, export, gallery  # noqa: E402
 
 TASKS = {"imagenet": ("junco", "ostrich"), "pope": ("No", "Yes")}
-ARMS = ["a0_directed", "a1_random_tiered", "a3_ga_single"]
+ARMS = ["a0_directed", "a1_random_tiered", "a5_mimicry_objective", "a3_ga_single"]   # a3: dropped method, must not be exported
 CONT = "llava"
 
 
@@ -24,7 +24,7 @@ def build_tree(root: Path, n_cells: int = 6, seeds=(0, 1)) -> None:
     for task, (ca, cb) in TASKS.items():
         for sut in ("qwen", "internvl", "ministral", CONT):     # CONT: runs outside the grid the export must drop
             for arm in ARMS:
-                if sut == CONT and (task != "imagenet" or arm == "a3_ga_single"):
+                if sut == CONT and (task != "imagenet" or arm in ("a3_ga_single", "a5_mimicry_objective")):
                     continue
                 for cell in range(n_cells):
                     for s in seeds:
@@ -120,7 +120,8 @@ class TestExport:
         assert m["EOneCrossShareAZeroQwenImagenet"] == f"{100 * d.crossed.mean():.1f}"
         grid = df[df.sut.isin(["qwen", "internvl", "ministral"]) & (df.arm == "a1_random_tiered")]
         assert int(m["EOneRunsAOneAllAll"]) == len(grid)
-        assert "EOnePHolmCrossedAOneAllAll" in m.index and "EOnePHolmEvalsAThreeAllAll" in m.index
+        assert "EOnePHolmCrossedAOneAllAll" in m.index and "EOnePHolmEvalsAFiveAllAll" in m.index
+        assert not [k for k in m.index if "AThree" in k]                     # GA dropped 2026-11-25: no macro
         assert "EPrimaryPHolmQwenImagenet" in m.index and "ETwoADiffLoMinEditsAOneAllAll" in m.index
         assert "ECostMedMinEditsAZeroAllAll" in m.index
         assert m["EAnything"] if False else True
