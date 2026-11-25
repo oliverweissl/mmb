@@ -787,6 +787,36 @@ class UnbalancedExport(SystemExit):
     """Raised when the model x task cells of the grid do not hold identical (method, rng seed) blocks."""
 
 
+def add_rq3_numbers(num: "Numbers", manifest: Path) -> None:
+    """ERqThree*: counts of the RQ3 human-study sample from the sampler's manifest.csv (mmb.validity.rating_set).
+    Only counts are exported; the manifest itself is the private key (item -> method) and stays out of git.
+    A count that differs between strata is written as "min--max"."""
+    m = pd.read_csv(manifest, keep_default_na=False)
+    ctrl = m["arm"].astype(str).str.strip() == ""
+    e, c = m[~ctrl], m[ctrl]
+
+    def span(s: pd.Series) -> str:
+        lo, hi = int(s.min()), int(s.max())
+        return str(lo) if lo == hi else f"{lo}--{hi}"
+
+    per = e.groupby(["arm", "task", "sut"]).size()
+    meth = e.groupby("arm").size()
+    src = f"RQ3 sample ({manifest.name})"
+    num.add(["ERqThree", "Items", "Total"], str(len(m)), f"{src}: items shown to raters (edited + controls)")
+    num.add(["ERqThree", "Edited"], str(len(e)), f"{src}: minimal crossings (edited items)")
+    num.add(["ERqThree", "Strata"], str(len(per)), f"{src}: method x task x model strata")
+    num.add(["ERqThree", "Per", "Stratum"], span(per), f"{src}: edited items per stratum")
+    num.add(["ERqThree", "Methods"], str(len(meth)), f"{src}: methods sampled")
+    num.add(["ERqThree", "Per", "Method"], span(meth), f"{src}: edited items per method")
+    num.add(["ERqThree", "Tasks"], str(e["task"].nunique()), f"{src}: tasks")
+    num.add(["ERqThree", "Models"], str(e["sut"].nunique()), f"{src}: models")
+    num.add(["ERqThree", "Controls"], str(len(c)), f"{src}: unedited controls")
+    if len(c):
+        num.add(["ERqThree", "Controls", "Per", "Task"], span(c.groupby("task").size()), f"{src}: controls per task")
+    if "rng_seed" in e and e["rng_seed"].astype(str).nunique() == 1:
+        num.add(["ERqThree", "Rng", "Seed"], str(e["rng_seed"].iloc[0]), f"{src}: random seed of the sampled runs")
+
+
 def check_balance(df: pd.DataFrame, grid_suts=GRID_SUTS) -> dict:
     """Balanced-design guard (user rule: every model x task gets the same methods, seeds and seed inputs).
     Every (task, SUT) cell of the grid must hold the same set of (arm, rng seed) blocks, each over the same seed
@@ -851,7 +881,7 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
            validity: Path | None = None, runs_root: Path | None = None, n_boot: int = st.N_BOOT,
            figures: bool = True, agree: list[Path] | None = None,
            transfer: list[Path] | None = None, human: Path | None = None,
-           planned: Path | None = None, minimal: list[Path] | None = None) -> Numbers:
+           planned: Path | None = None, minimal: list[Path] | None = None, rq3_manifest: Path | None = None) -> Numbers:
     from mmb.analysis import gallery, plots
 
     gen = Path(paper) / "generated"
@@ -1023,6 +1053,9 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
     if len(pt):
         write_tex(tabs / "generalization_main.tex", generalization_main_tex(pt, trows))
 
+    if rq3_manifest is not None and Path(rq3_manifest).exists():
+        add_rq3_numbers(num, Path(rq3_manifest))
+
     if human is not None and Path(human).exists():
         hdf = pd.read_csv(human, keep_default_na=False)
         if len(hdf):
@@ -1096,13 +1129,15 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--minimal", type=Path, nargs="*", default=[], help="minimize_crossings.py CSVs (failure types)")
     ap.add_argument("--planned", type=Path, default=None, help="configs/generated/MAIN: planned configurations (data status)")
     ap.add_argument("--n-boot", type=int, default=st.N_BOOT)
+    ap.add_argument("--rq3-manifest", type=Path, default=None,
+                    help="manifest.csv of the RQ3 sampler (counts only are exported as ERqThree*)")
     ap.add_argument("--no-figures", action="store_true")
     args = ap.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(message)s")
     num = export(args.csv, args.paper, ref=args.ref, grid_suts=args.grid_suts.split(","),
                  validity=args.validity, runs_root=args.runs_root, n_boot=args.n_boot,
                  figures=not args.no_figures, agree=args.agree or None, transfer=args.transfer or None, human=args.human_validity,
-                 planned=args.planned, minimal=args.minimal or None)
+                 planned=args.planned, minimal=args.minimal or None, rq3_manifest=args.rq3_manifest)
     logger.info("wrote %d macros to %s", len(num.rows), args.paper / "generated")
     return 0
 
