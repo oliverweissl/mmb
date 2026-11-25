@@ -22,7 +22,7 @@ CONT = "llava"
 def build_tree(root: Path, n_cells: int = 6, seeds=(0, 1)) -> None:
     rng = np.random.default_rng(3)
     for task, (ca, cb) in TASKS.items():
-        for sut in ("qwen", "internvl", CONT):
+        for sut in ("qwen", "internvl", "ministral", CONT):     # CONT: runs outside the grid the export must drop
             for arm in ARMS:
                 if sut == CONT and (task != "imagenet" or arm == "a3_ga_single"):
                     continue
@@ -93,7 +93,7 @@ class TestExport:
         paper.mkdir()
         num = export.export([csv], paper, runs_root=root, n_boot=200)
         gen = paper / "generated"
-        for f in ("tables/e1.tex", "tables/e1_budgets.tex", "tables/e1_paired.tex", "tables/e3.tex",
+        for f in ("tables/e1.tex", "tables/e1_budgets.tex", "tables/e1_paired.tex",
                   "tables/e4.tex", "tables/e2b.tex", "tables/per/imagenet_qwen_summary.tex",
                   "tables/per/pope_internvl_paired.tex", "figures/crossing-curve.pdf",
                   "figures/predictor-main.pdf", "numbers.tex", "numbers_map.csv",
@@ -125,8 +125,8 @@ class TestExport:
         assert "ECostMedMinEditsAZeroAllAll" in m.index
         assert m["EAnything"] if False else True
         assert m["EOneAtBudgetTwoZeroSixAZeroAllAll"] and "EOneAtBudgetCiOneFiveZeroZeroAOneAllAll" in m.index
-        assert "EOneRunsAZeroLlavaImagenet" in m.index and "EOneRunsAThreeLlavaImagenet" not in m.index
-        assert "EOneRunsAZeroLlavaPope" not in m.index
+        assert not [k for k in m.index if "Llava" in k]                      # LLaVA dropped: no macro for it
+        assert not (paper / "generated" / "tables" / "e3.tex").exists()
 
     def test_pooled_pairs_do_not_collide(self, tree):
         _, csv = tree
@@ -144,8 +144,7 @@ class TestExport:
         for f in files:
             t = f.read_text()
             assert t.startswith("\\begin{adjustbox}") and "\\begin{tabular}" in t and "\\bottomrule" in t, f
-        e3 = (paper / "generated" / "tables" / "e3.tex").read_text()
-        assert "LLaVA-NeXT-7B (NF4)" in e3 and e3.count("\\midrule") >= 3
+        assert not any("LLaVA" in f.read_text() for f in files)
 
     def test_without_prior_e2b_is_skipped(self, tree, tmp_path):
         root, csv = tree

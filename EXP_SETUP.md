@@ -16,7 +16,7 @@ TBD is fixed after the speed benchmark (step 3) and then frozen before the first
 | ImageNet-1k validation (50k) | HF `Tsomaros/Imagenet-1k_validation` (ungated mirror of ILSVRC-2012 val, same label indices) | local parquet snapshot; `MMB_IMAGENET_DIR` |
 | POPE | HF `lmms-lab/POPE` (test, adversarial split; COCO val2014 images) | 200-item pool, balanced yes/no |
 | VQGAN f8-16384 | latent-diffusion `vq-f8` checkpoint | image operator (codebook patch swaps) |
-| SUT llava | `llava-hf/llava-v1.6-mistral-7b-hf`, bitsandbytes NF4 weight-only, bf16 compute | thesis main SUT; continuity block only (thesis: OpenVINO INT8) |
+| SUT llava | `llava-hf/llava-v1.6-mistral-7b-hf`, bitsandbytes NF4 weight-only, bf16 compute | DROPPED 2026-11-25 (user decision, balanced design): not run in MAIN, not exported. Still used for cell eligibility (section 8) |
 | SUT qwen | `Qwen/Qwen3.5-4B`, bf16 | thesis replication SUT |
 | SUT internvl | `OpenGVLab/InternVL3_5-4B-HF`, bf16 | new family |
 | SUT ministral | `mistralai/Ministral-3-3B-Instruct-2512`, FP8 checkpoint dequantised to bf16 | new family (Mistral) |
@@ -66,7 +66,8 @@ scripts/run_queue.sh configs/generated/E1
 - rng seeds S = 2 (0, 1). Budget 30 x 50 = 1,500 proposals, early stop off. Image operator: VQGAN f8-16384
   KNN codebook swaps, cone filter OFF for both tasks (same operator everywhere).
 - Grid (balanced): tasks {imagenet, pope} x SUTs {qwen, internvl, ministral} x arms {a0, a1, a3, a4, a5, a8}
-  x K x S = 2 x 3 x 6 x 36 = 1,296 runs. Continuity block: imagenet x llava x {a0, a1} x 36 = 72 runs.
+  x K x S = 2 x 3 x 6 x 36 = 1,296 runs. Continuity block: imagenet x llava x {a0, a1} x 36 = 72 runs
+  (continuity block DROPPED 2026-11-25, see the campaign log of that date).
 - Scoring: batched full-sequence teacher forcing (sut.batched_scoring, chunk 15). Numerical tolerance of
   batched vs single-item scoring (scripts/check_batched_scoring.py, n=30): max |dg| qwen 0.021, internvl 0.11,
   ministral 0.10, llava-nf4 0.06; sign agreement 100% for all. Consequence: the |g| <= 1e-2 band is below the
@@ -75,7 +76,7 @@ scripts/run_queue.sh configs/generated/E1
   balanced block: L1 a0+a1 s0, L2 a8+a5 s0, L3 a3+a4 s0, L4-L6 same for s1, L7-L8 llava a0+a1 s0/s1).
   `PY=.venv/bin/python scripts/run_queue.sh configs/generated/MAIN runs/logs/MAIN`
 - Measured speed (s per generation of 30, batched): qwen ~2.8, internvl ~3.7, ministral ~5.5, llava-nf4 ~16.
-  Expected GPU time: grid ~73 h, llava block ~16 h.
+  Expected GPU time: grid ~73 h, llava block ~16 h (llava block dropped 2026-11-25).
 
 ## 9. Scoring defect found and fixed (2026-11-20)
 The inherited KV-cache scorer reused ONE mutable cache across candidates: every candidate after the
@@ -120,3 +121,10 @@ could not be verified here (no OpenVINO stack). Thesis-era numbers are therefore
 - after_block hooks installed for B0, B1, C1 (units mmb-after-B0/B1/C1): each confirms crossings when its block is complete.
 - Remaining: B0/B1 (GA, NSGA-II, MIMICRY-style, image-only, hill climber, DeepJanus-style; seeds 0/1; 72 runs), C0/C1 (LLaVA POPE; 8 runs). Estimated ~95 GPU-h.
 - 2026-11-24 19:46: added block D1x = the RQ4 ablations (x1 unguided, x2 patch edits, a6 text-only) on rng seed 1 (18 configs, copies of A0x with seed 1), so RQ4 has the same two random seeds as RQ1/RQ2. Runs after C1 (~18 GPU-h); unit mmb-after-D1x confirms crossings.
+
+## 2026-11-25 — LLaVA-NeXT dropped; GPU estimate
+- User decision (balanced-design rule: every model x task gets exactly the same methods, seeds and budget): LLaVA-NeXT-7B is dropped. The 8 C0/C1 configs moved to configs/dropped_llava_20261125/ (kept, not deleted); unit mmb-after-C1 stopped. MAIN = 2 tasks x 3 SUTs (qwen, internvl, ministral); configs/generated/MAIN holds 132 configs.
+- Export guard (mmb.analysis.export): runs of SUTs outside --grid-suts are dropped before any table/macro (no LLaVA row or macro; the four-model ImageNet table e3 is no longer written). After the (method, seed) block gate, check_balance() requires every model x task cell to hold the identical set of (method, rng seed) blocks over the same number of seed inputs (same seed inputs within a task); otherwise the export stops with UnbalancedExport and writes nothing.
+- Minimal-crossing metrics of runs not yet confirmed by scripts/confirm_crossings.py (no min_cross_search.json) are withheld from the export ("--", rows marked); crossing share and calls to first crossing come from the trace for every method alike.
+- Progress at 11:55: 63 of 132 configs done (A0, A0x, A1, B0 a3/a4/a5, B0 a7 imagenet). Measured over B0: ~0.84 GPU-h per config (21 configs in 17.6 h).
+- Remaining: B0 a7 pope (3), a8 (6), a9 (6); B1 (36); D1x (18) = 69 configs, ~58 GPU-h plus confirmation replays => done about 2026-11-28 morning. After-block hooks: B0, B1, D1x.

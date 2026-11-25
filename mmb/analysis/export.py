@@ -440,6 +440,10 @@ METRIC_HEAD = {"crossed": "Crossing rate", "first_cross_eval": "Model calls to f
                "edits_img_x": "Image edits, minimal crossing", "edits_txt_x": "Text edits, minimal crossing", "hv_edits": "Edit hypervolume"}
 
 
+#: paired metrics whose values are counts (model calls, edits): their medians print as integers or with one decimal
+COUNT_METRICS = frozenset({"first_cross_eval", "min_edits_x", "edits_img_x", "edits_txt_x", "min_edits", "min_cross_eval"})
+
+
 def _ci(v: float, lo: float, hi: float, d: int = 2) -> str:
     return "--" if pd.isna(v) else f"{v:+.{d}f} [{lo:+.{d}f}, {hi:+.{d}f}]"
 
@@ -451,6 +455,9 @@ def add_cluster_numbers(num: Numbers, sut: str, task: str, t: pd.DataFrame) -> N
         if r.metric == "crossed":           # shares as percent, their difference in percentage points
             fv = lambda x, sign=False: f_num(100 * x, 1, sign)
             unit = " (%; difference in percentage points)"
+        elif r.metric in COUNT_METRICS:     # medians of counts (edits, calls): integer, else one decimal (10.5)
+            fv = lambda x, sign=False: f_smart(x, 1, sign)
+            unit = ""
         else:
             fv = lambda x, sign=False: f_smart(x, 3, sign)
             unit = ""
@@ -634,6 +641,8 @@ def add_transfer_paired(num: Numbers, tdf: pd.DataFrame, ref: str = "a0_directed
     t = tdf.copy()
     key = t["run_dir"].astype(str).str.extract(r"_s(\d+)_seed_(\d+)_")
     t["cell_idx"] = key[1]
+    if "rng_seed" not in t:          # older transfer CSVs: the rng seed is in the run name (_s<seed>_seed_<cell>_)
+        t["rng_seed"] = pd.to_numeric(key[0], errors="coerce")
     t = t.dropna(subset=["cell_idx"])
     t["flip"] = t["flipped_on_dst"].astype(str).str.lower().isin(("true", "1", "1.0"))
     per = t.groupby(["arm", "task", "src_sut", "rng_seed", "cell_idx"])["flip"].mean().reset_index()
@@ -771,6 +780,37 @@ def complete_blocks(df: pd.DataFrame, ref: str = "a0_directed", grid_suts=GRID_S
     return df[keep]
 
 
+class UnbalancedExport(SystemExit):
+    """Raised when the model x task cells of the grid do not hold identical (method, rng seed) blocks."""
+
+
+def check_balance(df: pd.DataFrame, grid_suts=GRID_SUTS) -> dict:
+    """Balanced-design guard (user rule: every model x task gets the same methods, seeds and seed inputs).
+    Every (task, SUT) cell of the grid must hold the same set of (arm, rng seed) blocks, each over the same seed
+    inputs. Fails loudly (UnbalancedExport) otherwise, so an unbalanced row can never reach the paper.
+    Returns {(arm, seed): n seed inputs} of the balanced design."""
+    cells = {}
+    for task in sorted(set(df["task"])):
+        for sut in grid_suts:
+            d = df[(df["task"] == task) & (df["sut"] == sut)]
+            cells[(task, sut)] = {(a, int(s)): frozenset(g["cell_id"]) for (a, s), g in d.groupby(["arm", "rng_seed"])}
+    if not cells:
+        return {}
+    ref_key, ref = next(iter(cells.items()))
+    first_of_task = {}
+    bad = []
+    for k, blocks in cells.items():
+        same_task = first_of_task.setdefault(k[0], blocks)        # seed inputs are task-specific: compare ids within a task
+        miss = sorted(set(ref) - set(blocks)); extra = sorted(set(blocks) - set(ref))
+        diff = sorted(b for b in set(ref) & set(blocks) if len(ref[b]) != len(blocks[b])
+                      or (b in same_task and same_task[b] != blocks[b]))
+        if miss or extra or diff:
+            bad.append(f"{k[0]} x {k[1]}: missing {miss}, extra {extra}, other seed inputs {diff} (vs {ref_key[0]} x {ref_key[1]})")
+    if bad:
+        raise UnbalancedExport("unbalanced export, refusing to write the paper files:\n  " + "\n  ".join(bad))
+    return {b: len(c) for b, c in ref.items()}
+
+
 def pending_confirmation(df: pd.DataFrame) -> set[str]:
     """run_dirs whose minimal crossing has not been confirmed by single-input scoring yet (scripts/confirm_crossings.py
     has not run on them). Their min_cross.json is the search's batched output, so every minimal-crossing metric of
@@ -823,7 +863,13 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
         if len(adf) and "run_dir" in adf:
             v = adf.drop_duplicates("run_dir").set_index("run_dir")["cross_verified"]
             df["verified"] = df["run_dir"].map(v)
+    off = ~df["sut"].isin(list(grid_suts))
+    if off.any():     # only the balanced grid is exported (LLaVA-NeXT dropped 2026-11-25: no row or macro for it)
+        logger.warning("dropped %d runs of SUTs outside the grid: %s", int(off.sum()), sorted(set(df.loc[off, "sut"])))
+        df = df[~off]
     df = complete_blocks(df, ref, grid_suts)
+    design = check_balance(df, grid_suts)
+    logger.info("balanced design: %s", ", ".join(f"{a} s{s} ({n})" for (a, s), n in sorted(design.items())))
     pending = pending_confirmation(df)
     df["min_pending"] = df["run_dir"].isin(pending)
     if pending:      # minimal crossings of these runs are the search's own, not yet confirmed by single-input scoring
@@ -894,14 +940,7 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
     add_wall_numbers(num, sc)
 
     prim = df[df["arm"].isin(PRIMARY_ARMS)]
-    # E3: a0 and a1 per SUT on ImageNet (continuity SUT included)
-    frames = []
-    for sut in [s for s in SUT_NAMES if s in set(prim["sut"])]:
-        d = prim[(prim["sut"] == sut) & (prim["task"] == "imagenet")]
-        if len(d):
-            frames.append(([SUT_NAMES[sut]], st.arm_summary(d, n_boot)))
-    if frames:
-        write_tex(tabs / "e3.tex", keyed_summary_tex(frames, ["SUT"]))
+    # (E3, the four-model ImageNet continuity table, is gone: LLaVA-NeXT dropped 2026-11-25, balanced grid only)
     # E4: a0 and a1 per task, grid SUTs pooled
     frames = []
     for task in sorted(set(prim["task"])):

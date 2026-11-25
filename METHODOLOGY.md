@@ -71,7 +71,7 @@ Not in scope: captioning contrast, OCR/chart QA, grounding extension beyond the 
 
 | SUT | precision | note |
 |---|---|---|
-| LLaVA-NeXT-7B (Mistral backbone) | bitsandbytes INT8 | closest to the thesis' OpenVINO INT8 stack; main SUT of the thesis |
+| LLaVA-NeXT-7B (Mistral backbone) | bitsandbytes INT8 (later NF4) | DROPPED 2026-11-25 (balanced design, see change log); not part of MAIN |
 | Qwen3.5-4B | bf16 | second family, used in the thesis |
 | InternVL3.5-4B | bf16 | third family; fits 16 GB without quantisation |
 
@@ -106,6 +106,7 @@ Reason: at least three SUT families (G2). Precision and serving stack differ fro
 | unequal budgets | equal proposals, caching counted (D6) | duplicates reduce fresh model calls differently per arm (`first_cross_eval_nocache` is the secondary column) |
 
 ## 9. Change log
+- 2026-11-25 (LLaVA-NeXT dropped, user decision): the balanced-design rule requires every model x task to get the same methods, seeds and budget, and the LLaVA block had only a0/a1. MAIN is now 2 tasks x 3 SUTs (Qwen3.5-4B, InternVL3.5-4B, Ministral-3-3B). Deviation from the pre-committed plan (section 10.1): the primary comparison has 6 strata (imagenet and pope x qwen, internvl, ministral), with Holm across 6 instead of 7. No LLaVA run of the current grid existed when this was decided. The RQ3 sample covers the three grid SUTs. The export refuses unbalanced model x task cells (mmb.analysis.export.check_balance).
 - 2026-11-20 (frozen MAIN design and scoring fix; paper updated accordingly):
   - Cone filter OFF for both tasks (supersedes the 5b statement that ImageNet keeps it).
   - Arm set in the grid: a0, a1, a3, a4, a5, a8. a2, a6, a7 dropped for budget; channel attribution stays a single-cell characterization.
@@ -232,7 +233,7 @@ The paper's research questions are regrouped by the property they address, as op
 
 ## 2026-11-24 — RQ3 human validity study on MAIN minimal crossings
 - Items: the minimal crossing (the method's output, min_cross.*) of 120 runs, spread evenly over method x task x SUT
-  (methods: MMBA, random search, hill climber; tasks: ImageNet, POPE; SUTs: all four once their runs exist),
+  (methods: MMBA, random search, hill climber; tasks: ImageNet, POPE; SUTs: the three grid SUTs, LLaVA dropped 2026-11-25),
   at most one item per (seed input, SUT, method), only crossings confirmed by single-input re-scoring; fixed seed 42.
   Plus 24 controls: codec reconstructions of unedited seed inputs with the original question (12 per task).
 - Page: one offline HTML file (images embedded); blind (no method/SUT/outcome shown); item order random per rater.
@@ -244,4 +245,4 @@ The paper's research questions are regrouped by the property they address, as op
   the per-item human validity (Spearman, AUC for share >= 0.5).
 - Commands: `python scripts/validity/sample_items.py results/MAIN.csv --out study/rq3 --agree results/agree_MAIN_*.csv`;
   `python scripts/validity/analyze_ratings.py study/rq3/manifest.csv ratings_*.json`.
-- Re-sample after B0 (hill climber) and C0/C1 (LLaVA) so all strata are filled; the sample is then frozen.
+- Re-sample after B0 (hill climber) so all strata are filled (C0/C1 LLaVA dropped 2026-11-25); the sample is then frozen.
