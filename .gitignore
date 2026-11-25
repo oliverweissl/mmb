@@ -7,3 +7,6 @@ CLAUDE.md
 .seedbank/
 configs/generated/SMOKE/
 cells/old_buggy/
+
+# RQ3 kit output: manifest.csv is the private key, rate.html ~22 MB (rebuild with mmb.validity.rating_set)
+study/

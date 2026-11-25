@@ -111,8 +111,12 @@ def _data_uri(path: Path) -> str:
 
 def build(results: Path, out: Path, *, n: int = 120, controls: int = 24, arms=DEFAULT_ARMS, seed: int = 42,
           agree: list[Path] | None = None, runs_root: Path | None = None, consent: str = DEFAULT_CONSENT,
-          proxies: Path | None = None) -> dict:
+          proxies: Path | None = None, rng_seed: int | None = None, confirmed_only: bool = False) -> dict:
     df = pd.read_csv(results)
+    if rng_seed is not None:                 # one random seed for every method (the baselines have seed 0 only)
+        df = df[df["rng_seed"] == rng_seed]
+    if confirmed_only:                       # only minimal crossings confirmed by single-input scoring (collect: min_confirmed)
+        df = df[df["min_confirmed"].astype(str).str.lower().isin(("true", "1", "1.0"))]
     if runs_root is not None:
         df["run_dir"] = [str(p) if Path(p).exists() else str(Path(runs_root) / p) for p in df["run_dir"]]
     verified = None
@@ -297,10 +301,14 @@ def main(argv=None) -> int:
     ap.add_argument("--runs-root", type=Path, default=None)
     ap.add_argument("--consent-file", type=Path, default=None)
     ap.add_argument("--seed", type=int, default=42)
+    ap.add_argument("--rng-seed", type=int, default=None, help="sample only runs of this random seed (e.g. 0)")
+    ap.add_argument("--confirmed-only", action="store_true",
+                    help="sample only runs whose minimal crossing is confirmed by single-input scoring (min_confirmed)")
     a = ap.parse_args(argv)
     consent = a.consent_file.read_text() if a.consent_file else DEFAULT_CONSENT
     print(build(a.results, a.out, n=a.n, controls=a.controls, arms=a.arms.split(","), seed=a.seed,
-                agree=a.agree or None, runs_root=a.runs_root, consent=consent, proxies=a.proxies))
+                agree=a.agree or None, runs_root=a.runs_root, consent=consent, proxies=a.proxies,
+                rng_seed=a.rng_seed, confirmed_only=a.confirmed_only))
     return 0
 
 
