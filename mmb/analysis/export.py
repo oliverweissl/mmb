@@ -744,6 +744,8 @@ def _rq_tables(rq, tabs: Path, df: pd.DataFrame, vdf: pd.DataFrame, grid_suts, n
     write_tex(tabs / "arm_ablation.tex", rq.ablation_tex(abl, abl_e, {k: v for k, v in abl_marks.items() if v != "$^{}$"}))
     rq.add_ablation_numbers(num, abl)
     rq.add_ablation_effect_numbers(num, abl, abl_e)
+    extra = rq.ablation(gd, gv, variants=rq.VARIANTS[:1] + rq.MACRO_ONLY_VARIANTS)      # EAbl*Mimicry/Janus: macros only
+    rq.add_ablation_numbers(num, extra[extra["pre"].isin([p for _l, p, _v in rq.MACRO_ONLY_VARIANTS])])
     rq.add_pooled_numbers(num, gd, vdf[vdf["sut"].isin(grid_suts)], arm_short)
 
 

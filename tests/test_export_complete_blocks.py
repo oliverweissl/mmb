@@ -60,3 +60,16 @@ def test_complete_blocks_output_is_balanced():
     df = pd.DataFrame(_rows("a0_directed", 0, "abc", grid) + _rows("a5_mimicry_objective", 0, "abc", ("qwen",)))
     check_balance(complete_blocks(df, "a0_directed", grid), grid)
 
+
+def test_ablation_table_text_only_lpips_dash_and_no_baseline_rows():
+    import numpy as np
+    def runs(lp):
+        return pd.DataFrame({"lpips": lp, "crossed": [1.0] * len(lp)})
+    a = pd.DataFrame([
+        dict(label="Full \\sysname", pre="a0", n_runs=3, CR=97.0, SCR=81.0, lpips=0.20, edits=11.0, first_cross_eval=56.0, wall=170.0, _runs=runs([0.2, 0.1, 0.3])),
+        dict(label="Text only", pre="a6", n_runs=3, CR=7.0, SCR=5.0, lpips=0.0, edits=1.0, first_cross_eval=1500.0, wall=220.0, _runs=runs([0.0, 0.0, np.nan])),
+        dict(label="Patch edits", pre="x2", n_runs=3, CR=44.0, SCR=42.0, lpips=0.03, edits=23.0, first_cross_eval=1500.0, wall=170.0, _runs=runs([0.03, 0.02, 0.04])),
+    ])
+    t = rq.ablation_tex(a, pd.DataFrame())
+    assert "Text only & 7 & 5 & -- &" in t and r"\textbf{0.03}" in t and r"\textbf{0.00}" not in t
+    assert not [v for v in rq.VARIANTS if v[1] in ("a5", "a9")]

@@ -31,8 +31,10 @@ TASK_NAMES = {"imagenet": "ImageNet", "pope": "POPE"}
 METHODS = ("a0", "a1", "a5", "a9")      # GA (a3), NSGA-II (a4), hill climber (a8) dropped 2026-11-25
 #: RQ4 variants: (label, arm prefix, crossing view)
 VARIANTS = (("Full \\sysname", "a0", "min"), ("w/o margin guidance", "x1", "min"), ("w/o Phase 2", "a0", "first"),
-            ("Image only", "a7", "min"), ("Text only", "a6", "min"), ("Patch edits", "x2", "min"),
-            ("MIMICRY-style", "a5", "min"), ("DeepJanus-style", "a9", "min"))
+            ("Image only", "a7", "min"), ("Text only", "a6", "min"), ("Patch edits", "x2", "min"))
+# (MIMICRY-style and DeepJanus-style are compared with MMBA in RQ1/RQ2, not in the ablation table: user edit 2026-11-26)
+#: variants computed for EAbl* macros only (no table row, not in the paired-effect/Holm family); kept so text citing them compiles
+MACRO_ONLY_VARIANTS = (("MIMICRY-style", "a5", "min"), ("DeepJanus-style", "a9", "min"))
 VARIANT_KEYS = {"a0": "Full", "x1": "Unguided", "a7": "ImageOnly", "a6": "TextOnly", "x2": "Patch",
                 "a5": "Mimicry", "a9": "Janus"}
 
@@ -237,7 +239,7 @@ def ablation_runs(df: pd.DataFrame, vdf: pd.DataFrame, view: str) -> pd.DataFram
     return out
 
 
-def ablation(df: pd.DataFrame, vdf: pd.DataFrame) -> pd.DataFrame:
+def ablation(df: pd.DataFrame, vdf: pd.DataFrame, variants=None) -> pd.DataFrame:
     """Pooled metrics per RQ4 variant (all SUTs and tasks, seed 0). 'w/o Phase 2' is the first crossing of the full method
     (no run time of its own). A variant is listed only once it covers every seed input, model and task of the full method."""
     df = df[df["rng_seed"] == 0] if "rng_seed" in df else df
@@ -248,7 +250,7 @@ def ablation(df: pd.DataFrame, vdf: pd.DataFrame) -> pd.DataFrame:
 
     full_cover = None
     rows = []
-    for label, pre, view in VARIANTS:
+    for label, pre, view in (VARIANTS if variants is None else variants):
         d = df[df["arm"].map(prefix) == pre]
         if d.empty:
             rows.append(dict(label=label, pre=pre, n_runs=0))
@@ -311,14 +313,27 @@ def ablation_effects(a: pd.DataFrame) -> pd.DataFrame:
     return e
 
 
+def _no_image_edits(r: pd.Series) -> bool:
+    """True when none of the variant's crossing runs changed the image (LPIPS of every scored crossing <= 1e-3; an
+    unedited image scores ~3e-6 from PNG round-trips)."""
+    runs = r.get("_runs")
+    if not isinstance(runs, pd.DataFrame) or "lpips" not in runs:
+        return False
+    v = pd.to_numeric(runs["lpips"], errors="coerce").dropna()
+    return len(v) > 0 and bool((v <= 1e-3).all())
+
+
 def ablation_tex(a: pd.DataFrame, e: pd.DataFrame | None = None, marks: dict | None = None) -> str:
     """RQ4 table: absolute values per variant (bold: best of the column); each variant cell carries the magnitude bullet of
     its paired effect against the full method and a dagger when the Holm-corrected paired test is significant."""
     a = a[a["n_runs"] > 0].reset_index(drop=True)
     e = ablation_effects(a) if e is None else e
+    no_img = [_no_image_edits(r) for _, r in a.iterrows()]
     cells = {}
     for (col, key, _lab, dec) in ABL_COLS:
         vals = [float(x) for x in a[col]]
+        if col == "lpips":      # a variant that never edits the image has no LPIPS: "--", not a (bold) 0.00
+            vals = [np.nan if ni else v for v, ni in zip(vals, no_img)]
         txt = [_fmt(x, dec) for x in vals]
         out = tf.bold_best(txt, vals, key, txt)
         for i in range(1, len(a)):
