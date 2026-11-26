@@ -1,0 +1,16 @@
+{
+ "run": "runs/MAIN/imagenet/internvl/a0_directed/s0/MAIN_imagenet_internvl_a0_directed_s0_seed_14_1795394931",
+ "levels": [
+  6,
+  11,
+  13,
+  14,
+  14,
+  2,
+  11
+ ],
+ "n_regions": 7,
+ "codes_changed": 112,
+ "dead_share_of_replacements": 0.9107142857142857,
+ "rerender_vs_stored_mean_abs_diff": 0.4006856282552083
+}
