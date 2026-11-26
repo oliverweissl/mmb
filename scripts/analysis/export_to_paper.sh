@@ -28,10 +28,8 @@ for f in results/transfer_${EXP}*.csv; do [ -f "$f" ] && TRF+=("$f"); done
 MIN=()
 for f in results/minimal_${EXP}_*.csv; do [ -f "$f" ] && MIN+=("$f"); done
 [ ${#MIN[@]} -gt 0 ] && MIN=(--minimal "${MIN[@]}")
-RQ3=()
-[ -f study/rq3/manifest.csv ] && RQ3=(--rq3-manifest study/rq3/manifest.csv)
 PLN=()
 [ -d "configs/generated/$EXP" ] && PLN=(--planned "configs/generated/$EXP")
-"$PY" -m mmb.analysis.export "results/$EXP.csv" --paper "$PAPER" --runs-root "$ROOT" "${PLN[@]}" "${MIN[@]}" "${RQ3[@]}" \
+"$PY" -m mmb.analysis.export "results/$EXP.csv" --paper "$PAPER" --runs-root "$ROOT" "${PLN[@]}" "${MIN[@]}" \
   --grid-suts "${GRID_SUTS:-qwen,internvl,ministral}" --n-boot "${N_BOOT:-10000}" "${VAL[@]}" "${AGR[@]}" "${TRF[@]}"
 echo "generated files: $PAPER/generated"

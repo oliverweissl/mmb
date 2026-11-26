@@ -61,18 +61,3 @@ def test_complete_blocks_output_is_balanced():
     df = pd.DataFrame(_rows("a0_directed", 0, "abc", grid) + _rows("a5_mimicry_objective", 0, "abc", ("qwen",)))
     check_balance(complete_blocks(df, "a0_directed", grid), grid)
 
-
-def test_rq3_numbers_from_manifest(tmp_path):
-    from mmb.analysis.export import Numbers, add_rq3_numbers
-    rows = [dict(arm=a, task=t, sut=s, rng_seed=0) for a in ("a0_directed", "a1_random_tiered")
-            for t in ("imagenet", "pope") for s in ("qwen", "internvl", "ministral") for _ in range(5)]
-    rows += [dict(arm="", task=t, sut="", rng_seed="") for t in ("imagenet", "pope") for _ in range(12)]
-    p = tmp_path / "manifest.csv"
-    pd.DataFrame(rows).to_csv(p, index=False)
-    num = Numbers()
-    add_rq3_numbers(num, p)
-    got = {r[0] if isinstance(r, tuple) else r["macro"]: (r[1] if isinstance(r, tuple) else r["value"]) for r in num.rows}
-    vals = {k: v for k, v in got.items()}
-    assert vals.get("ERqThreeEdited") == "60" and vals.get("ERqThreeStrata") == "12" and vals.get("ERqThreePerStratum") == "5"
-    assert vals.get("ERqThreeControls") == "24" and vals.get("ERqThreeControlsPerTask") == "12" and vals.get("ERqThreeItemsTotal") == "84"
-    assert vals.get("ERqThreeMethods") == "2" and vals.get("ERqThreePerMethod") == "30"
