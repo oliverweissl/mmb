@@ -830,16 +830,12 @@ def pending_confirmation(df: pd.DataFrame) -> set[str]:
 
 
 def method_marks(df: pd.DataFrame, ref: str, pending: set[str]) -> tuple[dict[str, str], dict[str, str]]:
-    """Per arm id: (table marks, legend suffix). \\S = fewer rng seeds than the reference so far; \\ddagger = minimal
-    crossings pending single-input confirmation."""
-    ref_seeds = set(df.loc[df["arm"] == ref, "rng_seed"])
+    """Per arm id: (table marks, legend suffix). \\ddagger = minimal crossings pending single-input confirmation.
+    No seed mark and no legend suffix (user instruction 2026-11-26: the paper treats every method as having 2 seeds;
+    the (method, seed) gate and the balance guard still hold back partial blocks)."""
     marks, suffix = {}, {}
     for arm, d in df.groupby("arm"):
-        seeds = set(d["rng_seed"])
         m = ""
-        if ref_seeds and seeds < ref_seeds:
-            m += r"\S"
-            suffix[arm] = " (seed " + ", ".join(str(int(s)) for s in sorted(seeds)) + ")"
         if d["run_dir"].isin(pending).any():
             m += r"\ddagger"
         if m:

@@ -119,8 +119,7 @@ def _method_label(arm: str, marks: dict | None = None) -> str:
 
 
 #: explanation of each row mark (see mmb.analysis.export.method_marks), printed as a note row under the table
-MARK_NOTES = ((r"\S", r"$^{\S}$\,seed 0 only so far (\sysname{} and Random: seeds 0 and 1)."),
-              (r"\ddagger", r"$^{\ddagger}$\,minimal crossing not yet confirmed by single-input re-scoring: its columns are withheld (--)."))
+MARK_NOTES = ((r"\ddagger", r"$^{\ddagger}$\,minimal crossing not yet confirmed by single-input re-scoring: its columns are withheld (--).",),)
 
 
 def note_rows(marks: dict | None, n_cols: int) -> list[str]:

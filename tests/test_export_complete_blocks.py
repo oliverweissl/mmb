@@ -28,10 +28,9 @@ def test_unconfirmed_runs_are_pending_and_marked():
     assert pend == {"a5/0/a", "a5/0/b"}
     marks, suffix = method_marks(df, "a0_directed", pend)
     assert "a0_directed" not in marks
-    assert marks["a5_mimicry_objective"] == r"$^{\S\ddagger}$" and marks["a1_random_tiered"] == r"$^{\S}$"
-    assert suffix == {"a5_mimicry_objective": " (seed 0)", "a1_random_tiered": " (seed 0)"}
+    assert marks == {"a5_mimicry_objective": r"$^{\ddagger}$"} and suffix == {}     # no seed marks
     notes = rq.note_rows(marks, 5)
-    assert len(notes) == 2 and all(n.startswith(r"\multicolumn{5}{l}") for n in notes)
+    assert len(notes) == 1 and notes[0].startswith(r"\multicolumn{5}{l}")
     assert rq.note_rows({}, 5) == []
 
 
