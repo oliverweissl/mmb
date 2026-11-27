@@ -311,6 +311,51 @@ def select_teaser(df: pd.DataFrame, ref: str = "a0_directed", rand: str = "a1_ra
     return out
 
 
+def select_teaser_single(df: pd.DataFrame, ref: str = "a0_directed", runs_root: Path | None = None,
+                         suts: list[str] | None = None, n_image: int = 64) -> list[dict]:
+    """Two teaser examples of one method (Fig. 1 with MMBA panels only, 2026-11-27). Fixed rule:
+    over the method's runs with a confirmed minimal crossing (min_cross.json; edit counts from its genotype, the first
+    n_image genes are image regions), take per task the median edit count M of all its minimal crossings; then
+    ImageNet: the run whose minimal crossing has >= 1 image-region edit and an edit count closest to M;
+    POPE: the run whose minimal crossing has >= 1 text edit and an edit count closest to M;
+    ties: fewer edits, then run_dir. Returns dicts with key 'dir' (run_dir, n, img, txt) and no 'rnd'."""
+    import json as _json
+    d = df[(df["arm"] == ref) & df["crossed"].astype(bool)]
+    if suts:
+        d = d[d["sut"].isin(suts)]
+    rows = []
+    for _, r in d.iterrows():
+        p = Path(r["run_dir"])
+        if not p.is_absolute() and runs_root is not None and not p.exists():
+            p = runs_root / p
+        mc = p / "min_cross.json"
+        if not mc.exists():
+            continue
+        m = _json.loads(mc.read_text())
+        if not m.get("confirmed", False):
+            continue
+        g = np.asarray(m["genotype"])
+        rows.append(dict(task=r["task"], sut=r["sut"], cell_id=r["cell_id"], run_dir=r["run_dir"],
+                         n=int((g != 0).sum()), img=int((g[:n_image] != 0).sum()), txt=int((g[n_image:] != 0).sum())))
+    t = pd.DataFrame(rows)
+    out = []
+    if t.empty:
+        return out
+    for kind, task, need in (("image", "imagenet", "img"), ("text", "pope", "txt")):
+        mt = t[t["task"] == task]
+        if mt.empty:
+            continue
+        med = float(mt["n"].median())
+        sel = mt[mt[need] > 0]
+        if sel.empty:
+            continue
+        sel = sel.assign(_dist=(sel["n"] - med).abs()).sort_values(["_dist", "n", "run_dir"])
+        r = sel.iloc[0]
+        out.append(dict(kind=kind, task=task, sut=r["sut"], cell_id=r["cell_id"], median_edits=med,
+                        dir=dict(run_dir=r["run_dir"], n=int(r["n"]), img=int(r["img"]), txt=int(r["txt"]))))
+    return out
+
+
 _ZERO_WIDTH = "".join(map(chr, (0x200B, 0x200C, 0x200D, 0x2060, 0xFEFF)))
 
 
@@ -337,7 +382,7 @@ def teaser_facts(examples: list[dict], runs_root: Path | None = None) -> list[di
                         before=a if g0 > 0 else b, after=a if g1 > 0 else b,
                         odds_before=float(np.exp(abs(g0))), odds_after=float(np.exp(abs(g1))),
                         obj=(stats.get("seed_metadata") or {}).get("object") or "",
-                        dir=ex["dir"], rnd=ex["rnd"]))
+                        dir=ex["dir"], **({"rnd": ex["rnd"]} if "rnd" in ex else {})))
     return out
 
 
@@ -378,15 +423,19 @@ def plot_teaser(examples: list[dict], out: Path | str, *, runs_root: Path | None
         a = fig.add_axes([x / width_in, 1 - (y + h) / height, w / width_in, h / height])
         a.set_axis_off()
         return a
-    titles = ["unedited input", "MMBA: minimal crossing", "difference", "random: smallest crossing", "difference"]
+    roles = ["dir"] + (["rnd"] if examples and all("rnd" in ex for ex in examples) else [])
+    titles = ["unedited input", "MMBA: minimal crossing", "difference"] + (
+        ["random: smallest crossing", "difference"] if "rnd" in roles else [])
+    n_pane = len(titles)
+    x0 = (width_in - (n_pane * img_in + (n_pane - 1) * gap)) / 2
     for k, t in enumerate(titles):
         axes(x0 + k * (img_in + gap), 0, img_in, head_h).text(0.5, 0.3, t, ha="center", va="center", fontsize=6, fontweight="bold")
     for i, ex in enumerate(examples):
         y0 = head_h + i * (img_in + txt_h + row_gap)
-        loaded = {role: _load(Path(ex[role]["run_dir"]), runs_root, False, True) for role in ("dir", "rnd")}
+        loaded = {role: _load(Path(ex[role]["run_dir"]), runs_root, False, True) for role in roles}
         o = loaded["dir"][2]
-        panes = [o, loaded["dir"][3], None, loaded["rnd"][3], None]
-        for k in range(5):
+        panes = [o, loaded["dir"][3], None] + ([loaded["rnd"][3], None] if "rnd" in roles else [])
+        for k in range(n_pane):
             a = axes(x0 + k * (img_in + gap), y0, img_in, img_in)
             if k in (2, 4):
                 c = panes[k - 1]
@@ -395,7 +444,7 @@ def plot_teaser(examples: list[dict], out: Path | str, *, runs_root: Path | None
             elif panes[k] is not None:
                 a.imshow(np.asarray(panes[k]))
         stats0 = loaded["dir"][0]
-        for role, k in (("dir", 1), ("rnd", 3)):
+        for role, k in [("dir", 1), ("rnd", 3)][:len(roles)]:
             stats, fc, _, _ = loaded[role]
             q0 = (stats.get("seed_metadata") or {}).get("prompt_template") or stats.get("prompt_template") or ""
             q1 = fc.get("text") or ""

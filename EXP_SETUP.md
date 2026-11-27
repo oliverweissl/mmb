@@ -138,3 +138,9 @@ could not be verified here (no OpenVINO stack). Thesis-era numbers are therefore
 - Holm families shrink (fewer methods), so some Holm-corrected p-values change; e.g. random vs MMBA crossing share on ImageNet alone, 0.059 -> 0.035.
 - RQ3 kit default arms: a0, a1, a5, a9 (was a0, a1, a8). Re-sample after a9 s0 is confirmed.
 - GPU: 63 of 108 configs done; 45 left (B0 a7 pope 2 + a9 6; B1 a5/a7/a9 18; D1x 18) at ~0.84 GPU-h per config => ~38 GPU-h plus replays => done about 2026-11-27 morning.
+
+## 2026-11-27 — Random search omitted from the paper (data kept)
+- User decision: the paper compares MMBA with the MIMICRY-style objective (a5) and the DeepJanus-style search (a9) only. Random search (a1) ran on the full balanced grid (3 SUTs x 2 tasks x 18 seed inputs x 2 seeds = 216 runs, confirmed, with agreement and transfer replays). Its runs and CSV rows stay in runs/MAIN and results/; it is omitted from the paper for focus.
+- Export (mmb.analysis.export): PAPER_OMIT_ARMS = {a1} (CLI --omit-arms; '' restores it). Omitted runs are removed before every table, figure, macro and Holm family. The balance guard runs on the remaining methods. The a1-only outputs are no longer written and stale copies are deleted: primary.tex, generalization_main.tex, e4.tex, per-cell-diff.pdf. Agreement, transfer, failure-type and hardness outputs use the exported arms only. Fig. 1 (gallery.pdf) shows MMBA panels only: gallery.select_teaser_single, rule in its docstring.
+- Legacy macros: a full export (with a1) runs first; every macro it writes that the paper export no longer writes is kept verbatim with description "LEGACY ..." and listed in <paper>/generated/legacy_macros.txt, until the text no longer cites them.
+- Effect on Holm: the comparison families no longer contain random search. 38 Holm-corrected p-macros changed value; no significance verdict crossed 0.05 (checked against the previous numbers.tex).

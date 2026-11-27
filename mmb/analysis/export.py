@@ -50,6 +50,11 @@ DIGITS = ["Zero", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight"
 GRID_SUTS = ("qwen", "internvl", "ministral")
 #: arm prefixes dropped from the study (user decision 2026-11-25: GA, NSGA-II, hill climber); filtered before any output
 DROPPED_ARMS = frozenset({"a3", "a4", "a8"})
+#: arm prefixes run on the full balanced grid but omitted from the paper (user decision 2026-11-27: random search, for
+#: focus); their runs stay in runs/MAIN and results/*.csv. Filtered before any table, figure or Holm family.
+PAPER_OMIT_ARMS = frozenset({"a1"})
+#: generated files that exist only to compare MMBA with an omitted arm; removed when that arm is omitted
+OMIT_STALE = {"a1": ("tables/primary.tex", "tables/generalization_main.tex", "tables/e4.tex", "figures/per-cell-diff.pdf")}
 PRIMARY_ARMS = ("a0_directed", "a1_random_tiered")
 SUT_NAMES = {"qwen": "Qwen3.5-4B (bf16)", "internvl": "InternVL3.5-4B (bf16)",
              "ministral": "Ministral-3-3B (bf16)", "llava": "LLaVA-NeXT-7B (NF4)"}
@@ -141,6 +146,13 @@ class Numbers:
             raise ValueError(f"duplicate macro {name}")
         self.seen.add(name)
         self.rows.append(dict(macro=name, value=str(value), description=desc, **meta))
+
+    def add_legacy(self, name: str, value: str, desc: str) -> None:
+        """A macro kept verbatim from an earlier export (no recomputation), so text that still cites it compiles."""
+        if name in self.seen:
+            return
+        self.seen.add(name)
+        self.rows.append(dict(macro=name, value=str(value), description="LEGACY " + desc))
 
     def write(self, out: Path) -> None:
         df = pd.DataFrame(self.rows)
@@ -759,7 +771,7 @@ def add_teaser_numbers(num: Numbers, facts: list[dict]) -> None:
         for k, v in (("Sut", f["sut"]), ("Before", f["before"]), ("After", f["after"]), ("Object", f["obj"]),
                      ("OddsBefore", odds(f["odds_before"])), ("OddsAfter", odds(f["odds_after"]))):
             num.add(row + [k], st.tex_escape(str(v)), f"{k}; {d}")
-        for who, e in (("Dir", f["dir"]), ("Rnd", f["rnd"])):
+        for who, e in [("Dir", f["dir"])] + ([("Rnd", f["rnd"])] if "rnd" in f else []):
             for k in ("n", "img", "txt"):
                 num.add(row + [who, {"n": "Edits", "img": "Img", "txt": "Txt"}[k]], str(int(e[k])), f"{who} {k}; {d}")
 
@@ -849,7 +861,8 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
            validity: Path | None = None, runs_root: Path | None = None, n_boot: int = st.N_BOOT,
            figures: bool = True, agree: list[Path] | None = None,
            transfer: list[Path] | None = None, human: Path | None = None,
-           planned: Path | None = None, minimal: list[Path] | None = None) -> Numbers:
+           planned: Path | None = None, minimal: list[Path] | None = None,
+           omit_arms: frozenset = frozenset(), legacy: dict | None = None) -> Numbers:
     from mmb.analysis import gallery, plots
 
     gen = Path(paper) / "generated"
@@ -857,6 +870,7 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
     tabs.mkdir(parents=True, exist_ok=True)
     figs.mkdir(parents=True, exist_ok=True)
     df = st.load_results(csv_paths)
+    all_runs = list(df["run_dir"])
     if df["arm"].isna().any():
         raise SystemExit("some runs have no arm; re-run collect with --default arm=<id>")
     if agree:                                   # per-run verification flag from the replay CSVs
@@ -868,12 +882,20 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
     if gone.any():    # GA, NSGA-II, hill climber dropped 2026-11-25 (user decision): no table, macro or curve
         logger.warning("dropped %d runs of dropped methods: %s", int(gone.sum()), sorted(set(df.loc[gone, "arm"])))
         df = df[~gone]
+    om = df["arm"].astype(str).str.split("_").str[0].isin(omit_arms)
+    if om.any():      # run on the full grid, omitted from the paper (data kept): no table, figure, macro or Holm family
+        logger.warning("omitted from the paper: %d runs of %s", int(om.sum()), sorted(set(df.loc[om, "arm"])))
+        df = df[~om]
+    for pre in omit_arms:
+        for rel in OMIT_STALE.get(pre, ()):
+            (gen / rel).unlink(missing_ok=True)
     off = ~df["sut"].isin(list(grid_suts))
     if off.any():     # only the balanced grid is exported (LLaVA-NeXT dropped 2026-11-25: no row or macro for it)
         logger.warning("dropped %d runs of SUTs outside the grid: %s", int(off.sum()), sorted(set(df.loc[off, "sut"])))
         df = df[~off]
     df = complete_blocks(df, ref, grid_suts)
     design = check_balance(df, grid_suts)
+    excluded = set(all_runs) - set(df["run_dir"])    # runs left out on purpose (dropped/omitted arm, partial block, non-grid)
     logger.info("balanced design: %s", ", ".join(f"{a} s{s} ({n})" for (a, s), n in sorted(design.items())))
     pending = pending_confirmation(df)
     df["min_pending"] = df["run_dir"].isin(pending)
@@ -952,7 +974,7 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
         d = prim[(prim["task"] == task) & prim["sut"].isin(set(grid_suts))]
         if len(d):
             frames.append(([TASK_NAMES.get(task, task)], st.arm_summary(with_scope_cells(d), n_boot)))
-    if frames:
+    if frames and prim["arm"].nunique() > 1:      # a comparison table: not written with one arm left
         write_tex(tabs / "e4.tex", keyed_summary_tex(frames, ["Task"]))
 
     # E2b
@@ -996,6 +1018,8 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
 
     if agree:
         adf = load_agree(agree)
+        if len(adf) and "run_dir" in adf:       # replayed runs of the exported arms only
+            adf = adf[~adf["run_dir"].isin(excluded)]
         if len(adf):
             write_tex(tabs / "agree.tex", agree_table(adf))
             add_agree_numbers(num, adf)
@@ -1003,7 +1027,8 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
     trows = None
     if transfer:
         tdf = tr.load_transfer(transfer, results=csv_paths[0])
-        trows = tr.matrix_rows(tdf)
+        tdf = tdf[~tdf["run_dir"].isin(excluded)]                 # crossings of the exported arms only
+        trows = tr.matrix_rows(tdf) if len(tdf) else []
         if trows:
             write_tex(tabs / "transfer.tex", tr.matrix_tex(trows, "All", SUT_NAMES))
             for task in sorted(set(tdf["task"])):
@@ -1037,7 +1062,10 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
         if "probe_gen0" in df and df["probe_gen0"].notna().any():
             plots.plot_predictor_scatter(df[df["sut"].isin(set(grid_suts))], figs / "predictor-main.pdf", arm=ref)
         gdf = df[df["sut"].isin(set(grid_suts))]
-        teaser = gallery.select_teaser(gdf, ref, "a1_random_tiered", runs_root=runs_root)      # teaser: directed vs random minimal crossing, with difference panes
+        if "a1_random_tiered" in set(gdf["arm"]):     # teaser: directed vs random minimal crossing, with difference panes
+            teaser = gallery.select_teaser(gdf, ref, "a1_random_tiered", runs_root=runs_root)
+        else:                                          # random omitted from the paper: MMBA panels only (rule: gallery.select_teaser_single)
+            teaser = gallery.select_teaser_single(gdf, ref, runs_root=runs_root)
         if not teaser:
             logger.warning("teaser: no cell with a stored minimal crossing for both arms yet")
         else:
@@ -1050,6 +1078,8 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
     if runs_root is not None and Path(runs_root).exists():
         from mmb.analysis import failure_types as ft, min_types as mtp
         mdf = mtp.load_runs(runs_root)
+        if len(mdf):
+            mdf = mdf[~mdf["run_dir"].isin(excluded)]                # runs of the exported arms only
         if len(mdf):
             write_tex(tabs / "arm_failure.tex", mtp.table_tex(mdf))
             mtp.add_numbers(num, mdf, camel, f_num, f_pct)
@@ -1067,6 +1097,14 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
             if figures:
                 ft.figure(mdf, figs / "failure-types.pdf", sut_names={k: v.split(" (")[0] for k, v in SUT_NAMES.items()},
                           task_names=TASK_NAMES)
+    if legacy:        # macros of omitted arms from the full export, kept until the text no longer cites them
+        kept = []
+        for name, (value, desc) in legacy.items():
+            if name not in num.seen:
+                num.add_legacy(name, value, desc)
+                kept.append(name)
+        (gen / "legacy_macros.txt").write_text("\n".join(sorted(kept)) + ("\n" if kept else ""))
+        logger.info("legacy macros kept (omitted arms): %d, listed in generated/legacy_macros.txt", len(kept))
     num.write(gen)
     return num
 
@@ -1095,12 +1133,23 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--planned", type=Path, default=None, help="configs/generated/MAIN: planned configurations (data status)")
     ap.add_argument("--n-boot", type=int, default=st.N_BOOT)
     ap.add_argument("--no-figures", action="store_true")
+    ap.add_argument("--omit-arms", default=",".join(sorted(PAPER_OMIT_ARMS)),
+                    help="arm prefixes kept in the data but omitted from the paper (default: %(default)s; '' = none)")
+    ap.add_argument("--no-legacy", action="store_true", help="do not keep the macros of omitted arms from a full export")
     args = ap.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(message)s")
-    num = export(args.csv, args.paper, ref=args.ref, grid_suts=args.grid_suts.split(","),
-                 validity=args.validity, runs_root=args.runs_root, n_boot=args.n_boot,
-                 figures=not args.no_figures, agree=args.agree or None, transfer=args.transfer or None, human=args.human_validity,
-                 planned=args.planned, minimal=args.minimal or None)
+    omit = frozenset(x for x in args.omit_arms.split(",") if x)
+    kw = dict(ref=args.ref, grid_suts=args.grid_suts.split(","), validity=args.validity, runs_root=args.runs_root,
+              n_boot=args.n_boot, agree=args.agree or None, transfer=args.transfer or None, human=args.human_validity,
+              planned=args.planned, minimal=args.minimal or None)
+    legacy = None
+    if omit and not args.no_legacy:
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / "main.tex").write_text("")
+            full = export(args.csv, Path(tmp), figures=False, **kw)
+            legacy = {r["macro"]: (r["value"], r["description"]) for r in full.rows}
+    num = export(args.csv, args.paper, figures=not args.no_figures, omit_arms=omit, legacy=legacy, **kw)
     logger.info("wrote %d macros to %s", len(num.rows), args.paper / "generated")
     return 0
 

@@ -330,3 +330,22 @@ class TestGallery:
             gallery.plot_gallery(broken, tmp_path / "bad.pdf")
         out = gallery.plot_gallery(picks, tmp_path / "g.pdf")
         assert out.exists() and out.read_bytes()[:4] == b"%PDF"
+
+
+class TestOmitArms:
+    def test_random_omitted_from_paper_outputs(self, tree, tmp_path):
+        _, csv = tree
+        paper = tmp_path / "om"
+        paper.mkdir()
+        (paper / "generated" / "tables").mkdir(parents=True)
+        (paper / "generated" / "tables" / "primary.tex").write_text("stale")
+        num = export.export([csv], paper, n_boot=50, figures=False, omit_arms=frozenset({"a1"}),
+                            legacy={"EOneCrossShareAOneAllAll": ("50.0", "old"), "EZzOnlyOld": ("1", "old")})
+        names = {r["macro"]: r for r in num.rows}
+        new = [k for k, r in names.items() if "AOne" in k and not r["description"].startswith("LEGACY")]
+        assert not new                                                  # nothing recomputed for the omitted arm
+        assert names["EOneCrossShareAOneAllAll"]["description"].startswith("LEGACY")
+        assert not (paper / "generated" / "tables" / "primary.tex").exists()
+        assert "EOneCrossShareAOneAllAll" in (paper / "generated" / "legacy_macros.txt").read_text()
+        t = (paper / "generated" / "tables" / "arm_main.tex").read_text() if (paper / "generated" / "tables" / "arm_main.tex").exists() else ""
+        assert "Random" not in t
