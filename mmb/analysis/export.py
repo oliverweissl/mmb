@@ -36,6 +36,7 @@ from pathlib import Path
 from typing import Iterable
 
 import numpy as np
+import yaml
 import pandas as pd
 
 from mmb.analysis import paired as pr
@@ -804,6 +805,60 @@ class UnbalancedExport(SystemExit):
     """Raised when the model x task cells of the grid do not hold identical (method, rng seed) blocks."""
 
 
+def add_calib_numbers(num: "Numbers", calib_dir: Path, ladder_jsons: list[Path] | None = None,
+                      codebook_json: Path | None = None) -> None:
+    """ECalib*: operator calibration (docs/CALIBRATION_2026-11-27.md) from scripts/analysis/calib_final.py output
+    (summary.csv, tests.csv), the single-region ladder LPIPS (ladder_demo.py --regions 1 JSONs) and the codebook
+    live/dead counts (results/diag_edits/codebook_dead.json)."""
+    import json as _json
+    s = pd.read_csv(calib_dir / "summary.csv")
+    t = pd.read_csv(calib_dir / "tests.csv")
+    mods = {"text": "Text", "image": "Image", "both": "Both"}
+    for _, r in s[s["level"].isin(["pooled", "task"])].iterrows():
+        scope = "All" if r["level"] == "pooled" else camel(str(r["task"]))
+        m = mods[r["mod"]]
+        num.add(["ECalib", "Cr", m, scope], f"{float(r['CR']):.1f}", f"calibration final check: crossing share (%), {r['mod']}, {scope}")
+        if r["level"] == "pooled":
+            num.add(["ECalib", "Runs", m], str(int(r["n"])), f"calibration final check: runs, {r['mod']}")
+            for col, nm, dec in (("lpips_med", "Lpips", 3), ("edits_med", "Edits", 0), ("calls_med", "Calls", 0),
+                                 ("vis_char_med", "VisChar", 1), ("q_preserved", "QPreserved", 1)):
+                if col in r and not pd.isna(r[col]):
+                    v = 100 * float(r[col]) if col == "vis_char_med" else float(r[col])
+                    txt = f_smart(v, 1) if col in ("edits_med", "calls_med") else f"{v:.{dec}f}"
+                    num.add(["ECalib", nm, m], txt, f"calibration final check: median {col}, {r['mod']}")
+    for _, r in t.iterrows():
+        scope = "All" if r["scope"] == "pooled" else camel(str(r["scope"]))
+        pair = mods[r["a"]] + mods[r["b"]]
+        num.add(["ECalib", "P", pair, scope], f_p(float(r["p_mcnemar"])), f"calibration: exact McNemar p, {r['a']} vs {r['b']}, {scope}")
+        num.add(["ECalib", "Pairs", pair, scope], str(int(r["pairs"])), f"calibration: matched pairs, {r['a']} vs {r['b']}, {scope}")
+        num.add(["ECalib", "Disc", pair, scope], f"{int(r['a_only'])}:{int(r['b_only'])}", f"calibration: discordant pairs ({r['a']} only : {r['b']} only), {scope}")
+    fc = Path("configs/calib/fc_new.yaml")
+    if fc.exists():           # the calibrated setting (same file the final check ran)
+        cfg = yaml.safe_load(fc.read_text())
+        lv = cfg.get("image", {}).get("region_levels") or []
+        if lv:
+            num.add(["ECalib", "MaxRank"], str(int(max(lv))), "calibrated image ladder: maximum neighbour rank (live L2 KNN)")
+            num.add(["ECalib", "Levels"], str(len(lv)), "calibrated image ladder: number of levels")
+        for op in (cfg.get("text") or {}).get("operators", []):
+            if op["name"] == "character_noise":
+                from mmb.manipulator.text.operators.base import severity_to_k_max
+                num.add(["ECalib", "CharNoiseMax"], str(severity_to_k_max(float(op["severity"]), override=op.get("k_max"))), "calibrated text: invisible characters per word (max)")
+            if op["name"] == "synonym":
+                num.add(["ECalib", "SynonymPool"], str(int(op.get("k_max", 0))), "calibrated text: masked-LM synonym pool size")
+    if ladder_jsons:
+        rows = [x for p in ladder_jsons if Path(p).exists() for x in _json.loads(Path(p).read_text())]
+        if rows:
+            lad = pd.DataFrame(rows)
+            for rank, nm in ((8, "Eight"), (128, "OneTwoEight")):
+                v = lad[lad["rank"] <= rank].groupby("rank")["lpips"].mean().max()
+                num.add(["ECalib", "LpipsRegionMaxRank", nm], f"{float(v):.3f}", f"max over ranks <= {rank} of the mean LPIPS of one edited region (live L2 KNN)")
+    if codebook_json is not None and Path(codebook_json).exists():
+        cb = _json.loads(Path(codebook_json).read_text())
+        num.add(["ECodebook", "Live"], f"{int(cb['n_live']):,}".replace(",", "{,}"), "VQGAN f8-16384 codewords with norm > 1e-3")
+        num.add(["ECodebook", "Dead"], f"{16384 - int(cb['n_live']):,}".replace(",", "{,}"), "collapsed codewords (norm <= 1e-3)")
+        num.add(["ECodebook", "DeadShareRankOne"], f"{100 * cb['dead_share_at_rank']['1']:.0f}", "share of collapsed codewords among the cosine nearest neighbours of live codes (%)")
+
+
 def check_balance(df: pd.DataFrame, grid_suts=GRID_SUTS) -> dict:
     """Balanced-design guard (user rule: every model x task gets the same methods, seeds and seed inputs).
     Every (task, SUT) cell of the grid must hold the same set of (arm, rng seed) blocks, each over the same seed
@@ -865,7 +920,7 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
            figures: bool = True, agree: list[Path] | None = None,
            transfer: list[Path] | None = None, human: Path | None = None,
            planned: Path | None = None, minimal: list[Path] | None = None,
-           omit_arms: frozenset = frozenset(), legacy: dict | None = None) -> Numbers:
+           omit_arms: frozenset = frozenset(), legacy: dict | None = None, calib: Path | None = None) -> Numbers:
     from mmb.analysis import gallery, plots
 
     gen = Path(paper) / "generated"
@@ -1107,6 +1162,9 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
             if figures:
                 ft.figure(mdf, figs / "failure-types.pdf", sut_names={k: v.split(" (")[0] for k, v in SUT_NAMES.items()},
                           task_names=TASK_NAMES)
+    if calib is not None and (Path(calib) / "summary.csv").exists():
+        add_calib_numbers(num, Path(calib), sorted(Path("docs/figs/calib").glob("ladder_single_region_*.json")),
+                          Path("results/diag_edits/codebook_dead.json"))
     if legacy:        # macros of omitted arms from the full export, kept until the text no longer cites them
         kept = []
         for name, (value, desc) in legacy.items():
@@ -1147,6 +1205,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--no-figures", action="store_true")
     ap.add_argument("--omit-arms", default=",".join(sorted(PAPER_OMIT_ARMS)),
                     help="arm prefixes kept in the data but omitted from the paper (default: %(default)s; '' = none)")
+    ap.add_argument("--calib", type=Path, default=None, help="calib_final.py output dir (ECalib* macros)")
     ap.add_argument("--legacy", action="store_true",
                     help="also keep the macros of omitted arms from a full export (verbatim, listed in legacy_macros.txt)")
     args = ap.parse_args(argv)
@@ -1162,7 +1221,7 @@ def main(argv: list[str] | None = None) -> int:
             (Path(tmp) / "main.tex").write_text("")
             full = export(args.csv, Path(tmp), figures=False, **kw)
             legacy = {r["macro"]: (r["value"], r["description"]) for r in full.rows}
-    num = export(args.csv, args.paper, figures=not args.no_figures, omit_arms=omit, legacy=legacy, **kw)
+    num = export(args.csv, args.paper, figures=not args.no_figures, omit_arms=omit, legacy=legacy, calib=args.calib, **kw)
     logger.info("wrote %d macros to %s", len(num.rows), args.paper / "generated")
     return 0
 
