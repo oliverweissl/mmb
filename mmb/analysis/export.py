@@ -1105,6 +1105,8 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
                 kept.append(name)
         (gen / "legacy_macros.txt").write_text("\n".join(sorted(kept)) + ("\n" if kept else ""))
         logger.info("legacy macros kept (omitted arms): %d, listed in generated/legacy_macros.txt", len(kept))
+    else:
+        (gen / "legacy_macros.txt").unlink(missing_ok=True)
     num.write(gen)
     return num
 
@@ -1135,7 +1137,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--no-figures", action="store_true")
     ap.add_argument("--omit-arms", default=",".join(sorted(PAPER_OMIT_ARMS)),
                     help="arm prefixes kept in the data but omitted from the paper (default: %(default)s; '' = none)")
-    ap.add_argument("--no-legacy", action="store_true", help="do not keep the macros of omitted arms from a full export")
+    ap.add_argument("--legacy", action="store_true",
+                    help="also keep the macros of omitted arms from a full export (verbatim, listed in legacy_macros.txt)")
     args = ap.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(message)s")
     omit = frozenset(x for x in args.omit_arms.split(",") if x)
@@ -1143,7 +1146,7 @@ def main(argv: list[str] | None = None) -> int:
               n_boot=args.n_boot, agree=args.agree or None, transfer=args.transfer or None, human=args.human_validity,
               planned=args.planned, minimal=args.minimal or None)
     legacy = None
-    if omit and not args.no_legacy:
+    if omit and args.legacy:
         import tempfile
         with tempfile.TemporaryDirectory() as tmp:
             (Path(tmp) / "main.tex").write_text("")
