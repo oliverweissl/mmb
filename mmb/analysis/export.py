@@ -826,6 +826,13 @@ def add_calib_numbers(num: "Numbers", calib_dir: Path, ladder_jsons: list[Path] 
                     v = 100 * float(r[col]) if col == "vis_char_med" else float(r[col])
                     txt = f_smart(v, 1) if col in ("edits_med", "calls_med") else f"{v:.{dec}f}"
                     num.add(["ECalib", nm, m], txt, f"calibration final check: median {col}, {r['mod']}")
+    runs_csv = calib_dir / "runs.csv"
+    if runs_csv.exists():     # held-out seed inputs per task (distinct (set, seed input) of one arm and model)
+        rr = pd.read_csv(runs_csv)
+        g = rr.groupby(["task", "arm", "sut"]).apply(lambda x: x[["set", "seed_idx"]].drop_duplicates().shape[0], include_groups=False)
+        if g.nunique() == 1:
+            num.add(["ECalib", "SeedInputsPerTask"], str(int(g.iloc[0])), "calibration final check: held-out seed inputs per task")
+        num.add(["ECalib", "Models"], str(rr["sut"].nunique()), "calibration final check: models")
     for _, r in t.iterrows():
         scope = "All" if r["scope"] == "pooled" else camel(str(r["scope"]))
         pair = mods[r["a"]] + mods[r["b"]]
