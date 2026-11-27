@@ -189,6 +189,7 @@ def build_operators_from_specs(
                 FragmentationOperator(
                     severity=spec.severity,
                     k_max_override=k_max_override,
+                    **({"min_word_len": int(spec.extras["min_word_len"])} if "min_word_len" in spec.extras else {}),
                 )
             )
         elif spec.name == "character_noise":
@@ -206,6 +207,9 @@ def build_operators_from_specs(
                 SaliencyOperator(
                     severity=spec.severity,
                     k_max_override=k_max_override,
+                    # sites knob (2026-11-27): all_words also edits stop/function words (never protected words)
+                    **({"stop_words": frozenset(), "function_pos": frozenset()} if spec.extras.get("all_words") else {}),
+                    **({"min_word_len": int(spec.extras["min_word_len"])} if "min_word_len" in spec.extras else {}),
                 )
             )
         else:

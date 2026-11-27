@@ -78,6 +78,27 @@ def build_codebook_knn(
     return order
 
 
+def build_codebook_knn_live_l2(
+    codebook: NDArray[np.float32],
+    live_norm_min: float = 1e-3,
+) -> NDArray[np.int64]:
+    """Neighbour ordering over LIVE codewords only, by L2 distance (2026-11-27 operator fix).
+
+    The f8-16384 codebook has 880 live codewords (norm > 1e-3) and 15,504 collapsed ones (norm ~7e-5) that decode
+    to a smooth olive patch; cosine KNN ignores the norm and ranks the collapsed codes among the nearest neighbours
+    (docs/EDIT_DIAGNOSIS_2026-11-26.md). Row i lists the live codewords other than i, nearest (L2) first; shape
+    (n_codes, n_live - 1). Ranks beyond the row length are clipped by the caller.
+    """
+    cb = np.asarray(codebook, dtype=np.float64)
+    live = np.nonzero(np.linalg.norm(cb, axis=1) > live_norm_min)[0]
+    if len(live) < 2:
+        raise ValueError(f"only {len(live)} live codewords (norm > {live_norm_min})")
+    d2 = ((cb[:, None, :] - cb[None, live, :]) ** 2).sum(-1)
+    order = live[np.argsort(d2, axis=1, kind="stable")]
+    w = len(live) - 1
+    return np.stack([row[row != i][:w] for i, row in enumerate(order)]).astype(np.int64)
+
+
 # ---------------------------------------------------------------------------
 # Patch selection strategies
 # ---------------------------------------------------------------------------

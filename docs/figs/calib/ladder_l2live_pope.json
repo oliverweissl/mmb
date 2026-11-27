@@ -1,0 +1,212 @@
+[
+ {
+  "image": "COCO_val2014_000000500257.jpg",
+  "level": 1,
+  "rank": 1,
+  "lpips": 0.014037827029824257,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000500257.jpg",
+  "level": 2,
+  "rank": 2,
+  "lpips": 0.012487820349633694,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000500257.jpg",
+  "level": 3,
+  "rank": 4,
+  "lpips": 0.013124780729413033,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000500257.jpg",
+  "level": 4,
+  "rank": 8,
+  "lpips": 0.011908561922609806,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000500257.jpg",
+  "level": 5,
+  "rank": 16,
+  "lpips": 0.022596171125769615,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000500257.jpg",
+  "level": 6,
+  "rank": 32,
+  "lpips": 0.029506076127290726,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000500257.jpg",
+  "level": 7,
+  "rank": 64,
+  "lpips": 0.04413536563515663,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000500257.jpg",
+  "level": 8,
+  "rank": 128,
+  "lpips": 0.05928969010710716,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000500257.jpg",
+  "level": 9,
+  "rank": 256,
+  "lpips": 0.09584387391805649,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000500257.jpg",
+  "level": 10,
+  "rank": 512,
+  "lpips": 0.1339789479970932,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000331366.jpg",
+  "level": 1,
+  "rank": 1,
+  "lpips": 0.012137657962739468,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000331366.jpg",
+  "level": 2,
+  "rank": 2,
+  "lpips": 0.013091947883367538,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000331366.jpg",
+  "level": 3,
+  "rank": 4,
+  "lpips": 0.012144600041210651,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000331366.jpg",
+  "level": 4,
+  "rank": 8,
+  "lpips": 0.014181467704474926,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000331366.jpg",
+  "level": 5,
+  "rank": 16,
+  "lpips": 0.021581660956144333,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000331366.jpg",
+  "level": 6,
+  "rank": 32,
+  "lpips": 0.03482969105243683,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000331366.jpg",
+  "level": 7,
+  "rank": 64,
+  "lpips": 0.046766359359025955,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000331366.jpg",
+  "level": 8,
+  "rank": 128,
+  "lpips": 0.06602008640766144,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000331366.jpg",
+  "level": 9,
+  "rank": 256,
+  "lpips": 0.07576731592416763,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000331366.jpg",
+  "level": 10,
+  "rank": 512,
+  "lpips": 0.10887783765792847,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000551881.jpg",
+  "level": 1,
+  "rank": 1,
+  "lpips": 0.013414919376373291,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000551881.jpg",
+  "level": 2,
+  "rank": 2,
+  "lpips": 0.009474477730691433,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000551881.jpg",
+  "level": 3,
+  "rank": 4,
+  "lpips": 0.011165597476065159,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000551881.jpg",
+  "level": 4,
+  "rank": 8,
+  "lpips": 0.012512723915278912,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000551881.jpg",
+  "level": 5,
+  "rank": 16,
+  "lpips": 0.020066235214471817,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000551881.jpg",
+  "level": 6,
+  "rank": 32,
+  "lpips": 0.022143932059407234,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000551881.jpg",
+  "level": 7,
+  "rank": 64,
+  "lpips": 0.039430927485227585,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000551881.jpg",
+  "level": 8,
+  "rank": 128,
+  "lpips": 0.0595407709479332,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000551881.jpg",
+  "level": 9,
+  "rank": 256,
+  "lpips": 0.08296754956245422,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000551881.jpg",
+  "level": 10,
+  "rank": 512,
+  "lpips": 0.11227265000343323,
+  "dead_share": 0.0
+ }
+]

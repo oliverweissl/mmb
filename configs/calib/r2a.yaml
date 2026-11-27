@@ -1,0 +1,11 @@
+round: r2a
+# image I2: live-codeword L2 KNN, 64 regions, ladder to rank 32 (6 levels)
+image: {knn_metric: l2_live, region_block: 4, region_levels: [1, 2, 4, 8, 16, 32]}
+# text T2 (validity first): synonym pool 3 (as MAIN), invisible character noise up to 2 per word, at most one typo per
+# word on words of >= 4 letters (function words allowed), no fragmentation; protected words never edited
+text:
+  operators:
+    - {name: synonym, severity: 0.5, k_max: 3}
+    - {name: character_noise, severity: 0.25, modes: [homoglyph, zero_width]}
+    - {name: saliency, severity: 0.25, k_max: 1, all_words: true, min_word_len: 4}
+arms: [a6, a7]

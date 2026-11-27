@@ -181,6 +181,9 @@ class CompositeTextManipulator:
         exclude_words: frozenset[str] | None = None,
     ) -> CompositeManipulationContext:
         tokens = tokenize(self._nlp, text)
+        if exclude_words:   # a protected phrase ("dining table") protects each of its words (fix 2026-11-27)
+            exclude_words = frozenset(exclude_words) | frozenset(
+                p for w in exclude_words for p in str(w).lower().split())
         op_contexts: dict[str, OperatorContext] = {}
         op_gene_dims: list[int] = []
         op_gene_bounds: list[NDArray[np.int64]] = []

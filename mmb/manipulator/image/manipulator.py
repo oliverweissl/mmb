@@ -27,6 +27,7 @@ from .codec import VQGANCodec
 from .cone_candidates import ConeCandidateFilter
 from .selection import (
     build_codebook_knn,
+    build_codebook_knn_live_l2,
     build_cone_patch_selection,
     build_patch_selection,
 )
@@ -187,6 +188,11 @@ class ImageConfig:
     # strength level); 0 keeps the region. Cone filter and patch_ratio are ignored.
     region_block: int = 0
     region_levels: tuple[int, ...] = (1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192)
+    # Neighbour metric of the codebook KNN (2026-11-27): "cosine" over all codewords (the MAIN study as run; most
+    # neighbours are collapsed codes) or "l2_live": L2 over the live codewords only (norm > live_norm_min), which
+    # removes the olive dead-code patches. region_levels index into this ordering (rank 1 = nearest).
+    knn_metric: str = "cosine"
+    live_norm_min: float = 1e-3
 
     def __post_init__(self) -> None:
         if self.backend not in ("vqgan_codebook", "stylegan_xl"):
@@ -235,10 +241,15 @@ class ImageManipulator:
     ) -> None:
         self._codec = codec
         self._config = config or ImageConfig()
-        self._knn = build_codebook_knn(
-            codec.codebook,
-            cache_path=self._config.knn_cache_path,
-        )
+        if self._config.knn_metric == "l2_live":
+            self._knn = build_codebook_knn_live_l2(codec.codebook, self._config.live_norm_min)
+        elif self._config.knn_metric == "cosine":
+            self._knn = build_codebook_knn(
+                codec.codebook,
+                cache_path=self._config.knn_cache_path,
+            )
+        else:
+            raise ValueError(f"image.knn_metric must be 'cosine' or 'l2_live', got {self._config.knn_metric!r}")
         self._cone_filter: ConeCandidateFilter | None = None
         self._modal_builder: ModalTargetBuilder | None = modal_builder
 
