@@ -53,6 +53,9 @@ DROPPED_ARMS = frozenset({"a3", "a4", "a8"})
 #: arm prefixes run on the full balanced grid but omitted from the paper (user decision 2026-11-27: random search, for
 #: focus); their runs stay in runs/MAIN and results/*.csv. Filtered before any table, figure or Holm family.
 PAPER_OMIT_ARMS = frozenset({"a1"})
+#: RQ4 ablation arms are reported on rng seed 0 only (user decision 2026-11-27, limited resources); their seed-1 runs
+#: stay on disk but are filtered before any output. RQ1/RQ2 methods (a0, a5, a9) use both seeds.
+SEED0_ONLY_ARMS = frozenset({"a6", "a7", "x1", "x2"})
 #: generated files that exist only to compare MMBA with an omitted arm; removed when that arm is omitted
 OMIT_STALE = {"a1": ("tables/primary.tex", "tables/generalization_main.tex", "tables/e4.tex", "figures/per-cell-diff.pdf")}
 PRIMARY_ARMS = ("a0_directed", "a1_random_tiered")
@@ -886,6 +889,10 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
     if om.any():      # run on the full grid, omitted from the paper (data kept): no table, figure, macro or Holm family
         logger.warning("omitted from the paper: %d runs of %s", int(om.sum()), sorted(set(df.loc[om, "arm"])))
         df = df[~om]
+    s0only = df["arm"].astype(str).str.split("_").str[0].isin(SEED0_ONLY_ARMS) & (df["rng_seed"] != 0)
+    if s0only.any():   # ablation arms: seed 0 only in the paper (data of other seeds kept)
+        logger.warning("ablation arms on seed 0 only: %d runs of other seeds left out", int(s0only.sum()))
+        df = df[~s0only]
     for pre in omit_arms:
         for rel in OMIT_STALE.get(pre, ()):
             (gen / rel).unlink(missing_ok=True)
@@ -895,6 +902,9 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
         df = df[~off]
     df = complete_blocks(df, ref, grid_suts)
     design = check_balance(df, grid_suts)
+    bad_seed = [b for b in design if b[0].split("_")[0] in SEED0_ONLY_ARMS and b[1] != 0]
+    if bad_seed:
+        raise UnbalancedExport(f"ablation arms must be on seed 0 only, found {bad_seed}")
     excluded = set(all_runs) - set(df["run_dir"])    # runs left out on purpose (dropped/omitted arm, partial block, non-grid)
     logger.info("balanced design: %s", ", ".join(f"{a} s{s} ({n})" for (a, s), n in sorted(design.items())))
     pending = pending_confirmation(df)
