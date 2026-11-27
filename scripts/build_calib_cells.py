@@ -22,12 +22,17 @@ def scores(pool: Path) -> tuple[dict, list]:
     return g, files
 
 
-def build(task: str, k: int, tau: float, seed: int) -> Path:
+def build(task: str, k: int, tau: float, seed: int, name: str = "calib", exclude_sets=()) -> Path:
     pool = Path(f"cells/{task}_pool.yaml")
     items = yaml.safe_load(pool.read_text())["items"]
     test = yaml.safe_load(Path(f"cells/{task}_cells.yaml").read_text())["seeds"]["slot_items"]["items"]
     test_keys = {t["meta"]["cell_key"] for t in test}
     test_imgs = {t["image"] for t in test}
+    for prev in exclude_sets:                       # earlier calibration sets: disjoint as well
+        pp = Path(f"cells/{task}_{prev}.yaml")
+        if pp.exists():
+            for t in yaml.safe_load(pp.read_text())["seeds"]["slot_items"]["items"]:
+                test_keys.add(t["meta"]["cell_key"]); test_imgs.add(t["image"])
     test_protect = {t["meta"]["cell_key"]: t["meta"].get("protect_words") for t in test}
     g, files = scores(pool)
     keep = [it for it in items if it["meta"]["cell_key"] not in test_keys and it["image"] not in test_imgs
@@ -53,7 +58,7 @@ def build(task: str, k: int, tau: float, seed: int) -> Path:
         m["anchor_g_by_sut"] = {Path(f).name.split(".scores.")[1][:-4]: v for f, v in zip(files, g[m["cell_key"]])}
         m["protect_words"] = ["subject", "image"] if task == "imagenet" else [m["object"], "image"]
         m["calibration_holdout"] = True
-    out = Path(f"cells/{task}_calib.yaml")
+    out = Path(f"cells/{task}_{name}.yaml")
     out.write_text(yaml.safe_dump({"seeds": {"mode": "slot_items", "slot_items": {"items": chosen}}},
                                   sort_keys=False, allow_unicode=True))
     print(task, f"{len(keep)} held-out eligible; chose", [it["meta"]["cell_key"] for it in chosen])
@@ -65,9 +70,11 @@ def main() -> None:
     ap.add_argument("--k", type=int, default=4)
     ap.add_argument("--tau", type=float, default=1.0)
     ap.add_argument("--seed", type=int, default=20261127)
+    ap.add_argument("--name", default="calib", help="output cells/<task>_<name>.yaml")
+    ap.add_argument("--exclude", nargs="*", default=[], help="earlier calibration sets to keep disjoint (e.g. calib)")
     a = ap.parse_args()
     for t in ("imagenet", "pope"):
-        build(t, a.k, a.tau, a.seed)
+        build(t, a.k, a.tau, a.seed, a.name, a.exclude)
 
 
 if __name__ == "__main__":

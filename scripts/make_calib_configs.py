@@ -28,7 +28,7 @@ def main() -> int:
     out.mkdir(parents=True, exist_ok=True)
     n = 0
     for task in TASKS:
-        cells = yaml.safe_load(Path(f"cells/{task}_calib.yaml").read_text())["seeds"]["slot_items"]["items"]
+        cells = yaml.safe_load(Path(f"cells/{task}_{s.get('cells', 'calib')}.yaml").read_text())["seeds"]["slot_items"]["items"]
         for sut in SUTS:
             base = yaml.safe_load(Path(f"configs/generated/MAIN/A0__s0__{task}__{sut}__a0_directed.yaml").read_text())
             for key in s.get("arms", ["a7", "a6", "a0"]):

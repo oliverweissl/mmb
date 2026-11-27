@@ -1,0 +1,282 @@
+[
+ {
+  "image": "COCO_val2014_000000500257.jpg",
+  "level": 1,
+  "rank": 1,
+  "lpips": 0.001597347087226808,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000500257.jpg",
+  "level": 2,
+  "rank": 2,
+  "lpips": 0.0011961502023041248,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000500257.jpg",
+  "level": 3,
+  "rank": 4,
+  "lpips": 0.0014844418037682772,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000500257.jpg",
+  "level": 4,
+  "rank": 8,
+  "lpips": 0.001332522020675242,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000500257.jpg",
+  "level": 5,
+  "rank": 16,
+  "lpips": 0.0027795317582786083,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000500257.jpg",
+  "level": 6,
+  "rank": 32,
+  "lpips": 0.003269545268267393,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000500257.jpg",
+  "level": 7,
+  "rank": 64,
+  "lpips": 0.004657055716961622,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000500257.jpg",
+  "level": 8,
+  "rank": 128,
+  "lpips": 0.008287157863378525,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000500257.jpg",
+  "level": 9,
+  "rank": 256,
+  "lpips": 0.009448179975152016,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000500257.jpg",
+  "level": 10,
+  "rank": 512,
+  "lpips": 0.01672186516225338,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000331366.jpg",
+  "level": 1,
+  "rank": 1,
+  "lpips": 0.0023250801023095846,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000331366.jpg",
+  "level": 2,
+  "rank": 2,
+  "lpips": 0.002549223368987441,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000331366.jpg",
+  "level": 3,
+  "rank": 4,
+  "lpips": 0.0021822210401296616,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000331366.jpg",
+  "level": 4,
+  "rank": 8,
+  "lpips": 0.004261611495167017,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000331366.jpg",
+  "level": 5,
+  "rank": 16,
+  "lpips": 0.002848248928785324,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000331366.jpg",
+  "level": 6,
+  "rank": 32,
+  "lpips": 0.008639167062938213,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000331366.jpg",
+  "level": 7,
+  "rank": 64,
+  "lpips": 0.006954238750040531,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000331366.jpg",
+  "level": 8,
+  "rank": 128,
+  "lpips": 0.011752385646104813,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000331366.jpg",
+  "level": 9,
+  "rank": 256,
+  "lpips": 0.011773986741900444,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000331366.jpg",
+  "level": 10,
+  "rank": 512,
+  "lpips": 0.013430457562208176,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000551881.jpg",
+  "level": 1,
+  "rank": 1,
+  "lpips": 0.0012986876536160707,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000551881.jpg",
+  "level": 2,
+  "rank": 2,
+  "lpips": 0.0013323072344064713,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000551881.jpg",
+  "level": 3,
+  "rank": 4,
+  "lpips": 0.0010413156123831868,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000551881.jpg",
+  "level": 4,
+  "rank": 8,
+  "lpips": 0.0009971768595278263,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000551881.jpg",
+  "level": 5,
+  "rank": 16,
+  "lpips": 0.0018779933452606201,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000551881.jpg",
+  "level": 6,
+  "rank": 32,
+  "lpips": 0.003916880115866661,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000551881.jpg",
+  "level": 7,
+  "rank": 64,
+  "lpips": 0.0047314101830124855,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000551881.jpg",
+  "level": 8,
+  "rank": 128,
+  "lpips": 0.009293231181800365,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000551881.jpg",
+  "level": 9,
+  "rank": 256,
+  "lpips": 0.011289370246231556,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000551881.jpg",
+  "level": 10,
+  "rank": 512,
+  "lpips": 0.018467161804437637,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000113701.jpg",
+  "level": 1,
+  "rank": 1,
+  "lpips": 0.0028859872836619616,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000113701.jpg",
+  "level": 2,
+  "rank": 2,
+  "lpips": 0.0024569386150687933,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000113701.jpg",
+  "level": 3,
+  "rank": 4,
+  "lpips": 0.003358827903866768,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000113701.jpg",
+  "level": 4,
+  "rank": 8,
+  "lpips": 0.003144389484077692,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000113701.jpg",
+  "level": 5,
+  "rank": 16,
+  "lpips": 0.004206866957247257,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000113701.jpg",
+  "level": 6,
+  "rank": 32,
+  "lpips": 0.007490718271583319,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000113701.jpg",
+  "level": 7,
+  "rank": 64,
+  "lpips": 0.007947917096316814,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000113701.jpg",
+  "level": 8,
+  "rank": 128,
+  "lpips": 0.012630688026547432,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000113701.jpg",
+  "level": 9,
+  "rank": 256,
+  "lpips": 0.01540851779282093,
+  "dead_share": 0.0
+ },
+ {
+  "image": "COCO_val2014_000000113701.jpg",
+  "level": 10,
+  "rank": 512,
+  "lpips": 0.024187251925468445,
+  "dead_share": 0.0
+ }
+]

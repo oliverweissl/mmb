@@ -1,0 +1,282 @@
+[
+ {
+  "image": "marimba_01.png",
+  "level": 1,
+  "rank": 1,
+  "lpips": 0.0026353569701313972,
+  "dead_share": 0.0
+ },
+ {
+  "image": "marimba_01.png",
+  "level": 2,
+  "rank": 2,
+  "lpips": 0.0024732707533985376,
+  "dead_share": 0.0
+ },
+ {
+  "image": "marimba_01.png",
+  "level": 3,
+  "rank": 4,
+  "lpips": 0.0027750320732593536,
+  "dead_share": 0.0
+ },
+ {
+  "image": "marimba_01.png",
+  "level": 4,
+  "rank": 8,
+  "lpips": 0.0027890661731362343,
+  "dead_share": 0.0
+ },
+ {
+  "image": "marimba_01.png",
+  "level": 5,
+  "rank": 16,
+  "lpips": 0.005474763922393322,
+  "dead_share": 0.0
+ },
+ {
+  "image": "marimba_01.png",
+  "level": 6,
+  "rank": 32,
+  "lpips": 0.006980445701628923,
+  "dead_share": 0.0
+ },
+ {
+  "image": "marimba_01.png",
+  "level": 7,
+  "rank": 64,
+  "lpips": 0.0077494066208601,
+  "dead_share": 0.0
+ },
+ {
+  "image": "marimba_01.png",
+  "level": 8,
+  "rank": 128,
+  "lpips": 0.011219676584005356,
+  "dead_share": 0.0
+ },
+ {
+  "image": "marimba_01.png",
+  "level": 9,
+  "rank": 256,
+  "lpips": 0.01658971607685089,
+  "dead_share": 0.0
+ },
+ {
+  "image": "marimba_01.png",
+  "level": 10,
+  "rank": 512,
+  "lpips": 0.023332007229328156,
+  "dead_share": 0.0
+ },
+ {
+  "image": "cello_01.png",
+  "level": 1,
+  "rank": 1,
+  "lpips": 0.002218743786215782,
+  "dead_share": 0.0
+ },
+ {
+  "image": "cello_01.png",
+  "level": 2,
+  "rank": 2,
+  "lpips": 0.0018935933476313949,
+  "dead_share": 0.0
+ },
+ {
+  "image": "cello_01.png",
+  "level": 3,
+  "rank": 4,
+  "lpips": 0.0037587573751807213,
+  "dead_share": 0.0
+ },
+ {
+  "image": "cello_01.png",
+  "level": 4,
+  "rank": 8,
+  "lpips": 0.002678121207281947,
+  "dead_share": 0.0
+ },
+ {
+  "image": "cello_01.png",
+  "level": 5,
+  "rank": 16,
+  "lpips": 0.0052062636241316795,
+  "dead_share": 0.0
+ },
+ {
+  "image": "cello_01.png",
+  "level": 6,
+  "rank": 32,
+  "lpips": 0.00675521045923233,
+  "dead_share": 0.0
+ },
+ {
+  "image": "cello_01.png",
+  "level": 7,
+  "rank": 64,
+  "lpips": 0.007322066929191351,
+  "dead_share": 0.0
+ },
+ {
+  "image": "cello_01.png",
+  "level": 8,
+  "rank": 128,
+  "lpips": 0.010239564813673496,
+  "dead_share": 0.0
+ },
+ {
+  "image": "cello_01.png",
+  "level": 9,
+  "rank": 256,
+  "lpips": 0.01645427756011486,
+  "dead_share": 0.0
+ },
+ {
+  "image": "cello_01.png",
+  "level": 10,
+  "rank": 512,
+  "lpips": 0.018517114222049713,
+  "dead_share": 0.0
+ },
+ {
+  "image": "junco_00.png",
+  "level": 1,
+  "rank": 1,
+  "lpips": 0.0012832137290388346,
+  "dead_share": 0.0
+ },
+ {
+  "image": "junco_00.png",
+  "level": 2,
+  "rank": 2,
+  "lpips": 0.0017633866518735886,
+  "dead_share": 0.0
+ },
+ {
+  "image": "junco_00.png",
+  "level": 3,
+  "rank": 4,
+  "lpips": 0.0009466639603488147,
+  "dead_share": 0.0
+ },
+ {
+  "image": "junco_00.png",
+  "level": 4,
+  "rank": 8,
+  "lpips": 0.0016113616293296218,
+  "dead_share": 0.0
+ },
+ {
+  "image": "junco_00.png",
+  "level": 5,
+  "rank": 16,
+  "lpips": 0.003246383275836706,
+  "dead_share": 0.0
+ },
+ {
+  "image": "junco_00.png",
+  "level": 6,
+  "rank": 32,
+  "lpips": 0.0030853301286697388,
+  "dead_share": 0.0
+ },
+ {
+  "image": "junco_00.png",
+  "level": 7,
+  "rank": 64,
+  "lpips": 0.0052042617462575436,
+  "dead_share": 0.0
+ },
+ {
+  "image": "junco_00.png",
+  "level": 8,
+  "rank": 128,
+  "lpips": 0.008655867539346218,
+  "dead_share": 0.0
+ },
+ {
+  "image": "junco_00.png",
+  "level": 9,
+  "rank": 256,
+  "lpips": 0.012237107381224632,
+  "dead_share": 0.0
+ },
+ {
+  "image": "junco_00.png",
+  "level": 10,
+  "rank": 512,
+  "lpips": 0.01668206788599491,
+  "dead_share": 0.0
+ },
+ {
+  "image": "green_iguana_00.png",
+  "level": 1,
+  "rank": 1,
+  "lpips": 0.003898830618709326,
+  "dead_share": 0.0
+ },
+ {
+  "image": "green_iguana_00.png",
+  "level": 2,
+  "rank": 2,
+  "lpips": 0.0038449158892035484,
+  "dead_share": 0.0
+ },
+ {
+  "image": "green_iguana_00.png",
+  "level": 3,
+  "rank": 4,
+  "lpips": 0.0028550417628139257,
+  "dead_share": 0.0
+ },
+ {
+  "image": "green_iguana_00.png",
+  "level": 4,
+  "rank": 8,
+  "lpips": 0.0037187309935688972,
+  "dead_share": 0.0
+ },
+ {
+  "image": "green_iguana_00.png",
+  "level": 5,
+  "rank": 16,
+  "lpips": 0.005212224088609219,
+  "dead_share": 0.0
+ },
+ {
+  "image": "green_iguana_00.png",
+  "level": 6,
+  "rank": 32,
+  "lpips": 0.009752439334988594,
+  "dead_share": 0.0
+ },
+ {
+  "image": "green_iguana_00.png",
+  "level": 7,
+  "rank": 64,
+  "lpips": 0.018602870404720306,
+  "dead_share": 0.0
+ },
+ {
+  "image": "green_iguana_00.png",
+  "level": 8,
+  "rank": 128,
+  "lpips": 0.013568460941314697,
+  "dead_share": 0.0
+ },
+ {
+  "image": "green_iguana_00.png",
+  "level": 9,
+  "rank": 256,
+  "lpips": 0.019239505752921104,
+  "dead_share": 0.0
+ },
+ {
+  "image": "green_iguana_00.png",
+  "level": 10,
+  "rank": 512,
+  "lpips": 0.025179704651236534,
+  "dead_share": 0.0
+ }
+]

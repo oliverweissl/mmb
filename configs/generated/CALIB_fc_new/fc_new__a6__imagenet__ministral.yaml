@@ -1,0 +1,208 @@
+name: CALIB_fc_new_imagenet_ministral_a6_text_only_s0
+device: cuda
+save_dir: runs/CALIB/fc_new/imagenet/ministral/a6_text_only/s0
+cache_dirs:
+- ~/.cache/imagenet
+categories:
+- junco
+- ostrich
+- green iguana
+- boa constrictor
+- cello
+- marimba
+generations: 50
+pop_size: 30
+seed: 0
+sut:
+  model_id: mistralai/Ministral-3-3B-Instruct-2512
+  backend: torch
+  batched_scoring: true
+  batch_chunk: 15
+seeds:
+  mode: slot_items
+  slot_items:
+    items:
+    - image: ~/data/cells/imagenet/ostrich_02.png
+      prompt: What is the main subject in this image?
+      template: '{slot}'
+      fillers:
+      - ratite
+      - musical instrument
+      pair:
+      - ratite
+      - musical instrument
+      meta:
+        level_anchor: 0
+        level_target: 2
+        anchor_class_concrete: ostrich
+        target_class_concrete: marimba
+        anchor_label_in_prompt: ratite
+        target_label_in_prompt: musical instrument
+        common_ancestor_level: null
+        seed_idx_in_class: 2
+        anchor_position: 1
+        target_position: 5
+        task: imagenet
+        cell_key: ostrich|marimba|La0-Lt2|p2
+        cell_idx: 0
+        anchor_g_by_sut:
+          llava_hf_llava_v1_6_mistral_7b_hf: 4.0116846561431885
+          mistralai_ministral_3_3b_instruct_2512: 5.089590638875961
+          opengvlab_internvl3_5_4b_hf: 3.456577777862549
+          qwen_qwen3_5_4b: 2.2287764974171296
+        protect_words:
+        - subject
+        - image
+        calibration_holdout: true
+    - image: ~/data/cells/imagenet/green_iguana_02.png
+      prompt: What is the main subject in this image?
+      template: '{slot}'
+      fillers:
+      - reptile
+      - bird
+      pair:
+      - reptile
+      - bird
+      meta:
+        level_anchor: 2
+        level_target: 2
+        anchor_class_concrete: green iguana
+        target_class_concrete: ostrich
+        anchor_label_in_prompt: reptile
+        target_label_in_prompt: bird
+        common_ancestor_level: null
+        seed_idx_in_class: 2
+        anchor_position: 2
+        target_position: 1
+        task: imagenet
+        cell_key: green iguana|ostrich|La2-Lt2|p2
+        cell_idx: 1
+        anchor_g_by_sut:
+          llava_hf_llava_v1_6_mistral_7b_hf: 15.072986125946045
+          mistralai_ministral_3_3b_instruct_2512: 13.993620924651623
+          opengvlab_internvl3_5_4b_hf: 17.791067481040955
+          qwen_qwen3_5_4b: 4.631950804265216
+        protect_words:
+        - subject
+        - image
+        calibration_holdout: true
+    - image: ~/data/cells/imagenet/boa_constrictor_02.png
+      prompt: What is the main subject in this image?
+      template: '{slot}'
+      fillers:
+      - snake
+      - songbird
+      pair:
+      - snake
+      - songbird
+      meta:
+        level_anchor: 1
+        level_target: 1
+        anchor_class_concrete: boa constrictor
+        target_class_concrete: junco
+        anchor_label_in_prompt: snake
+        target_label_in_prompt: songbird
+        common_ancestor_level: null
+        seed_idx_in_class: 2
+        anchor_position: 3
+        target_position: 0
+        task: imagenet
+        cell_key: boa constrictor|junco|La1-Lt1|p2
+        cell_idx: 2
+        anchor_g_by_sut:
+          llava_hf_llava_v1_6_mistral_7b_hf: 5.395706534385681
+          mistralai_ministral_3_3b_instruct_2512: 6.349235337227583
+          opengvlab_internvl3_5_4b_hf: 4.9032745361328125
+          qwen_qwen3_5_4b: 2.1107188630849123
+        protect_words:
+        - subject
+        - image
+        calibration_holdout: true
+    - image: ~/data/cells/imagenet/cello_00.png
+      prompt: What is the main subject in this image?
+      template: '{slot}'
+      fillers:
+      - cello
+      - bird
+      pair:
+      - cello
+      - bird
+      meta:
+        level_anchor: 0
+        level_target: 2
+        anchor_class_concrete: cello
+        target_class_concrete: ostrich
+        anchor_label_in_prompt: cello
+        target_label_in_prompt: bird
+        common_ancestor_level: null
+        seed_idx_in_class: 0
+        anchor_position: 4
+        target_position: 1
+        task: imagenet
+        cell_key: cello|ostrich|La0-Lt2|p0
+        cell_idx: 3
+        anchor_g_by_sut:
+          llava_hf_llava_v1_6_mistral_7b_hf: 19.002857208251953
+          mistralai_ministral_3_3b_instruct_2512: 16.71340194903314
+          opengvlab_internvl3_5_4b_hf: 19.82079029083252
+          qwen_qwen3_5_4b: 2.210853047668934
+        protect_words:
+        - subject
+        - image
+        calibration_holdout: true
+image:
+  backend: vqgan_codebook
+  region_block: 0
+  n_candidates: 16383
+  cone_filter:
+    enabled: false
+    alpha_deg: 20.0
+    target_m: 10
+  knn_metric: l2_live
+  region_levels:
+  - 1
+  - 2
+  - 4
+  - 8
+text:
+  spacy_model: en_core_web_sm
+  composite:
+    operators:
+    - name: synonym
+      severity: 0.5
+      k_max: 3
+    - name: character_noise
+      severity: 0.75
+      modes:
+      - homoglyph
+      - zero_width
+    - name: saliency
+      severity: 0.25
+      k_max: 1
+      all_words: true
+      min_word_len: 4
+optimizer:
+  algorithm: mmba
+  sampling:
+    mode: sparse_multitier
+    zero_anchor_fraction: 0.05
+    tiers:
+    - p_active: 0.005
+      fraction: 0.2
+    - p_active: 0.03
+      fraction: 0.2
+    - p_active: 0.1
+      fraction: 0.25
+    - p_active: 0.3
+      fraction: 0.2
+    - p_active: 0.5
+      fraction: 0.1
+  early_stop:
+    enable: false
+  proximity_only: true
+tags:
+  exp_id: CALIB_fc_new
+  task: imagenet
+  sut: ministral
+  arm: a6_text_only
+modality: text_only

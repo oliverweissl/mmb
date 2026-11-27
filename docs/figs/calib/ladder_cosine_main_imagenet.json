@@ -1,0 +1,296 @@
+[
+ {
+  "image": "marimba_01.png",
+  "level": 1,
+  "rank": 1,
+  "lpips": 0.11342030763626099,
+  "dead_share": 0.75
+ },
+ {
+  "image": "marimba_01.png",
+  "level": 2,
+  "rank": 2,
+  "lpips": 0.10748995095491409,
+  "dead_share": 0.71875
+ },
+ {
+  "image": "marimba_01.png",
+  "level": 3,
+  "rank": 4,
+  "lpips": 0.12806996703147888,
+  "dead_share": 0.7395833333333334
+ },
+ {
+  "image": "marimba_01.png",
+  "level": 4,
+  "rank": 8,
+  "lpips": 0.11171155422925949,
+  "dead_share": 0.71875
+ },
+ {
+  "image": "marimba_01.png",
+  "level": 5,
+  "rank": 16,
+  "lpips": 0.12039686739444733,
+  "dead_share": 0.71875
+ },
+ {
+  "image": "marimba_01.png",
+  "level": 6,
+  "rank": 32,
+  "lpips": 0.12687689065933228,
+  "dead_share": 0.8125
+ },
+ {
+  "image": "marimba_01.png",
+  "level": 7,
+  "rank": 64,
+  "lpips": 0.14260432124137878,
+  "dead_share": 0.8645833333333334
+ },
+ {
+  "image": "marimba_01.png",
+  "level": 8,
+  "rank": 128,
+  "lpips": 0.1377936154603958,
+  "dead_share": 0.8229166666666666
+ },
+ {
+  "image": "marimba_01.png",
+  "level": 9,
+  "rank": 256,
+  "lpips": 0.14881964027881622,
+  "dead_share": 0.875
+ },
+ {
+  "image": "marimba_01.png",
+  "level": 10,
+  "rank": 512,
+  "lpips": 0.16822905838489532,
+  "dead_share": 0.8958333333333334
+ },
+ {
+  "image": "marimba_01.png",
+  "level": 11,
+  "rank": 1024,
+  "lpips": 0.16708113253116608,
+  "dead_share": 0.9479166666666666
+ },
+ {
+  "image": "marimba_01.png",
+  "level": 12,
+  "rank": 2048,
+  "lpips": 0.17103636264801025,
+  "dead_share": 0.9479166666666666
+ },
+ {
+  "image": "marimba_01.png",
+  "level": 13,
+  "rank": 4096,
+  "lpips": 0.18281859159469604,
+  "dead_share": 0.96875
+ },
+ {
+  "image": "marimba_01.png",
+  "level": 14,
+  "rank": 8192,
+  "lpips": 0.1788586974143982,
+  "dead_share": 0.9583333333333334
+ },
+ {
+  "image": "cello_01.png",
+  "level": 1,
+  "rank": 1,
+  "lpips": 0.0912763923406601,
+  "dead_share": 0.7916666666666666
+ },
+ {
+  "image": "cello_01.png",
+  "level": 2,
+  "rank": 2,
+  "lpips": 0.08694308996200562,
+  "dead_share": 0.7291666666666666
+ },
+ {
+  "image": "cello_01.png",
+  "level": 3,
+  "rank": 4,
+  "lpips": 0.09184812009334564,
+  "dead_share": 0.7291666666666666
+ },
+ {
+  "image": "cello_01.png",
+  "level": 4,
+  "rank": 8,
+  "lpips": 0.10080493241548538,
+  "dead_share": 0.78125
+ },
+ {
+  "image": "cello_01.png",
+  "level": 5,
+  "rank": 16,
+  "lpips": 0.10406078398227692,
+  "dead_share": 0.7708333333333334
+ },
+ {
+  "image": "cello_01.png",
+  "level": 6,
+  "rank": 32,
+  "lpips": 0.09511659294366837,
+  "dead_share": 0.75
+ },
+ {
+  "image": "cello_01.png",
+  "level": 7,
+  "rank": 64,
+  "lpips": 0.09475614875555038,
+  "dead_share": 0.7604166666666666
+ },
+ {
+  "image": "cello_01.png",
+  "level": 8,
+  "rank": 128,
+  "lpips": 0.10460170358419418,
+  "dead_share": 0.8333333333333334
+ },
+ {
+  "image": "cello_01.png",
+  "level": 9,
+  "rank": 256,
+  "lpips": 0.1140342578291893,
+  "dead_share": 0.875
+ },
+ {
+  "image": "cello_01.png",
+  "level": 10,
+  "rank": 512,
+  "lpips": 0.12502363324165344,
+  "dead_share": 0.875
+ },
+ {
+  "image": "cello_01.png",
+  "level": 11,
+  "rank": 1024,
+  "lpips": 0.1354426145553589,
+  "dead_share": 0.9583333333333334
+ },
+ {
+  "image": "cello_01.png",
+  "level": 12,
+  "rank": 2048,
+  "lpips": 0.13340863585472107,
+  "dead_share": 0.96875
+ },
+ {
+  "image": "cello_01.png",
+  "level": 13,
+  "rank": 4096,
+  "lpips": 0.13188278675079346,
+  "dead_share": 0.9375
+ },
+ {
+  "image": "cello_01.png",
+  "level": 14,
+  "rank": 8192,
+  "lpips": 0.1364808976650238,
+  "dead_share": 0.9791666666666666
+ },
+ {
+  "image": "junco_00.png",
+  "level": 1,
+  "rank": 1,
+  "lpips": 0.058853745460510254,
+  "dead_share": 0.8125
+ },
+ {
+  "image": "junco_00.png",
+  "level": 2,
+  "rank": 2,
+  "lpips": 0.0645877867937088,
+  "dead_share": 0.84375
+ },
+ {
+  "image": "junco_00.png",
+  "level": 3,
+  "rank": 4,
+  "lpips": 0.06459246575832367,
+  "dead_share": 0.8020833333333334
+ },
+ {
+  "image": "junco_00.png",
+  "level": 4,
+  "rank": 8,
+  "lpips": 0.048828352242708206,
+  "dead_share": 0.6770833333333334
+ },
+ {
+  "image": "junco_00.png",
+  "level": 5,
+  "rank": 16,
+  "lpips": 0.06312421709299088,
+  "dead_share": 0.71875
+ },
+ {
+  "image": "junco_00.png",
+  "level": 6,
+  "rank": 32,
+  "lpips": 0.06601405143737793,
+  "dead_share": 0.84375
+ },
+ {
+  "image": "junco_00.png",
+  "level": 7,
+  "rank": 64,
+  "lpips": 0.06316512078046799,
+  "dead_share": 0.84375
+ },
+ {
+  "image": "junco_00.png",
+  "level": 8,
+  "rank": 128,
+  "lpips": 0.07683524489402771,
+  "dead_share": 0.8645833333333334
+ },
+ {
+  "image": "junco_00.png",
+  "level": 9,
+  "rank": 256,
+  "lpips": 0.07213131338357925,
+  "dead_share": 0.90625
+ },
+ {
+  "image": "junco_00.png",
+  "level": 10,
+  "rank": 512,
+  "lpips": 0.08101770281791687,
+  "dead_share": 0.8333333333333334
+ },
+ {
+  "image": "junco_00.png",
+  "level": 11,
+  "rank": 1024,
+  "lpips": 0.08523377776145935,
+  "dead_share": 0.9270833333333334
+ },
+ {
+  "image": "junco_00.png",
+  "level": 12,
+  "rank": 2048,
+  "lpips": 0.08681097626686096,
+  "dead_share": 0.9583333333333334
+ },
+ {
+  "image": "junco_00.png",
+  "level": 13,
+  "rank": 4096,
+  "lpips": 0.08449216187000275,
+  "dead_share": 0.9166666666666666
+ },
+ {
+  "image": "junco_00.png",
+  "level": 14,
+  "rank": 8192,
+  "lpips": 0.08242432773113251,
+  "dead_share": 0.9270833333333334
+ }
+]
