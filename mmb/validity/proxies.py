@@ -237,10 +237,6 @@ def image_proxies(models: ProxyModels, seed_img: Image.Image, cross_img: Image.I
 # ---------------------------------------------------------------------------
 
 
-def normalise_visible(text: str) -> str:
-    """NFKC and collapsed spaces (question-pool questions are plain words; kept for callers that compare strings)."""
-    return re.sub(r"[ \t]+", " ", unicodedata.normalize("NFKC", str(text))).strip()
-
 
 def text_proxies(models: ProxyModels, original: str, edited: str, keyword: str | None = None) -> dict:
     flag, ks, ck = question_preserved(original, edited, keyword)

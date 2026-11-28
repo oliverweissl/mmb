@@ -1,3 +1,5 @@
+> **Superseded (2026-11-28):** integer-genotype design; see docs/METHODOLOGY_REVIEW_2026-11-28.md and METHODOLOGY.md for the current continuous design. Kept for the record.
+
 # Image-edit realism, channel balance and headline metric: diagnosis on stored runs (2026-11-26)
 
 CPU only, stored runs only (runs/MAIN, random seed 0, MMBA a0 / random a1 / MIMICRY-style a5 / DeepJanus-style a9, 108 runs each).

@@ -1,4 +1,0 @@
-round: r2b
-# image I3: live-codeword L2 KNN, 64 regions, ladder to rank 8 (4 levels); text-only reference = r2a (T2)
-image: {knn_metric: l2_live, region_block: 4, region_levels: [1, 2, 4, 8]}
-arms: [a7]

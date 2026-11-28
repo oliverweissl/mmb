@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Wait until every config with prefix $1 is done, then run the replay maintenance (confirm crossings).
+# Wait until every config with prefix $1 is done, then run the replay maintenance (agreement / swap replays).
 #   systemd-run --user --unit mmb-after-A0x -p WorkingDirectory=$PWD bash scripts/after_block.sh A0x
 set -u
 pre=$1

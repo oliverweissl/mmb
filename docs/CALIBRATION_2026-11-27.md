@@ -1,3 +1,5 @@
+> **Superseded (2026-11-28):** integer-genotype design; see docs/METHODOLOGY_REVIEW_2026-11-28.md and METHODOLOGY.md for the current continuous design. Kept for the record.
+
 # Operator calibration (T-calib), 2026-11-27
 
 Goal (user): text-only and image-only manipulation in equilibrium, at a moderate level with headroom, so that full MMBA

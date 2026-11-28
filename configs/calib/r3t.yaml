@@ -1,9 +1,0 @@
-round: r3t
-# text T3 (valid, stronger than T2): synonym pool 3, INVISIBLE character noise up to 4 per word (homoglyph/zero-width:
-# renders like the original), at most one visible typo per word on words of >= 4 letters, no fragmentation
-text:
-  operators:
-    - {name: synonym, severity: 0.5, k_max: 3}
-    - {name: character_noise, severity: 0.75, modes: [homoglyph, zero_width]}
-    - {name: saliency, severity: 0.25, k_max: 1, all_words: true, min_word_len: 4}
-arms: [a6]

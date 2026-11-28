@@ -20,7 +20,6 @@ class TestTextProxies:
 
     def test_case_and_nfkc_are_normalised(self):
         assert px.word_edit_distance("What is the main subject", "what IS the main subject") == 0.0
-        assert px.normalise_visible("Is  there a dog?") == "Is there a dog?"
 
     def test_keyword_similarity(self):
         assert px.keyword_similarity("iguana", "is there a green iguana here") == 1.0

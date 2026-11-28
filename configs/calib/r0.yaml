@@ -1,5 +1,0 @@
-round: r0
-# UNCALIBRATED: the original operators of the MAIN study (no image/text override: cosine nearest codewords over all
-# 16,384 codewords, the MAIN region ladder; text composite profile 'minimal'), text-only and image-only on held-out set 1
-cells: calib
-arms: [a6, a7]

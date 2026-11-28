@@ -1,21 +1,19 @@
-# Experiments runbook (GPU box required)
+# Experiments runbook (GPU box)
 
-No result in the paper's new tables (E1-E10) exists yet; this is how to produce them.
+Order of a campaign in the continuous design. Details: [EXP_SETUP.md](../EXP_SETUP.md); decisions:
+[METHODOLOGY.md](../METHODOLOGY.md); design: [METHODOLOGY_REVIEW_2026-11-28.md](METHODOLOGY_REVIEW_2026-11-28.md),
+[SEARCH_REAL_CODED.md](SEARCH_REAL_CODED.md), [DETERMINISM_2026-11-28.md](DETERMINISM_2026-11-28.md).
 
-## E1/E2 — equal-budget search arms
-```
-pip install -e .[dev]
-python scripts/make_arm_configs.py configs/templates/evolutionary_template.yaml configs/paper/arms   # regenerates the 8 arms
-for a in configs/paper/arms/*.yaml; do mmb-evolve $a --device cuda; done
-```
-Arms: a0 directed (AGE-MOEA-II, 3 objectives) · a1 random, tiered init · a2 random, uniform init ·
-a3 single-objective GA on proximity only · a4 NSGA-II · a5 MIMICRY-style softmax-balance objective ·
-a6 text-only · a7 image-only. a5 changes only the boundary objective (`optimizer.boundary_objective`),
-so it isolates the log-likelihood-margin contribution.
-
-Before running: set the same `seeds:` block, `generations`, `pop_size` in the base config (arms share
-them), **disable early stop** (`optimizer.early_stop`) so "crossing share vs budget" curves are not truncated,
-and use identical `seed` integers across arms (paired tests).Proximity band for "reached boundary": |g| <= 1e-2 nats (the paper's criterion).
-
-## Still to implement (see PROGRESS.md)
-Diffusion image backend, LLM-paraphrase text backend, task protocol, validity scorer, API SUT.
+1. **Question pool** (only when cells change): `python scripts/build_question_pool.py` (GPU, ~7 min), then
+   `scripts/plot_question_pool.py` and `scripts/review_question_pool.py` for the review figures and sheet. Writes
+   `configs/text/question_pool.json` (what runs read) and `question_pool_rejected.json.gz` (review only).
+2. **Smoke**: one small config (e.g. `configs/generated/SMOKE_continuous/`) through `mmb-evolve <cfg> --device cuda`;
+   check `min_cross.json` and `boundary_pair.json`, then `scripts/analysis/run_analysis.sh runs/SMOKE/continuous SMOKE`.
+3. **Calibration of (w_img, w_txt)**: per step `python -m mmb.analysis.calibration configs ...`, run the step's configs
+   with `scripts/run_queue.sh`, then `python -m mmb.analysis.calibration analyze ...` (trajectory table + figure).
+   Stop at the weakest balanced step (McNemar p >= 0.05, both modalities mostly crossing).
+4. **MAIN**: set the adopted weights in the base configs, regenerate `configs/generated/MAIN`
+   (`scripts/make_arm_configs.py`), run `scripts/run_queue.sh configs/generated/MAIN` (strictly serial, resumable).
+   Never edit code while a queue runs.
+5. **Replays**: `scripts/replay_maintenance.sh` (greedy agreement, modality swap, transfer).
+6. **Export**: `scripts/analysis/export_to_paper.sh <paper_repo>`, review the diff in the paper repo.

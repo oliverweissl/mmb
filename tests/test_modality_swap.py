@@ -1,13 +1,8 @@
 """Modality-swap analysis (mmb.analysis.modality_swap) on synthetic replay rows."""
-import importlib.util
-from pathlib import Path
-
 import pandas as pd
 
 from mmb.analysis import export, modality_swap as msw
-
-spec = importlib.util.spec_from_file_location("modswap_script", Path(__file__).parents[1] / "scripts" / "modality_swap.py")
-script = importlib.util.module_from_spec(spec); spec.loader.exec_module(script)
+from mmb.analysis import replay as script
 
 
 def test_classify():

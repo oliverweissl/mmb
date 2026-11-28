@@ -19,6 +19,10 @@ reading, second medium word); NLI mutual entailment >= 0.8; CoLA >= max(min(0.5,
 distances over all questions (the text block's global scale), meta.n_bands = the band count of the (t, u) mapping.
 
     ../.venv/bin/python scripts/build_question_pool.py --out configs/text/question_pool.json
+
+Outputs: <out> (meta + per question the accepted pool and the rejection counts: what runs and the analysis read) and
+<out stem>_rejected.json.gz (per question every rejected candidate with its reason; review only,
+scripts/review_question_pool.py). split_existing() splits an older single-file pool without rebuilding it.
 """
 import argparse, itertools, json, re, sys
 from pathlib import Path
@@ -212,6 +216,37 @@ def substitutions(op, nlp, q: str, prot: list[str], max_combos: int, rng, max_si
     return out, {ow: c for _, ow, c in sites}
 
 
+def rejected_path(out: Path) -> Path:
+    out = Path(out)
+    return out.with_name(out.stem + "_rejected.json.gz")
+
+
+def _atomic_write(path: Path, data: bytes) -> None:
+    import os
+    tmp = path.with_name(path.name + ".tmp")
+    tmp.write_bytes(data)
+    os.replace(tmp, path)
+
+
+def save_pool(meta: dict, questions: dict, out: Path) -> None:
+    """Write the run-time pool (rejected items moved out) and the gzipped review file; both atomically."""
+    import gzip
+    out = Path(out)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    rej = {q: e.get("rejected", []) for q, e in questions.items()}
+    slim = {q: {k: v for k, v in e.items() if k != "rejected"} for q, e in questions.items()}
+    _atomic_write(rejected_path(out), gzip.compress(json.dumps(rej, ensure_ascii=False).encode(), mtime=0))
+    _atomic_write(out, json.dumps(dict(meta=meta, questions=slim), indent=1, ensure_ascii=False).encode())
+
+
+def split_existing(path: Path) -> None:
+    """Split a single-file pool (with 'rejected' lists) into the two files; pools and meta are unchanged."""
+    P = json.loads(Path(path).read_text())
+    if not any("rejected" in e for e in P["questions"].values()):
+        return
+    save_pool(P["meta"], P["questions"], Path(path))
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", type=Path, default=Path("configs/text/question_pool.json"))
@@ -350,8 +385,7 @@ def main() -> int:
                 "adds content about the object (hyphen compound: 'broccoli-like', 'remote-controlled')",
                 "modifier before the object ('lone dog', 'actual person')",
                 "adds content about the object (possessive, compound noun or relative clause after it)"], note="mapping: mmb/manipulator/text/operators/question_pool.py select_index")
-    a.out.parent.mkdir(parents=True, exist_ok=True)
-    a.out.write_text(json.dumps(dict(meta=meta, questions=questions), indent=1, ensure_ascii=False))
+    save_pool(meta, questions, a.out)
     print("d_max", d_max, "pool total", alld.size)
     return 0
 

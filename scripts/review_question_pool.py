@@ -5,7 +5,8 @@
 
 Top: the extra meaning rules (C1) for approval, next to the user's approved T-B rules. Then one section per question:
 the pool sorted by distance d (text, d, sources, NLI, CoLA, the base paraphrase of grown entries) and the rejected
-candidates, collapsible per reason (at most --max-rejected-per-reason shown; the JSON has all).
+candidates, collapsible per reason (at most --max-rejected-per-reason shown; configs/text/question_pool_rejected.json.gz
+has all).
 """
 import argparse, html, json
 from pathlib import Path
@@ -33,6 +34,11 @@ def main():
     ap.add_argument("--max-rejected-per-reason", type=int, default=150)
     a = ap.parse_args()
     P = json.loads(Path(a.pool).read_text()); meta, Q = P["meta"], P["questions"]
+    import gzip
+    rp = Path(a.pool).with_name(Path(a.pool).stem + "_rejected.json.gz")
+    rej = json.loads(gzip.decompress(rp.read_bytes())) if rp.exists() else {}
+    for q, e in Q.items():
+        e.setdefault("rejected", rej.get(q, []))
     h = [f"<!doctype html><meta charset=utf-8><title>Question pool review</title><style>{CSS}</style>",
          "<h1>Question pool: review sheet</h1>",
          f"<p class=meta>Pool for the continuous text block (genes t, u). Distance d = {esc(meta['distance'])} to the "
