@@ -15,7 +15,6 @@ import pytest
 
 from mmb.runners.run_boundary_test import load_config
 from mmb.config import ExperimentConfig
-from mmb.manipulator.image.types import CandidateStrategy, PatchStrategy
 
 DEFAULT = ExperimentConfig()
 
@@ -65,12 +64,12 @@ OVERRIDE_CASES = [
     ("sut.max_thinking_tokens", {"sut": {"max_thinking_tokens": 5000}}, 5000),
     ("sut.max_pixels", {"sut": {"max_pixels": 1024}}, 1024),
     ("image.preset", {"image": {"preset": "f16-1024"}}, "f16-1024"),
-    ("image.patch_ratio", {"image": {"patch_ratio": 0.5}}, 0.5),
-    ("image.patch_strategy", {"image": {"patch_strategy": "ALL"}}, PatchStrategy.ALL),
-    ("image.n_candidates", {"image": {"n_candidates": 50}}, 50),
-    ("image.candidate_strategy", {"image": {"candidate_strategy": "UNIFORM"}}, CandidateStrategy.UNIFORM),
     ("image.resolution", {"image": {"resolution": 512}}, 512),
-    ("image.knn_cache_path", {"image": {"knn_cache_path": "/tmp/knn_cache.npy"}}, Path("/tmp/knn_cache.npy")),
+    ("image.decode_batch_size", {"image": {"decode_batch_size": 4}}, 4),
+    ("image.latent.d", {"image": {"latent": {"d": 32}}}, 32),
+    ("image.latent.basis", {"image": {"latent": {"basis": "bump"}}}, "bump"),
+    ("image.latent.m_max", {"image": {"latent": {"m_max": 0.1}}}, 0.1),
+    ("image.latent.w_img", {"image": {"latent": {"w_img": 2.0}}}, 2.0),
     ("text.spacy_model", {"text": {"spacy_model": "en_core_web_lg"}}, "en_core_web_lg"),
     (
         "text.composite.profile",
@@ -104,8 +103,18 @@ OVERRIDE_CASES = [
     ),
     (
         "optimizer.crossover.eta",
-        {"optimizer": {"crossover": {"eta": 15.0}}},
-        15.0,
+        {"optimizer": {"crossover": {"eta": 25.0}}},
+        25.0,
+    ),
+    (
+        "optimizer.mmba.eps",
+        {"optimizer": {"mmba": {"eps": 0.01}}},
+        0.01,
+    ),
+    (
+        "optimizer.sampling.r_min",
+        {"optimizer": {"sampling": {"r_min": 0.05}}},
+        0.05,
     ),
 ]
 
@@ -133,6 +142,7 @@ VALIDATION_CASES = [
     ("mutation_eta_negative", {"optimizer": {"mutation": {"eta": -1.0}}}),
     ("crossover_prob_above_one", {"optimizer": {"crossover": {"prob": 1.5}}}),
     ("crossover_eta_negative", {"optimizer": {"crossover": {"eta": -1.0}}}),
+    ("mmba_eps_zero", {"optimizer": {"mmba": {"eps": 0.0}}}),
 ]
 
 

@@ -26,15 +26,13 @@ SUTS = {
     "ministral": {"model_id": "mistralai/Ministral-3-3B-Instruct-2512", "backend": "torch"},
 }
 for _s in SUTS.values():
-    _s.update({"batched_scoring": True, "batch_chunk": 15})
+    _s.update({"batched_scoring": False})   # canonical scoring (C2 decision 2026-11-28, docs/DETERMINISM_2026-11-28.md)
 _UNUSED = {
 }
 
 TASKS = {
-    "imagenet": {"base": "configs/paper/e1/base.yaml", "cells": "cells/imagenet_cells.yaml",
-                 "cone": False},
-    "pope": {"base": "configs/paper/e1/base.yaml", "cells": "cells/pope_cells.yaml",
-             "cone": False},
+    "imagenet": {"base": "configs/paper/e1/base.yaml", "cells": "cells/imagenet_cells.yaml"},
+    "pope": {"base": "configs/paper/e1/base.yaml", "cells": "cells/pope_cells.yaml"},
 }
 
 
@@ -45,7 +43,6 @@ def build(exp: str, task: str, sut: str, arm: str, seed: int) -> dict:
     cfg = merge(cfg, ARMS[arm])
     cfg["seeds"] = cells["seeds"]
     cfg["sut"] = copy.deepcopy(SUTS[sut])
-    cfg.setdefault("image", {}).setdefault("cone_filter", {})["enabled"] = t["cone"]
     cfg["seed"] = seed
     cfg["name"] = f"{exp}_{task}_{sut}_{arm}_s{seed}"
     cfg["save_dir"] = f"runs/{exp}/{task}/{sut}/{arm}/s{seed}"

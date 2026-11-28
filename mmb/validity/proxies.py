@@ -25,8 +25,7 @@ DINO_ID = "facebook/dinov2-small"
 MINILM_ID = "sentence-transformers/all-MiniLM-L6-v2"
 
 #: A key word counts as still present when some token of the edited prompt matches it with a
-#: difflib ratio >= this value (homoglyph / fragmentation edits change characters but keep the
-#: word readable). Heuristic, not calibrated.
+#: difflib ratio >= this value (inflections such as "dogs" still match "dog"). Heuristic, not calibrated.
 KEYWORD_MATCH_RATIO = 0.8
 #: Without an object word, the question counts as preserved when at least this fraction of the
 #: original question's content words is still present (same matching rule).
@@ -36,13 +35,6 @@ _STOP = frozenset("""a an the of in on at to is are was were be been this that t
 whom whose how why where when do does did there here with without for from by as and or but not no yes
 answer exactly one following options option listed list please""".split())
 
-# Visually confusable non-Latin letters used by homoglyph edits (code points), and zero-width characters.
-_CONFUSABLES = {
-    0x0430: "a", 0x0435: "e", 0x043E: "o", 0x0440: "p", 0x0441: "c", 0x0443: "y", 0x0445: "x",
-    0x0456: "i", 0x0458: "j", 0x0455: "s", 0x0251: "a", 0x03BF: "o", 0x03BD: "v", 0x03C1: "p",
-    0x03B9: "i", 0x03B1: "a", 0x03B5: "e", 0x03C4: "t",
-    0x200B: None, 0x200C: None, 0x200D: None, 0x2060: None, 0xFEFF: None, 0x00AD: None,
-}
 
 
 # ---------------------------------------------------------------------------
@@ -51,7 +43,7 @@ _CONFUSABLES = {
 
 
 def _normalise(text: str) -> str:
-    return unicodedata.normalize("NFKC", text).translate(_CONFUSABLES).lower()
+    return unicodedata.normalize("NFKC", text).lower()
 
 
 def words(text: str) -> list[str]:
@@ -244,57 +236,10 @@ def image_proxies(models: ProxyModels, seed_img: Image.Image, cross_img: Image.I
 # Visible text view (pre-registered in METHODOLOGY.md, 2026-11-22 07:50 UTC)
 # ---------------------------------------------------------------------------
 
-# Confusables -> ASCII lookalike (code points). Covers every character the homoglyph operator can produce
-# (Cyrillic) plus the common Cyrillic and Greek lookalikes. Unicode confusables.txt is not in the standard
-# library, so this is a small vendored subset; fullwidth and compatibility forms are handled by NFKC.
-_VISIBLE_MAP: dict[int, str | None] = {
-    # Cyrillic lower case
-    0x0430: "a", 0x0441: "c", 0x0435: "e", 0x0456: "i", 0x043E: "o", 0x0440: "p", 0x0455: "s", 0x0445: "x",
-    0x0443: "y", 0x0458: "j", 0x0501: "d", 0x04BB: "h", 0x051B: "q", 0x051D: "w",
-    # Cyrillic upper case
-    0x0410: "A", 0x0412: "B", 0x0421: "C", 0x0415: "E", 0x041D: "H", 0x0406: "I", 0x041A: "K", 0x041C: "M",
-    0x041E: "O", 0x0420: "P", 0x0422: "T", 0x0425: "X", 0x0423: "Y", 0x0408: "J", 0x0405: "S",
-    # Greek
-    0x0391: "A", 0x0392: "B", 0x0395: "E", 0x0396: "Z", 0x0397: "H", 0x0399: "I", 0x039A: "K", 0x039C: "M",
-    0x039D: "N", 0x039F: "O", 0x03A1: "P", 0x03A4: "T", 0x03A5: "Y", 0x03A7: "X",
-    0x03BF: "o", 0x03BD: "v", 0x03C1: "p", 0x03B1: "a", 0x03B9: "i",
-    # other Latin-block lookalikes
-    0x0251: "a", 0x0261: "g", 0x0131: "i",
-    # zero-width and invisible format characters
-    0x200B: None, 0x200C: None, 0x200D: None, 0x2060: None, 0xFEFF: None, 0x00AD: None, 0x200E: None,
-    0x200F: None, 0x2062: None, 0x2063: None, 0x2064: None, 0x180E: None, 0x034F: None,
-}
-
 
 def normalise_visible(text: str) -> str:
-    """What a reader sees: NFKC, invisible characters removed, confusables mapped to ASCII; case and spaces kept."""
-    t = unicodedata.normalize("NFKC", str(text)).translate(_VISIBLE_MAP)
-    return re.sub(r"[ \t]+", " ", t).strip()
-
-
-def char_edit_distance(a: str, b: str) -> int:
-    prev = list(range(len(b) + 1))
-    for i, x in enumerate(a, 1):
-        cur = [i]
-        for j, y in enumerate(b, 1):
-            cur.append(min(prev[j] + 1, cur[-1] + 1, prev[j - 1] + (x != y)))
-        prev = cur
-    return prev[-1]
-
-
-def visible_proxies(models, original: str, edited: str) -> dict:
-    """Visible char edit distance (normalised by the longer string), visible word edit distance, MiniLM cosine of
-    the normalised strings, visible_identical, and within one character edit per word of the original."""
-    a, b = normalise_visible(original), normalise_visible(edited)
-    n = max(len(a), len(b))
-    ed = char_edit_distance(a, b)
-    return {
-        "vis_char_dist": (ed / n) if n else 0.0,
-        "vis_word_edit": word_edit_distance(a, b),
-        "vis_minilm_cos": 1.0 if a == b else models.minilm_cos(a, b),
-        "vis_identical": a == b,
-        "vis_within_one_per_word": ed <= len(re.findall(r"\S+", a)),
-    }
+    """NFKC and collapsed spaces (question-pool questions are plain words; kept for callers that compare strings)."""
+    return re.sub(r"[ \t]+", " ", unicodedata.normalize("NFKC", str(text))).strip()
 
 
 def text_proxies(models: ProxyModels, original: str, edited: str, keyword: str | None = None) -> dict:
@@ -306,7 +251,6 @@ def text_proxies(models: ProxyModels, original: str, edited: str, keyword: str |
         "question_keyword_sim": ks,
         "question_content_kept": ck,
         "txt_edited": _normalise(original) != _normalise(edited),
-        **visible_proxies(models, original, edited),
     }
 
 

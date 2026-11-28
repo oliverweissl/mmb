@@ -4,26 +4,29 @@ Usage::
 
     python -m mmb.analysis.export results/main.csv --paper ../paper_repo [--validity results/validity_main.csv]
         [--runs-root runs/MAIN] [--ref a0_directed] [--grid-suts qwen,internvl,ministral] [--n-boot 10000]
+        [--calib <dir with trajectory.csv>]
 
 (scripts/analysis/export_to_paper.sh runs collect + validity first and then calls this.)
 
-Scopes. 'grid' = the balanced grid (SUTs in --grid-suts, every arm); the continuity SUT (llava) only has
-a0/a1 on ImageNet and appears in the per-SUT table E3 and in the per-(task, SUT) tables. Pooling over tasks or
-SUTs prefixes cell_id with task/SUT, so pairs (cell, seed) stay unique.
+Design (continuous genotype, 2026-11-28): arms a0 (MMBA, the method), a5 (MIMICRY-style), a9 (DeepJanus-style) and
+the ablations a6 (text only), a7 (image only), x1 (w/o guidance), on the balanced grid (--grid-suts) x tasks. Arms
+outside the study (DROPPED_ARMS) and SUTs outside the grid are filtered before any output. Pooling over tasks or SUTs
+prefixes cell_id with task/SUT, so pairs (cell, seed) stay unique.
+
+Cost of a crossing is the smallest crossing found within the budget (magnitude = L2 of the weighted image and text
+block magnitudes, mag_image, mag_text, min_text_d; smaller is better). Every budget-bound metric uses in-budget data
+only; the boundary-pair calls (nb_extra_calls) are outside the budget and never enter a budget metric.
 
 Written under <paper>/generated/:
-  tables/e1.tex e1_budgets.tex e1_paired.tex   grid pooled, every arm (Tables e1, e1-budgets, e1-paired)
-  tables/e3.tex                                a0 and a1 per SUT, ImageNet task, continuity SUT included
-  tables/e4.tex                                a0 and a1 per task, grid SUTs pooled
-  tables/e2b.tex                               cell-level predictor table per task and SUT (arm a0)
-  tables/primary.tex                           pre-committed primary comparison a1 vs a0 per (task, SUT), Holm across strata
-  tables/e1_cluster.tex cost.tex               paired differences with cell-cluster CIs; cost of crossing per arm
-  figures/per-cell-diff.pdf                    per-cell a0 minus a1 crossing share
-  tables/validity.tex                          proxy medians per arm (only with --validity)
-  tables/transfer*.tex, ETransfer macros      cross-SUT transfer of crossings (only with --transfer)
+  tables/e1.tex e1_paired.tex                  grid pooled, every arm
+  tables/primary.tex                           primary comparisons a0 vs a5 and a0 vs a9 per (task, SUT), Holm across strata
+  tables/e1_cluster.tex cost.tex               paired differences with cell-cluster CIs; smallest-crossing magnitude per arm
+  tables/boundary_pair.tex                     boundary pair per arm (EPair* macros)
+  tables/min_modality.tex                      modality of the smallest crossing per arm (EMinMod* macros)
+  tables/arm_main.tex arm_cost.tex arm_ablation.tex   RQ tables (with --validity)
   tables/agree.tex, EAgree macros              greedy agreement and re-verification (only with --agree)
-  tables/per/<task>_<sut>_{summary,paired,budgets}.tex
-  figures/crossing-curve.pdf predictor-main.pdf gallery.pdf
+  tables/human_validity.tex                    human validity (only with --human-validity)
+  figures/crossing-curve.pdf predictor-main.pdf gallery.pdf calib-trajectory.pdf (with --calib)
   numbers.tex numbers_map.csv                  one macro per headline number; names have no digits
 Every table file holds one adjustbox-wrapped tabular; captions stay in the paper.
 """
@@ -36,7 +39,6 @@ from pathlib import Path
 from typing import Iterable
 
 import numpy as np
-import yaml
 import pandas as pd
 
 from mmb.analysis import paired as pr
@@ -49,19 +51,15 @@ logger = logging.getLogger(__name__)
 
 DIGITS = ["Zero", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine"]
 GRID_SUTS = ("qwen", "internvl", "ministral")
-#: arm prefixes dropped from the study (user decision 2026-11-25: GA, NSGA-II, hill climber); filtered before any output
-DROPPED_ARMS = frozenset({"a3", "a4", "a8"})
-#: arm prefixes run on the full balanced grid but omitted from the paper (user decision 2026-11-27: random search, for
-#: focus); their runs stay in runs/MAIN and results/*.csv. Filtered before any table, figure or Holm family.
-PAPER_OMIT_ARMS = frozenset({"a1"})
-#: RQ4 ablation arms are reported on rng seed 0 only (user decision 2026-11-27, limited resources); their seed-1 runs
-#: stay on disk but are filtered before any output. RQ1/RQ2 methods (a0, a5, a9) use both seeds.
-SEED0_ONLY_ARMS = frozenset({"a6", "a7", "x1", "x2"})
-#: generated files that exist only to compare MMBA with an omitted arm; removed when that arm is omitted
-OMIT_STALE = {"a1": ("tables/primary.tex", "tables/generalization_main.tex", "tables/e4.tex", "figures/per-cell-diff.pdf")}
-PRIMARY_ARMS = ("a0_directed", "a1_random_tiered")
-SUT_NAMES = {"qwen": "Qwen3.5-4B (bf16)", "internvl": "InternVL3.5-4B (bf16)",
-             "ministral": "Ministral-3-3B (bf16)", "llava": "LLaVA-NeXT-7B (NF4)"}
+#: arm prefixes not in the study (random search, GA, NSGA-II, hill climber, patch edits): filtered before any output
+DROPPED_ARMS = frozenset({"a1", "a2", "a3", "a4", "a8", "x2"})
+#: arm prefixes kept in the data but omitted from the paper (none by default; --omit-arms)
+PAPER_OMIT_ARMS = frozenset()
+#: RQ4 ablation arms are reported on rng seed 0 only; their seed-1 runs are filtered before any output
+SEED0_ONLY_ARMS = frozenset({"a6", "a7", "x1"})
+#: primary comparisons: (compared arm, its id prefix); each against the reference a0, Holm across (task, SUT) strata
+PRIMARY_ARMS = (("a5_mimicry_objective", "a5"), ("a9_deepjanus", "a9"))
+SUT_NAMES = {"qwen": "Qwen3.5-4B (bf16)", "internvl": "InternVL3.5-4B (bf16)", "ministral": "Ministral-3-3B (bf16)"}
 TASK_NAMES = {"imagenet": "ImageNet class pairs", "pope": "POPE yes/no"}
 WRAP = "\\begin{adjustbox}{max width=\\linewidth}%s\\end{adjustbox}\n"
 
@@ -214,65 +212,6 @@ def keyed_summary_tex(frames: list[tuple[list[str], pd.DataFrame]], key_headers:
             + "\n".join(body) + "\n\\bottomrule\n\\end{tabular}")
 
 
-# ---------------------------------------------------------------------------
-# The three main-text tables (one per research question group): one value per cell, no intervals,
-# significance as a marker explained once in the text.
-# ---------------------------------------------------------------------------
-
-
-def validity_main_tex(vct: pd.DataFrame, task_names: dict) -> str:
-    """RQ3: per task and arm the image change (LPIPS against the unedited input) and the text change (visible
-    character edit fraction) at the minimal crossing; best value bold within each task."""
-    rows = []
-    for task in [t for t in dict.fromkeys(vct["task"]) if t in task_names]:     # the pooled "All" block is not shown
-        g = vct[vct["task"] == task]
-        g = g[pd.to_numeric(g["n_cross"], errors="coerce").fillna(0) > 0]    # no scored minimal crossing (e.g. pending confirmation): no row
-        lp = [float(v) for v in g["med_lpips"]]
-        tx = [100 * float(v) for v in g["med_vis_char"]]
-        lc = [f"{v:.3f}" for v in lp]
-        tc = [f"{v:.0f}" for v in tx]
-        lc, tc = tf.bold_best(lc, lp, "lpips", lc), tf.bold_best(tc, tx, "text_change", tc)
-        for i, (_, r) in enumerate(g.iterrows()):
-            rows.append([st.tex_escape(task_names.get(task, task)) if i == 0 else "", st.tex_escape(st.arm_label(r["arm"])),
-                         f"{int(r['n_cross'])}", lc[i], tc[i]])
-    return st._booktabs("llrrr", ["Task", "Arm", "Crossings", tf.head("Image change (LPIPS)", "lpips"),
-                                  tf.head(r"Text change (\% of characters)", "text_change")], rows)
-
-
-def generalization_main_tex(primary: pd.DataFrame, transfer_rows: list[dict] | None = None) -> str:
-    """RQ4: crossing rate of the directed and the random arm per model and task with the effect size of the
-    difference (pp, bullet, dagger), and the transfer rate of the crossings found on each model."""
-    suts = [s for s in SUT_NAMES if s in set(primary["sut"])]
-    tasks = [t for t in ("imagenet", "pope") if t in set(primary["task"])]
-    rate = {}
-    if transfer_rows:
-        for s in suts:
-            r = [x for x in transfer_rows if x["task"] == "All" and x["src"] == s and x["dst"] != s]
-            n = sum(x["n"] for x in r)
-            if n:
-                rate[s] = 100 * sum(x["k"] for x in r) / n
-    rows = []
-    for s in suts:
-        row = [st.tex_escape(SUT_NAMES.get(s, s))]
-        for t in tasks:
-            q = primary[(primary["sut"] == s) & (primary["task"] == t)]
-            if q.empty:
-                row += ["--", "--", "--"]
-                continue
-            r = q.iloc[0]
-            d, a = f"{100 * r.ref_value:.0f}", f"{100 * r.arm_value:.0f}"
-            cells = tf.bold_best([d, a], [r.ref_value, r.arm_value], "crossed", [d, a])
-            row += [cells[0], cells[1], tf.effect_cell(f"{100 * r['diff']:+.0f}", r["dz"], r.p_holm_strata)]
-        if rate:
-            row.append(f"{rate[s]:.0f}" if s in rate else "--")
-        rows.append(row)
-    header = ["Model"]
-    for t in tasks:
-        header += [tf.head(rf"{TASK_NAMES.get(t, t)}: directed (\%)", "crossed"), tf.head(r"random (\%)", "crossed"), r"effect (pp)"]
-    if rate:
-        header.append(r"Transfer rate (\%)")
-    return st._booktabs("l" + "rrr" * len(tasks) + ("r" if rate else ""), header, rows)
-
 
 def wrapped(tabular: str) -> str:
     return WRAP % tabular.strip()
@@ -339,7 +278,6 @@ def e2b_table(cells: pd.DataFrame, n_boot: int) -> tuple[str, pd.DataFrame, pd.D
 # numbers
 # ---------------------------------------------------------------------------
 
-
 def add_summary_numbers(num: Numbers, sut: str, task: str, summ: pd.DataFrame) -> None:
     for _, r in summ.iterrows():
         a = arm_short(r.arm)
@@ -360,6 +298,9 @@ def add_summary_numbers(num: Numbers, sut: str, task: str, summ: pd.DataFrame) -
             ("MedFloor", f"{r.median_floor_nats:.2g}", "median floor min|g| (nats)"),
             ("BandShare", f_pct(r.share_band), "share reaching |g| <= 1e-2 nats (%)"),
             ("LabelFlipShare", f_pct(r.share_label_flip), "share with a label flip (%)"),
+            ("MinN", str(int(r.n_min)) if "n_min" in r else "0", "runs with a smallest crossing within the budget"),
+            ("MedMag", f_smart(r.median_magnitude, 4) if "median_magnitude" in r else "n/a",
+             "median magnitude of the smallest in-budget crossing (L2 of the weighted image and text magnitudes)"),
         ]
         for m, v, d in items:
             num.add(base + [m] + tail, v, f"{d}; {r.arm}, {sut}, {task}", metric=m, **sc)
@@ -378,7 +319,7 @@ def add_paired_numbers(num: Numbers, sut: str, task: str, paired: pd.DataFrame) 
     for _, r in paired.iterrows():
         a = arm_short(r.arm)
         tail = [a, camel(sut), camel(task)]
-        met = {"crossed": "Crossed", "first_cross_eval": "Evals", "floor": "Floor"}[r.metric]
+        met = PAIRED_METRIC_NAMES.get(r.metric, camel(r.metric))
         desc = f"{r.arm} vs {r.ref} on {int(r.n_pairs)} matched pairs, {sut}, {task}"
         num.add(["EOne", "Pairs", met] + tail, str(int(r.n_pairs)), "matched pairs; " + desc)
         num.add(["EOne", "P", met] + tail, f_p(r.p), "raw p; " + desc)
@@ -468,18 +409,18 @@ def agree_table(df: pd.DataFrame) -> str:
                                    r"Verified by re-scoring (\%)"], rows)
 
 
-PAIRED_METRIC_NAMES = {"crossed": "Crossed", "first_cross_eval": "Evals", "floor": "Floor", "min_edits": "MinEdits",
-                      "min_edits_x": "MinEditsX", "edits_img_x": "EditsImgX", "edits_txt_x": "EditsTxtX",
-                      "hv_edits": "HvEdits", "hv_mag": "HvMag", "img_mag": "ImgMag", "txt_mag": "TxtMag",
-                      "chardist": "CharDist"}
+PAIRED_METRIC_NAMES = {"crossed": "Crossed", "first_cross_eval": "Evals", "floor": "Floor", "magnitude": "Mag",
+                      "mag_image": "MagImage", "mag_text": "MagText", "text_d": "TextD", "min_eval_idx": "MinEvals",
+                      "wall": "Wall"}
 METRIC_HEAD = {"crossed": "Crossing rate", "first_cross_eval": "Model calls to first crossing", "floor": "Closest approach",
-               "min_edits": "Edits, censored at all genes", "min_edits_x": "Minimal edits",
-               "edits_img_x": "Image edits, minimal crossing", "edits_txt_x": "Text edits, minimal crossing", "hv_edits": "Edit hypervolume"}
+               "magnitude": "Smallest-crossing magnitude", "mag_image": "Image magnitude", "mag_text": "Text magnitude",
+               "text_d": "Question distance", "min_eval_idx": "Calls to smallest crossing", "wall": "Runtime"}
 
 
-#: paired metrics whose values are counts (model calls, edits): their medians print as integers or with one decimal
-COUNT_METRICS = frozenset({"first_cross_eval", "min_edits_x", "edits_img_x", "edits_txt_x", "min_edits", "min_cross_eval"})
-
+#: paired metrics whose values are counts (model calls): their medians print as integers or with one decimal
+COUNT_METRICS = frozenset({"first_cross_eval", "min_eval_idx"})
+#: paired metrics compared on a log10 scale (paired.METRICS transform)
+LOG_METRICS = frozenset({"floor", "magnitude"})
 
 def _ci(v: float, lo: float, hi: float, d: int = 2) -> str:
     return "--" if pd.isna(v) else f"{v:+.{d}f} [{lo:+.{d}f}, {hi:+.{d}f}]"
@@ -497,7 +438,7 @@ def add_cluster_numbers(num: Numbers, sut: str, task: str, t: pd.DataFrame) -> N
             unit = ""
         else:
             fv = lambda x, sign=False: f_smart(x, 3, sign)
-            unit = ""
+            unit = " (log10)" if r.metric in LOG_METRICS else ""
         for f, v, what in (("Pairs", str(int(r.n_pairs)), "matched pairs"),
                            ("RefValue", fv(r.ref_value), "reference value (share or median)" + unit),
                            ("ArmValue", fv(r.arm_value), "arm value (share or median)" + unit),
@@ -529,27 +470,51 @@ def cluster_table_tex(t: pd.DataFrame, metrics=pr.DEFAULT_METRICS) -> str:
     return st._booktabs("l" + "r" * len(metrics), ["Arm vs directed"] + [tf.head(METRIC_HEAD.get(m, m), m) for m in metrics], rows)
 
 
-def primary_tex(t: pd.DataFrame, short: str = "a1") -> str:
-    """Crossing rate of the directed and the compared arm per stratum, and the effect size of the difference in
-    percentage points with its magnitude bullet and dagger (Holm across strata)."""
+
+def primary_tex(t: pd.DataFrame) -> str:
+    """Primary comparisons per stratum: MMBA's crossing rate, and for each compared arm (MIMICRY-style, DeepJanus-style)
+    its crossing rate and the difference to MMBA in percentage points (arm minus MMBA) with its magnitude bullet and
+    dagger (exact McNemar, Holm across strata within each comparison)."""
+    shorts = [s for _a, s in PRIMARY_ARMS if s in set(t["short"])]
     rows = []
-    for _, r in t.iterrows():
-        rows.append([st.tex_escape(TASK_NAMES.get(r.task, r.task)), st.tex_escape(SUT_NAMES.get(r.sut, r.sut)), str(int(r.n_pairs)),
-                     f"{100 * r.ref_value:.0f}", f"{100 * r.arm_value:.0f}",
-                     tf.effect_cell(f"{100 * r['diff']:+.0f}", r["dz"], r.p_holm_strata)])
-    return st._booktabs("llrrrr", ["Task", "SUT", "Pairs", tf.head("Directed crossing rate (\\%)", "crossed"),
-                                   tf.head(f"{st.arm_label(short)} crossing rate (\\%)", "crossed"),
-                                   f"Difference (pp)"], rows)
+    for (task, sut), g in t.groupby(["task", "sut"], sort=False):
+        ref = g.iloc[0]
+        row = [st.tex_escape(TASK_NAMES.get(task, task)), st.tex_escape(SUT_NAMES.get(sut, sut)), f"{100 * ref.ref_value:.0f}"]
+        for s in shorts:
+            q = g[g["short"] == s]
+            if q.empty:
+                row += ["--", "--"]
+                continue
+            r = q.iloc[0]
+            row += [f"{100 * r.arm_value:.0f}", tf.effect_cell(f"{100 * r['diff']:+.0f}", r["dz"], r.p_holm_strata)]
+        rows.append(row)
+    header = ["Task", "SUT", tf.head(r"\sysname{} (\%)", "crossed")]
+    for s in shorts:
+        header += [tf.head(st.tex_escape(st.arm_label(s)) + r" (\%)", "crossed"), "Difference (pp)"]
+    return st._booktabs("llr" + "rr" * len(shorts), header, rows)
 
 
-def add_primary_numbers(num: Numbers, t: pd.DataFrame, family: str = "EPrimary", short: str = "a1") -> None:
+def primary_tables(df: pd.DataFrame, ref: str, n_boot: int) -> pd.DataFrame:
+    """paired.primary_table for every primary comparison present (column 'short' = the compared arm's prefix)."""
+    parts = []
+    arms = set(df["arm"])
+    for arm, short in PRIMARY_ARMS:
+        if ref in arms and arm in arms:
+            t = pr.primary_table(df, ref, arm, n_boot)
+            if len(t):
+                parts.append(t.assign(short=short))
+    return pd.concat(parts, ignore_index=True) if parts else pd.DataFrame()
+
+
+def add_primary_numbers(num: Numbers, t: pd.DataFrame, family: str = "EPrimary") -> None:
+    """EPrimary<Field><Arm><Sut><Task>: a0 vs the arm on the crossing share, per stratum."""
     for _, r in t.iterrows():
-        tail = [camel(r.sut), camel(r.task)]
-        d = f"{'primary' if family == 'EPrimary' else 'secondary'} comparison {short} vs a0 crossing share, {r.sut}, {r.task}"
+        tail = [arm_short(r["short"]), camel(r.sut), camel(r.task)]
+        d = f"primary comparison {r['short']} vs a0 crossing share, {r.sut}, {r.task}"
         for f, v, what in (("Pairs", str(int(r.n_pairs)), "matched pairs"),
                            ("RefShare", f_pct(r.ref_value), "a0 crossing share (%)"),
-                           ("ArmShare", f_pct(r.arm_value), f"{short} crossing share (%)"),
-                           ("Diff", f_num(100 * r["diff"], 1, True), f"{short} minus a0 (percentage points)"),
+                           ("ArmShare", f_pct(r.arm_value), f"{r['short']} crossing share (%)"),
+                           ("Diff", f_num(100 * r["diff"], 1, True), f"{r['short']} minus a0 (percentage points)"),
                            ("DiffLo", f_num(100 * r.diff_lo, 1, True), "cell-cluster bootstrap 95% CI lower (pp)"),
                            ("DiffHi", f_num(100 * r.diff_hi, 1, True), "cell-cluster bootstrap 95% CI upper (pp)"),
                            ("P", f_p(r.p), "exact McNemar p"),
@@ -557,77 +522,149 @@ def add_primary_numbers(num: Numbers, t: pd.DataFrame, family: str = "EPrimary",
             num.add([family, f] + tail, v, f"{what}; {d}")
 
 
+# ---------------------------------------------------------------------------
+# cost of a crossing (smallest in-budget crossing), boundary pair, modality of the smallest crossing
+# ---------------------------------------------------------------------------
+
+
+def _truthy(s: pd.Series) -> pd.Series:
+    return s.astype(str).str.lower().isin(("true", "1", "1.0"))
+
+
+def in_budget_min(g: pd.DataFrame) -> pd.DataFrame:
+    """Runs whose smallest crossing lies within the budget (min_within_budget) and has a magnitude."""
+    if "magnitude" not in g:
+        return g.iloc[0:0]
+    ok = _truthy(g["min_within_budget"]) if "min_within_budget" in g else g["crossed"].astype(bool)
+    return g[ok & pd.to_numeric(g["magnitude"], errors="coerce").notna()]
+
+
+def _med(g: pd.DataFrame, col: str) -> float:
+    v = pd.to_numeric(g[col], errors="coerce").dropna() if col in g else pd.Series(dtype=float)
+    return float(v.median()) if len(v) else float("nan")
+
+
 def cost_summary(df: pd.DataFrame, n_boot: int) -> pd.DataFrame:
+    """Per arm: the smallest crossing found within the budget (runs without one are left out, smaller is better)."""
     rows = []
     for arm, g in df.groupby("arm", sort=True):
-        me, lo, hi = st.bootstrap_stat(g["min_edits_cross"].to_numpy(float), n_boot=n_boot) if "min_edits_cross" in g else (np.nan,) * 3
-        hv, hlo, hhi = st.bootstrap_stat(g["hv_edits_cross"].to_numpy(float), n_boot=n_boot) if "hv_edits_cross" in g else (np.nan,) * 3
-        c = g[g["crossed"].astype(bool)]
-        if "mag_source" in c and (c["mag_source"] == "diag").any():
-            c = c[c["mag_source"] == "diag"]            # never mix diagnostic and optimised-fitness magnitudes
-        cx = g[g["crossed"].astype(bool)]            # edit counts of crossing runs only (no censoring)
-        def _med(col):
-            return float(cx[col].median()) if col in cx and cx[col].notna().any() else np.nan
-        mx, xlo, xhi = (st.bootstrap_stat(cx["min_edits_cross"].to_numpy(float), n_boot=n_boot)
-                        if len(cx) and "min_edits_cross" in cx else (np.nan,) * 3)
-        rows.append(dict(arm=arm, n_runs=len(g), n_crossed=len(c), med_min_edits=me, me_lo=lo, me_hi=hi,
-                         med_edits_x=mx, ex_lo=xlo, ex_hi=xhi, med_edits_img=_med("edits_img_at_min"), med_edits_txt=_med("edits_txt_at_min"),
-                         med_hv=hv, hv_lo=hlo, hv_hi=hhi,
-                         med_img_mag=float(c["best_img_mag_cross"].median()) if "best_img_mag_cross" in c and c["best_img_mag_cross"].notna().any() else np.nan,
-                         med_txt_mag=float(c["best_txt_mag_cross"].median()) if "best_txt_mag_cross" in c and c["best_txt_mag_cross"].notna().any() else np.nan))
+        c = in_budget_min(g)
+        me, lo, hi = st.bootstrap_stat(pd.to_numeric(c["magnitude"], errors="coerce").to_numpy(float), n_boot=n_boot) \
+            if len(c) else (np.nan,) * 3
+        rows.append(dict(arm=arm, n_runs=len(g), n_crossed=int(g["crossed"].astype(bool).sum()), n_min=len(c),
+                         med_mag=me, mag_lo=lo, mag_hi=hi, med_mag_image=_med(c, "mag_image"),
+                         med_mag_text=_med(c, "mag_text"), med_text_d=_med(c, "min_text_d"),
+                         med_min_eval=_med(c, "min_eval_idx")))
     return pd.DataFrame(rows)
 
 
+def _cells(vals, d: int, key: str | None) -> list[str]:
+    cells = ["--" if pd.isna(v) else f"{v:.{d}f}" for v in vals]
+    return tf.bold_best(cells, list(vals), key, cells) if key else cells
+
+
 def cost_tex(s: pd.DataFrame) -> str:
-    def fmt(v, d):
-        return "--" if pd.isna(v) else f"{v:.{d}f}"
-    def col(vals, d, key):
-        cells = [fmt(v, d) for v in vals]
-        return tf.bold_best(cells, list(vals), key, cells)
-    cols = [col(s.med_edits_x, 0, "min_edits_x"), col(s.med_edits_img, 0, "edits_img_x"), col(s.med_edits_txt, 0, "edits_txt_x"),
-            col(s.med_min_edits, 0, "min_edits"), col(s.med_hv, 3, "hv_edits"), col(s.med_img_mag, 3, "img_mag"), col(s.med_txt_mag, 2, "txt_mag")]
-    rows = [[st.tex_escape(st.arm_label(r.arm)), str(int(r.n_runs)), str(int(r.n_crossed))] + [cols[j][i] for j in range(7)] for i, r in enumerate(s.itertuples())]
-    return st._booktabs("lrrrrrrrrr", ["Arm", "Runs", "Crossed", tf.head("Minimal edits", "min_edits_x"),
-                                   tf.head("Image edits", "edits_img_x"), tf.head("Text edits", "edits_txt_x"),
-                                   tf.head("Edits, censored at all genes", "min_edits"), tf.head("Edit hypervolume", "hv_edits"),
-                                   tf.head("Smallest image change (RMS)", "img_mag"), tf.head("Smallest text change (cosine)", "txt_mag")], rows)
+    cols = [_cells(s.med_mag, 4, "magnitude"), _cells(s.med_mag_image, 4, "mag_image"), _cells(s.med_mag_text, 4, "mag_text"),
+            _cells(s.med_text_d, 3, "text_d"), _cells(s.med_min_eval, 0, "min_eval_idx")]
+    rows = [[st.tex_escape(st.arm_label(r.arm)), str(int(r.n_runs)), str(int(r.n_min))] + [c[i] for c in cols]
+            for i, r in enumerate(s.itertuples())]
+    return st._booktabs("lrrrrrrr", ["Arm", "Runs", "Smallest crossing in budget", tf.head("Magnitude", "magnitude"),
+                                     tf.head("Image magnitude", "mag_image"), tf.head("Text magnitude", "mag_text"),
+                                     tf.head("Question distance", "text_d"), tf.head("Calls to it", "min_eval_idx")], rows)
 
 
 def add_cost_numbers(num: Numbers, sut: str, task: str, s: pd.DataFrame) -> None:
     for _, r in s.iterrows():
         tail = [arm_short(r.arm), camel(sut), camel(task)]
-        d = f"{r.arm}, {sut}, {task}"
-        num.add(["ECost", "MedEditsX"] + tail, f_num(r.med_edits_x, 0), "median fewest active genes at a crossing, crossing runs only; " + d)
-        num.add(["ECost", "MedEditsXCi"] + tail, f"[{r.ex_lo:.0f}--{r.ex_hi:.0f}]" if not pd.isna(r.ex_lo) else "--", "bootstrap 95% CI; " + d)
-        num.add(["ECost", "MedEditsImg"] + tail, f_num(r.med_edits_img, 0), "median image genes of the cheapest crossing input, crossing runs only; " + d)
-        num.add(["ECost", "MedEditsTxt"] + tail, f_num(r.med_edits_txt, 0), "median text genes of the cheapest crossing input, crossing runs only; " + d)
-        num.add(["ECost", "MedMinEdits"] + tail, f_num(r.med_min_edits, 0), "median fewest active genes, never-crossed runs censored at all genes; " + d)
-        num.add(["ECost", "MedMinEditsCi"] + tail, f"[{r.me_lo:.0f}--{r.me_hi:.0f}]", "bootstrap 95% CI; " + d)
-        num.add(["ECost", "MedHv"] + tail, f_num(r.med_hv, 3), "median edit hypervolume fraction (0 when never crossed); " + d)
-        num.add(["ECost", "MedHvCi"] + tail, f"[{r.hv_lo:.3f}--{r.hv_hi:.3f}]", "bootstrap 95% CI; " + d)
-        if not pd.isna(r.med_img_mag):
-            num.add(["ECost", "MedImgMag"] + tail, f_num(r.med_img_mag, 3), "median best image RMS among crossing runs; " + d)
-        if not pd.isna(r.med_txt_mag):
-            num.add(["ECost", "MedTxtMag"] + tail, f_num(r.med_txt_mag, 2), "median best text cosine among crossing runs; " + d)
+        d = f"smallest crossing within the budget, runs that have one; {r.arm}, {sut}, {task}"
+        num.add(["ECost", "NMin"] + tail, str(int(r.n_min)), "runs with a smallest crossing within the budget; " + d)
+        num.add(["ECost", "MedMag"] + tail, f_smart(r.med_mag, 4), "median magnitude (L2 of weighted image and text magnitudes); " + d)
+        num.add(["ECost", "MedMagCi"] + tail, "--" if pd.isna(r.mag_lo) else f"[{r.mag_lo:.4f}--{r.mag_hi:.4f}]", "bootstrap 95% CI of the median magnitude; " + d)
+        num.add(["ECost", "MedMagImage"] + tail, f_smart(r.med_mag_image, 4), "median weighted image magnitude (w_img x RMS of the image genes); " + d)
+        num.add(["ECost", "MedMagText"] + tail, f_smart(r.med_mag_text, 4), "median weighted text magnitude (w_txt x t); " + d)
+        num.add(["ECost", "MedTextD"] + tail, f_smart(r.med_text_d, 3), "median MiniLM distance of the edited question; " + d)
+        num.add(["ECost", "MedMinEvals"] + tail, f_smart(r.med_min_eval, 1), "median model calls to the smallest crossing; " + d)
 
 
-def add_failure_numbers(num: Numbers, minimal: pd.DataFrame) -> None:
-    """Macros of the failure-type study: per (SUT, task) scope and arm group the number of reduced crossings, the share
-    that re-verified, the median genes before and after the reduction and the share of each failure type."""
-    from mmb.analysis import failure_types as ft
+def pair_summary(df: pd.DataFrame) -> pd.DataFrame:
+    """Per arm: boundary pairs of the crossing runs. A pair is confirmed when bp_source is own_phase2 or
+    posthoc_bisection; gap, kind and extra calls over confirmed pairs. The extra calls of the boundary pair are spent
+    outside the search budget and never enter a budget-bound metric."""
+    rows = []
+    for arm, g in df.groupby("arm", sort=True):
+        c = g[g["crossed"].astype(bool)]
+        src = c["bp_source"].astype(str) if "bp_source" in c else pd.Series("none", index=c.index)
+        has = src.isin(st.PAIR_SOURCES)
+        p = c[has]
+        n, k = len(c), int(has.sum())
+        kind = p["bp_kind"].astype(str) if "bp_kind" in p else pd.Series(dtype=str)
+        rows.append(dict(arm=arm, n_runs=len(g), n_crossed=n, n_pair=k,
+                         share_pair=k / n if n else np.nan,
+                         share_own=float((src == "own_phase2").sum()) / n if n else np.nan,
+                         share_posthoc=float((src == "posthoc_bisection").sum()) / n if n else np.nan,
+                         med_gap=_med(p, "bp_gap"),
+                         share_text_step=float((kind == "text_step").mean()) if k else np.nan,
+                         share_continuous=float((kind == "continuous").mean()) if k else np.nan,
+                         med_extra_calls=_med(p, "nb_extra_calls")))
+    return pd.DataFrame(rows)
 
-    for r in ft.summary(minimal).itertuples():
-        tail = [{"directed": "Directed", "others": "Others"}[r.group], camel(r.sut), camel(r.task)]
-        d = f"{r.group} arms, {r.sut}, {r.task}"
-        num.add(["EFail", "N"] + tail, str(int(r.n)), "smallest crossings submitted to the minimiser; " + d)
-        num.add(["EFail", "Verified"] + tail, f_pct(r.verified_share, 0), "share of the smallest (final minimal) crossings that verify by single-item re-scoring (%); " + d)
-        num.add(["EFail", "MedGenesFirst"] + tail, f_num(r.med_genes_first, 0), "median changed genes of the smallest crossing in the trace; " + d)
-        num.add(["EFail", "MedGenesMin"] + tail, f_num(r.med_genes_min, 0), "median changed genes after the reduction; " + d)
-        num.add(["EFail", "MedImgMin"] + tail, f_num(r.med_img_min, 0), "median image genes of the minimal flip; " + d)
-        num.add(["EFail", "MedTxtMin"] + tail, f_num(r.med_txt_min, 0), "median text genes of the minimal flip; " + d)
-        num.add(["EFail", "OneGene"] + tail, f_pct(r.one_gene_share, 0), "share of minimal flips that need a single gene (%); " + d)
-        for k in ft.TYPE_KEYS:
-            num.add(["EFail", "Share", ft.TYPE_WORDS[k]] + tail, f_pct(getattr(r, "share_" + k), 0), f"share of minimal flips of type {k} (%); " + d)
+
+def pair_tex(s: pd.DataFrame) -> str:
+    pct = lambda v: "--" if pd.isna(v) else f"{100 * v:.0f}"
+    gap = _cells(s.med_gap, 4, "bp_gap")
+    rows = [[st.tex_escape(st.arm_label(r.arm)), str(int(r.n_crossed)), pct(r.share_pair), pct(r.share_own),
+             pct(r.share_posthoc), gap[i], pct(r.share_text_step), pct(r.share_continuous),
+             "--" if pd.isna(r.med_extra_calls) else f_smart(r.med_extra_calls, 1)] for i, r in enumerate(s.itertuples())]
+    return st._booktabs("lrrrrrrrr", ["Arm", "Crossed", r"Pair (\%)", r"own Phase 2 (\%)", r"post hoc (\%)",
+                                      tf.head("Gap", "bp_gap"), r"text step (\%)", r"continuous (\%)",
+                                      "Extra calls (outside budget)"], rows)
+
+
+def add_pair_numbers(num: Numbers, sut: str, task: str, s: pd.DataFrame) -> None:
+    for _, r in s.iterrows():
+        tail = [arm_short(r.arm), camel(sut), camel(task)]
+        d = f"boundary pair, crossing runs; {r.arm}, {sut}, {task}"
+        for f, v, what in (("N", str(int(r.n_pair)), "crossing runs with a confirmed boundary pair"),
+                           ("Crossed", str(int(r.n_crossed)), "crossing runs"),
+                           ("Share", f_pct(r.share_pair), "share of crossing runs with a confirmed pair (%)"),
+                           ("ShareOwn", f_pct(r.share_own), "share of crossing runs with a pair from the search's own Phase 2 (%)"),
+                           ("SharePosthoc", f_pct(r.share_posthoc), "share of crossing runs with a post hoc bisection pair (%)"),
+                           ("MedGap", f_smart(r.med_gap, 4), "median gap of the confirmed pairs"),
+                           ("ShareTextStep", f_pct(r.share_text_step), "share of confirmed pairs that are a text step (%)"),
+                           ("ShareContinuous", f_pct(r.share_continuous), "share of confirmed pairs that are continuous (%)"),
+                           ("MedExtraCalls", f_smart(r.med_extra_calls, 1), "median extra model calls for the pair (outside the budget)")):
+            num.add(["EPair", f] + tail, v, f"{what}; {d}")
+
+
+MODALITIES = (("image", "Image"), ("text", "Text"), ("joint", "Joint"))
+
+
+def modality_summary(df: pd.DataFrame) -> pd.DataFrame:
+    """Per arm: which blocks the smallest in-budget crossing changed (min_modality image | text | joint)."""
+    rows = []
+    for arm, g in df.groupby("arm", sort=True):
+        c = in_budget_min(g)
+        m = c["min_modality"].astype(str) if "min_modality" in c else pd.Series(dtype=str)
+        m = m[m.isin([k for k, _ in MODALITIES])]
+        n = len(m)
+        rows.append(dict(arm=arm, n_min=n, **{f"share_{k}": float((m == k).mean()) if n else np.nan for k, _ in MODALITIES}))
+    return pd.DataFrame(rows)
+
+
+def modality_tex(s: pd.DataFrame) -> str:
+    pct = lambda v: "--" if pd.isna(v) else f"{100 * v:.0f}"
+    rows = [[st.tex_escape(st.arm_label(r["arm"])), str(int(r["n_min"]))] + [pct(r[f"share_{k}"]) for k, _ in MODALITIES]
+            for _, r in s.iterrows()]
+    return st._booktabs("lrrrr", ["Arm", "Smallest crossings", r"image only (\%)", r"text only (\%)", r"joint (\%)"], rows)
+
+
+def add_modality_numbers(num: Numbers, sut: str, task: str, s: pd.DataFrame) -> None:
+    for _, r in s.iterrows():
+        tail = [arm_short(r["arm"]), camel(sut), camel(task)]
+        d = f"smallest in-budget crossing; {r['arm']}, {sut}, {task}"
+        num.add(["EMinMod", "N"] + tail, str(int(r["n_min"])), "smallest crossings with a modality; " + d)
+        for k, nm in MODALITIES:
+            num.add(["EMinMod", nm] + tail, f_pct(r[f"share_{k}"]), f"share whose change is {k} (%); " + d)
 
 
 def add_wall_numbers(num: Numbers, sc: dict) -> None:
@@ -763,7 +800,6 @@ def validity_table(vdf: pd.DataFrame) -> str:
 # driver
 # ---------------------------------------------------------------------------
 
-
 def _rq_tables(rq, tabs: Path, df: pd.DataFrame, vdf: pd.DataFrame, grid_suts, num, marks: dict | None = None) -> None:
     """Main-text tables: RQ1 (effectiveness and quality), RQ2 (efficiency), RQ4 (ablation, pooled, seed 0).
     marks: arm id -> superscript mark on its row label (see method_marks); a note row explains each mark used."""
@@ -774,13 +810,11 @@ def _rq_tables(rq, tabs: Path, df: pd.DataFrame, vdf: pd.DataFrame, grid_suts, n
     write_tex(tabs / "arm_cost.tex", rq.rq2_tex(cells_m, marks))
     abl = rq.ablation(gd, gv)
     abl_e = rq.ablation_effects(abl)
-    abl_marks = {rq.prefix(a): m.replace(r"\S", "") for a, m in marks.items()}     # RQ4 is seed 0 for every variant
-    write_tex(tabs / "arm_ablation.tex", rq.ablation_tex(abl, abl_e, {k: v for k, v in abl_marks.items() if v != "$^{}$"}))
+    abl_marks = {rq.prefix(a): m for a, m in marks.items()}
+    write_tex(tabs / "arm_ablation.tex", rq.ablation_tex(abl, abl_e, abl_marks))
     rq.add_ablation_numbers(num, abl)
     rq.add_ablation_effect_numbers(num, abl, abl_e)
-    extra = rq.ablation(gd, gv, variants=rq.VARIANTS[:1] + rq.MACRO_ONLY_VARIANTS)      # EAbl*Mimicry/Janus: macros only
-    rq.add_ablation_numbers(num, extra[extra["pre"].isin([p for _l, p, _v in rq.MACRO_ONLY_VARIANTS])])
-    rq.add_pooled_numbers(num, gd, vdf[vdf["sut"].isin(grid_suts)], arm_short)
+    rq.add_pooled_numbers(num, gd, gv, arm_short)
 
 
 def add_teaser_numbers(num: Numbers, facts: list[dict]) -> None:
@@ -791,11 +825,10 @@ def add_teaser_numbers(num: Numbers, facts: list[dict]) -> None:
         row = ["ETeaser", camel(f["task"])]
         d = f"Fig. 1 row, {f['task']}"
         for k, v in (("Sut", f["sut"]), ("Before", f["before"]), ("After", f["after"]), ("Object", f["obj"]),
-                     ("OddsBefore", odds(f["odds_before"])), ("OddsAfter", odds(f["odds_after"]))):
+                     ("OddsBefore", odds(f["odds_before"])), ("OddsAfter", odds(f["odds_after"])),
+                     ("Mag", f_smart(f["magnitude"], 4)), ("MagImage", f_smart(f["mag_image"], 4)),
+                     ("MagText", f_smart(f["mag_text"], 4))):
             num.add(row + [k], st.tex_escape(str(v)), f"{k}; {d}")
-        for who, e in [("Dir", f["dir"])] + ([("Rnd", f["rnd"])] if "rnd" in f else []):
-            for k in ("n", "img", "txt"):
-                num.add(row + [who, {"n": "Edits", "img": "Img", "txt": "Txt"}[k]], str(int(e[k])), f"{who} {k}; {d}")
 
 
 def complete_blocks(df: pd.DataFrame, ref: str = "a0_directed", grid_suts=GRID_SUTS) -> pd.DataFrame:
@@ -823,94 +856,49 @@ class UnbalancedExport(SystemExit):
     """Raised when the model x task cells of the grid do not hold identical (method, rng seed) blocks."""
 
 
-def add_calib_numbers(num: "Numbers", calib_dir: Path, ladder_jsons: list[Path] | None = None,
-                      codebook_json: Path | None = None, figs: Path | None = None) -> None:
-    """ECalib*: operator calibration (docs/CALIBRATION_2026-11-27.md) from scripts/analysis/calib_final.py output
-    (summary.csv, tests.csv), the single-region ladder LPIPS (ladder_demo.py --regions 1 JSONs) and the codebook
-    live/dead counts (results/diag_edits/codebook_dead.json)."""
-    import json as _json
-    s = pd.read_csv(calib_dir / "summary.csv")
-    t = pd.read_csv(calib_dir / "tests.csv")
-    mods = {"text": "Text", "image": "Image", "both": "Both", "mimicry": "Mimicry", "deepjanus": "DeepJanus"}
-    for _, r in s[s["level"].isin(["pooled", "task"])].iterrows():
-        scope = "All" if r["level"] == "pooled" else camel(str(r["task"]))
-        m = mods[r["mod"]]
-        num.add(["ECalib", "Cr", m, scope], f"{float(r['CR']):.1f}", f"calibration final check: crossing share (%), {r['mod']}, {scope}")
-        if r["level"] == "pooled":
-            num.add(["ECalib", "Runs", m], str(int(r["n"])), f"calibration final check: runs, {r['mod']}")
-            for col, nm, dec in (("lpips_med", "Lpips", 3), ("edits_med", "Edits", 0), ("calls_med", "Calls", 0),
-                                 ("vis_char_med", "VisChar", 1), ("q_preserved", "QPreserved", 1)):
-                if col in r and not pd.isna(r[col]):
-                    v = 100 * float(r[col]) if col == "vis_char_med" else float(r[col])
-                    txt = f_smart(v, 1) if col in ("edits_med", "calls_med") else f"{v:.{dec}f}"
-                    num.add(["ECalib", nm, m], txt, f"calibration final check: median {col}, {r['mod']}")
-    runs_csv = calib_dir / "runs.csv"
-    if runs_csv.exists():     # held-out seed inputs per task (distinct (set, seed input) of one arm and model)
-        rr = pd.read_csv(runs_csv)
-        g = rr.groupby(["task", "arm", "sut"]).apply(lambda x: x[["set", "seed_idx"]].drop_duplicates().shape[0], include_groups=False)
-        if g.nunique() == 1:
-            num.add(["ECalib", "SeedInputsPerTask"], str(int(g.iloc[0])), "calibration final check: held-out seed inputs per task")
-        num.add(["ECalib", "Models"], str(rr["sut"].nunique()), "calibration final check: models")
-    for _, r in t.iterrows():
-        scope = "All" if r["scope"] == "pooled" else camel(str(r["scope"]))
-        pair = mods[r["a"]] + mods[r["b"]]
-        num.add(["ECalib", "P", pair, scope], f_p(float(r["p_mcnemar"])), f"calibration: exact McNemar p, {r['a']} vs {r['b']}, {scope}")
-        num.add(["ECalib", "Pairs", pair, scope], str(int(r["pairs"])), f"calibration: matched pairs, {r['a']} vs {r['b']}, {scope}")
-        num.add(["ECalib", "Disc", pair, scope], f"{int(r['a_only'])}:{int(r['b_only'])}", f"calibration: discordant pairs ({r['a']} only : {r['b']} only), {scope}")
-    traj = calib_dir / "trajectory.csv"
-    if traj.exists():         # ECalibTraj*: uncalibrated -> calibrated (scripts/analysis/calib_trajectory.py)
-        tj = pd.read_csv(traj)
-        for _, r in tj.iterrows():
-            st = str(r["step"])
-            for mod, nm in (("text", "Text"), ("image", "Image")):
-                for col, suf in (("cr", "Cr"), ("lo", "Lo"), ("hi", "Hi")):
-                    num.add(["ECalibTraj", st, nm, suf], f"{float(r[f'{mod}_{col}']):.1f}",
-                            f"calibration trajectory {r['label']}: {mod}-only crossing share (%) {'' if col == 'cr' else 'Wilson 95% CI ' + col}")
-            num.add(["ECalibTraj", st, "P"], f_p(float(r["p_mcnemar"])), f"calibration trajectory {r['label']}: exact McNemar p, text vs image")
-            num.add(["ECalibTraj", st, "Pairs"], str(int(r["pairs"])), f"calibration trajectory {r['label']}: matched pairs")
-            num.add(["ECalibTraj", st, "Disc"], f"{int(r['text_only'])}:{int(r['image_only'])}",
-                    f"calibration trajectory {r['label']}: discordant pairs (text only : image only)")
-            if not pd.isna(r["image_lpips_med"]):
-                num.add(["ECalibTraj", st, "Lpips"], f"{float(r['image_lpips_med']):.3f}", f"calibration trajectory {r['label']}: median LPIPS of image-only crossings")
-            if "text_dist_med" in r and not pd.isna(r["text_dist_med"]):
-                num.add(["ECalibTraj", st, "TextDist"], f"{float(r['text_dist_med']):.3f}", f"calibration trajectory {r['label']}: median MiniLM sentence distance of text-only crossings")
-            if not pd.isna(r["text_vis_char_med"]):
-                num.add(["ECalibTraj", st, "VisChar"], f"{100 * float(r['text_vis_char_med']):.1f}", f"calibration trajectory {r['label']}: median visible text change of text-only crossings (%)")
-        if figs is not None:
-            runs_p = calib_dir / "trajectory_runs.csv"
-            has_final = tj["final"].astype(str).str.lower().isin(("true", "1")).any()
-            if runs_p.exists():      # steps on x, closest-approach distributions (user design 2026-11-28)
-                from mmb.analysis.plots import plot_calib_steps
-                plot_calib_steps(tj, pd.read_csv(runs_p), figs / "calib-trajectory.pdf",
-                                 s[s["level"] == "pooled"] if has_final else None)
-            else:
-                from mmb.analysis.plots import plot_calib_trajectory
-                plot_calib_trajectory(tj, figs / "calib-trajectory.pdf", s[s["level"] == "pooled"])
-    fc = Path("configs/calib/fc_new.yaml")
-    if fc.exists():           # the calibrated setting (same file the final check ran)
-        cfg = yaml.safe_load(fc.read_text())
-        lv = cfg.get("image", {}).get("region_levels") or []
-        if lv:
-            num.add(["ECalib", "MaxRank"], str(int(max(lv))), "calibrated image ladder: maximum neighbour rank (live L2 KNN)")
-            num.add(["ECalib", "Levels"], str(len(lv)), "calibrated image ladder: number of levels")
-        for op in (cfg.get("text") or {}).get("operators", []):
-            if op["name"] == "character_noise":
-                from mmb.manipulator.text.operators.base import severity_to_k_max
-                num.add(["ECalib", "CharNoiseMax"], str(severity_to_k_max(float(op["severity"]), override=op.get("k_max"))), "calibrated text: invisible characters per word (max)")
-            if op["name"] == "synonym":
-                num.add(["ECalib", "SynonymPool"], str(int(op.get("k_max", 0))), "calibrated text: masked-LM synonym pool size")
-    if ladder_jsons:
-        rows = [x for p in ladder_jsons if Path(p).exists() for x in _json.loads(Path(p).read_text())]
-        if rows:
-            lad = pd.DataFrame(rows)
-            for rank, nm in ((8, "Eight"), (128, "OneTwoEight")):
-                v = lad[lad["rank"] <= rank].groupby("rank")["lpips"].mean().max()
-                num.add(["ECalib", "LpipsRegionMaxRank", nm], f"{float(v):.3f}", f"max over ranks <= {rank} of the mean LPIPS of one edited region (live L2 KNN)")
-    if codebook_json is not None and Path(codebook_json).exists():
-        cb = _json.loads(Path(codebook_json).read_text())
-        num.add(["ECodebook", "Live"], f"{int(cb['n_live']):,}".replace(",", "{,}"), "VQGAN f8-16384 codewords with norm > 1e-3")
-        num.add(["ECodebook", "Dead"], f"{16384 - int(cb['n_live']):,}".replace(",", "{,}"), "collapsed codewords (norm <= 1e-3)")
-        num.add(["ECodebook", "DeadShareRankOne"], f"{100 * cb['dead_share_at_rank']['1']:.0f}", "share of collapsed codewords among the cosine nearest neighbours of live codes (%)")
+
+_NUM_WORDS = ("Zero", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve",
+              "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen", "Twenty")
+
+
+def step_word(k: int) -> str:
+    """Digit-free macro part for a step number (LaTeX macro names cannot hold digits)."""
+    return _NUM_WORDS[k] if 0 <= k < len(_NUM_WORDS) else "Step" + "".join(_NUM_WORDS[int(c)] for c in str(k))
+
+
+def add_calib_numbers(num: "Numbers", calib_dir: Path, figs: Path | None = None) -> None:
+    """ECalibTraj*: the weight calibration (mmb.analysis.calibration) from <calib_dir>/trajectory.csv, pooled rows:
+    ECalibTraj<Step|Final><Text|Image><Cr|Lo|Hi>, ...P, ...Pairs, ...Disc, ...WImg, ...WTxt (step words = the step
+    number spelled out; the adopted step is 'Final'); figures/calib-trajectory.pdf via calibration.plot_trajectory."""
+    traj = Path(calib_dir) / "trajectory.csv"
+    if not traj.exists():
+        logger.warning("calibration: no %s", traj)
+        return
+    tj = pd.read_csv(traj)
+    pooled = tj[tj["scope"].astype(str) == "pooled"] if "scope" in tj else tj
+    for _, r in pooled.iterrows():
+        fin = str(r.get("final", "")).lower() in ("true", "1", "1.0")
+        key = "Final" if fin else step_word(int(r["step"]))
+        lab = f"calibration step {r['step']} ({r.get('label', '')})"
+        for mod, nm in (("text", "Text"), ("image", "Image")):
+            for col, suf in (("cr", "Cr"), ("lo", "Lo"), ("hi", "Hi")):
+                v = r.get(f"{mod}_{col}")
+                num.add(["ECalibTraj", key, nm, suf], "n/a" if pd.isna(v) else f"{float(v):.1f}",
+                        f"{lab}: {mod}-only crossing share (%){'' if col == 'cr' else ', Wilson 95% CI ' + col}")
+            m = r.get(f"{mod}_mag_med")
+            if m is not None and not pd.isna(m):
+                num.add(["ECalibTraj", key, nm, "Mag"], f_smart(float(m), 4), f"{lab}: median magnitude of {mod}-only smallest crossings")
+        num.add(["ECalibTraj", key, "P"], f_p(float(r["p_mcnemar"])), f"{lab}: exact McNemar p, text-only vs image-only")
+        num.add(["ECalibTraj", key, "Pairs"], str(int(r["pairs"])), f"{lab}: matched pairs")
+        if "text_only" in r and not pd.isna(r["text_only"]):
+            num.add(["ECalibTraj", key, "Disc"], f"{int(r['text_only'])}:{int(r['image_only'])}",
+                    f"{lab}: discordant pairs (text only : image only)")
+        for col, nm in (("w_img", "WImg"), ("w_txt", "WTxt")):
+            if col in r and not pd.isna(r[col]):
+                num.add(["ECalibTraj", key, nm], f"{float(r[col]):g}", f"{lab}: block weight {col}")
+    if figs is not None and len(pooled):
+        from mmb.analysis.calibration import plot_trajectory
+        plot_trajectory(tj, Path(figs) / "calib-trajectory.pdf")
 
 
 def check_balance(df: pd.DataFrame, grid_suts=GRID_SUTS) -> dict:
@@ -941,17 +929,16 @@ def check_balance(df: pd.DataFrame, grid_suts=GRID_SUTS) -> dict:
 
 
 def pending_confirmation(df: pd.DataFrame) -> set[str]:
-    """run_dirs whose minimal crossing has not been confirmed by single-input scoring yet (scripts/confirm_crossings.py
-    has not run on them). Their min_cross.json is the search's batched output, so every minimal-crossing metric of
-    these runs (calls to minimal, LPIPS, edit distances, stealth) is withheld; crossing share and calls to the first
-    crossing come from the trace for every method alike and stay."""
+    """run_dirs whose smallest crossing exists but has not been confirmed by single-input scoring. Their smallest-crossing
+    metrics are withheld; crossing share and calls to the first crossing come from the trace and stay."""
     if "min_confirmed" not in df:
         return set()
-    ok = df["min_confirmed"].astype(str).str.lower().isin(("true", "1", "1.0"))
-    out = set(df.loc[~ok, "run_dir"])
+    ok = _truthy(df["min_confirmed"])
+    has = _truthy(df["min_found"]) if "min_found" in df else df["crossed"].astype(bool)
+    out = set(df.loc[has & ~ok, "run_dir"])
     if out:
         arms = sorted(set(df.loc[df["run_dir"].isin(out), "arm"]))
-        logger.info("minimal crossings pending confirmation: %d runs (%s); minimal-crossing metrics withheld", len(out), ", ".join(arms))
+        logger.info("smallest crossings pending confirmation: %d runs (%s); smallest-crossing metrics withheld", len(out), ", ".join(arms))
     return out
 
 
@@ -973,9 +960,8 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
            validity: Path | None = None, runs_root: Path | None = None, n_boot: int = st.N_BOOT,
            figures: bool = True, agree: list[Path] | None = None,
            transfer: list[Path] | None = None, human: Path | None = None,
-           planned: Path | None = None, minimal: list[Path] | None = None,
-           omit_arms: frozenset = frozenset(), legacy: dict | None = None, calib: Path | None = None,
-           modswap: list[Path] | None = None) -> Numbers:
+           planned: Path | None = None, omit_arms: frozenset = frozenset(), legacy: dict | None = None,
+           calib: Path | None = None, modswap: list[Path] | None = None) -> Numbers:
     from mmb.analysis import gallery, plots
 
     gen = Path(paper) / "generated"
@@ -991,23 +977,17 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
         if len(adf) and "run_dir" in adf:
             v = adf.drop_duplicates("run_dir").set_index("run_dir")["cross_verified"]
             df["verified"] = df["run_dir"].map(v)
-    gone = df["arm"].astype(str).str.split("_").str[0].isin(DROPPED_ARMS)
-    if gone.any():    # GA, NSGA-II, hill climber dropped 2026-11-25 (user decision): no table, macro or curve
-        logger.warning("dropped %d runs of dropped methods: %s", int(gone.sum()), sorted(set(df.loc[gone, "arm"])))
+    pre = df["arm"].astype(str).str.split("_").str[0]
+    gone = pre.isin(DROPPED_ARMS | set(omit_arms))
+    if gone.any():    # arms not in the study (or omitted): no table, macro, curve or Holm family
+        logger.warning("dropped %d runs of arms outside the study: %s", int(gone.sum()), sorted(set(df.loc[gone, "arm"])))
         df = df[~gone]
-    om = df["arm"].astype(str).str.split("_").str[0].isin(omit_arms)
-    if om.any():      # run on the full grid, omitted from the paper (data kept): no table, figure, macro or Holm family
-        logger.warning("omitted from the paper: %d runs of %s", int(om.sum()), sorted(set(df.loc[om, "arm"])))
-        df = df[~om]
     s0only = df["arm"].astype(str).str.split("_").str[0].isin(SEED0_ONLY_ARMS) & (df["rng_seed"] != 0)
     if s0only.any():   # ablation arms: seed 0 only in the paper (data of other seeds kept)
         logger.warning("ablation arms on seed 0 only: %d runs of other seeds left out", int(s0only.sum()))
         df = df[~s0only]
-    for pre in omit_arms:
-        for rel in OMIT_STALE.get(pre, ()):
-            (gen / rel).unlink(missing_ok=True)
     off = ~df["sut"].isin(list(grid_suts))
-    if off.any():     # only the balanced grid is exported (LLaVA-NeXT dropped 2026-11-25: no row or macro for it)
+    if off.any():     # only the balanced grid is exported
         logger.warning("dropped %d runs of SUTs outside the grid: %s", int(off.sum()), sorted(set(df.loc[off, "sut"])))
         df = df[~off]
     df = complete_blocks(df, ref, grid_suts)
@@ -1015,144 +995,118 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
     bad_seed = [b for b in design if b[0].split("_")[0] in SEED0_ONLY_ARMS and b[1] != 0]
     if bad_seed:
         raise UnbalancedExport(f"ablation arms must be on seed 0 only, found {bad_seed}")
-    excluded = set(all_runs) - set(df["run_dir"])    # runs left out on purpose (dropped/omitted arm, partial block, non-grid)
+    excluded = set(all_runs) - set(df["run_dir"])
     logger.info("balanced design: %s", ", ".join(f"{a} s{s} ({n})" for (a, s), n in sorted(design.items())))
+    df = df.copy()
     pending = pending_confirmation(df)
     df["min_pending"] = df["run_dir"].isin(pending)
-    if pending:      # minimal crossings of these runs are the search's own, not yet confirmed by single-input scoring
-        df.loc[df["min_pending"], "min_cross_eval"] = np.nan
+    if pending:      # smallest crossings not yet confirmed by single-input scoring: their metrics are withheld
+        for c in ("magnitude", "mag_image", "mag_text", "min_text_d", "min_eval_idx"):
+            if c in df:
+                df.loc[df["min_pending"], c] = np.nan
     num = Numbers()
-    num.add(["EPending", "Confirm", "Runs"], str(len(pending)), "runs whose minimal crossing awaits single-input confirmation (minimal-crossing metrics withheld)")
+    num.add(["EPending", "Confirm", "Runs"], str(len(pending)), "runs whose smallest crossing awaits single-input confirmation (its metrics withheld)")
     if planned is not None:
         num.datastatus, n_ok, n_plan = data_status(df, planned, Path(planned).resolve().parents[2])
         logger.info("data status: %s (%d of %d planned configurations complete)", num.datastatus, n_ok, n_plan)
+    if df.empty:
+        logger.warning("no runs left after the filters: only the run count is written")
+        num.add(["EOne", "Runs", "Total"], "0", "runs in the results CSV")
+        num.write(gen)
+        return num
     sc = scopes(df, grid_suts)
     budgets = list(st.DEFAULT_BUDGETS)
     num.add(["EOne", "Runs", "Total"], str(len(df)), "runs in the results CSV")
     if "complete" in df:
-        num.add(["EOne", "Runs", "Incomplete"], str(int((~df["complete"]).sum())), "runs with missing generations")
+        num.add(["EOne", "Runs", "Incomplete"], str(int((~df["complete"].astype(bool)).sum())), "runs with missing generations")
 
     for (sut, task), d in sc.items():
         arms = set(d["arm"])
-        res = st.run_all(d, ref if ref in arms else None, _tmpdir(gen, sut, task),
-                         budgets, n_boot)
+        res = st.run_all(d, ref if ref in arms and len(arms) > 1 else None, _tmpdir(gen, sut, task), budgets, n_boot)
         add_summary_numbers(num, sut, task, res["summary"])
         add_curve_numbers(num, sut, task, res["curve"])
-        if ref in arms:
+        cs_, ps_, ms_ = cost_summary(d, n_boot), pair_summary(d), modality_summary(d)
+        add_cost_numbers(num, sut, task, cs_)
+        add_pair_numbers(num, sut, task, ps_)
+        add_modality_numbers(num, sut, task, ms_)
+        ct = pd.DataFrame()
+        if ref in arms and len(arms) > 1:
             ct = pr.paired_table(d, ref, pr.DEFAULT_METRICS, n_boot=n_boot)
             add_cluster_numbers(num, sut, task, ct)
             for a in sorted(arms - {ref}):
-                npair = len(pr.pair_frame(d, ref, a, "min_edits_x"))
+                npair = len(pr.pair_frame(d, ref, a, "magnitude"))
                 num.add(["EOne", "PairsBothCrossed", arm_short(a), camel(sut), camel(task)], str(npair),
-                        f"matched (cell, seed) pairs in which {a} and {ref} both crossed; {sut}, {task}")
-            cs_ = cost_summary(d, n_boot)
-            add_cost_numbers(num, sut, task, cs_)
-            if (sut, task) == ("All", "All"):
-                if len(ct):
-                    write_tex(tabs / "e1_cluster.tex", cluster_table_tex(ct))
-                write_tex(tabs / "cost.tex", cost_tex(cs_))
-                for a in sorted(arms - {ref}):
-                    add_mixed_numbers(num, pr.mixed_model(d.assign(cell_id=d["cluster_id"]), ref, a))
+                        f"matched (cell, seed) pairs in which {a} and {ref} both have an in-budget smallest crossing; {sut}, {task}")
         if "paired" in res:
             add_paired_numbers(num, sut, task, res["paired"])
-        if sut != "All" and task != "All":
-            stem = f"{task}_{sut}"
-            write_tex(tabs / "per" / f"{stem}_summary.tex", st.summary_tex(res["summary"]))
-            write_tex(tabs / "per" / f"{stem}_budgets.tex", st.budgets_tex(res["curve"], budgets))
-            if "paired" in res:
-                write_tex(tabs / "per" / f"{stem}_paired.tex", st.paired_tex(res["paired"]))
         if (sut, task) == ("All", "All"):
             write_tex(tabs / "e1.tex", st.summary_tex(res["summary"]))
-            write_tex(tabs / "e1_budgets.tex", st.budgets_tex(res["curve"], budgets))
             if "paired" in res:
                 write_tex(tabs / "e1_paired.tex", st.paired_tex(res["paired"]))
+            if len(ct):
+                write_tex(tabs / "e1_cluster.tex", cluster_table_tex(ct))
+            write_tex(tabs / "cost.tex", cost_tex(cs_))
+            write_tex(tabs / "boundary_pair.tex", pair_tex(ps_))
+            write_tex(tabs / "min_modality.tex", modality_tex(ms_))
+            if ref in arms:
+                for a in sorted(arms - {ref}):
+                    add_mixed_numbers(num, pr.mixed_model(d.assign(cell_id=d["cluster_id"]), ref, a))
     _cleanup_tmp(gen)
-    pt = pr.primary_table(df, ref, "a1_random_tiered", n_boot)
+    pt = primary_tables(df, ref, n_boot)
     if len(pt):
         write_tex(tabs / "primary.tex", primary_tex(pt))
         add_primary_numbers(num, pt)
-    # secondary (declared after the primary plan, METHODOLOGY 2026-11-22 08:40 UTC): a7 (image only) vs a0 on matched pairs
-    if "a7_image_only" in set(df["arm"]):
-        st7 = pr.primary_table(df, ref, "a7_image_only", n_boot)
-        if len(st7):
-            write_tex(tabs / "secondary_a7.tex", primary_tex(st7, "a7"))
-            add_primary_numbers(num, st7, "ESecondary", "a7")
-    # secondary (METHODOLOGY 2026-11-22 09:10 UTC): a9 (DeepJanus-style) vs a0 on matched pairs
-    if "a9_deepjanus" in set(df["arm"]):
-        st9 = pr.primary_table(df, ref, "a9_deepjanus", n_boot)
-        if len(st9):
-            write_tex(tabs / "secondary_a9.tex", primary_tex(st9, "a9"))
-            add_primary_numbers(num, st9, "ESecondaryNine", "a9")
-
     add_wall_numbers(num, sc)
 
-    prim = df[df["arm"].isin(PRIMARY_ARMS)]
-    # (E3, the four-model ImageNet continuity table, is gone: LLaVA-NeXT dropped 2026-11-25, balanced grid only)
-    # E4: a0 and a1 per task, grid SUTs pooled
-    frames = []
-    for task in sorted(set(prim["task"])):
-        d = prim[(prim["task"] == task) & prim["sut"].isin(set(grid_suts))]
-        if len(d):
-            frames.append(([TASK_NAMES.get(task, task)], st.arm_summary(with_scope_cells(d), n_boot)))
-    if frames and prim["arm"].nunique() > 1:      # a comparison table: not written with one arm left
-        write_tex(tabs / "e4.tex", keyed_summary_tex(frames, ["Task"]))
-
-    # E2b
     need = {"prior_g", "probe_gen0", "min_gen0"}
     if need <= set(df.columns) and df["prior_g"].notna().any():
         a0 = df[df["arm"] == ref]
         if len(a0):
-            cells = pred.cell_frame(pred.prepare(a0), ["sut", "task"])
-            tab, corr, part = e2b_table(cells, n_boot)
-            write_tex(tabs / "e2b.tex", tab)
-            corr.to_csv(gen / "e2b_cell_correlations.csv", index=False)
-            add_predictor_numbers(num, corr, part)
+            try:
+                cells = pred.cell_frame(pred.prepare(a0), ["sut", "task"])
+                tab, corr, part = e2b_table(cells, n_boot)
+                corr.to_csv(gen / "e2b_cell_correlations.csv", index=False)
+                add_predictor_numbers(num, corr, part)
+            except (ValueError, KeyError) as e:
+                logger.warning("E2b skipped: %s", e)
     else:
         logger.warning("no prior_g / probe columns: E2b skipped")
+    from mmb.analysis import hardness as hd
+    hdf = hd.frame(df)
+    if len(hdf):
+        hd.add_numbers(num, hd.correlations(hdf))
 
     if validity is not None and Path(validity).exists():
         vdf = pd.read_csv(validity)
-        if len(vdf) and "run_dir" in vdf:        # only runs that passed the gates (dropped methods, partial blocks)
+        if len(vdf) and "run_dir" in vdf:
             vdf = vdf[vdf["run_dir"].isin(set(df["run_dir"]))]
-        if len(vdf) and pending and "view" in vdf:      # unconfirmed minimal crossings never enter a table
+        if len(vdf) and pending and "view" in vdf:
             vdf = vdf[~((vdf["view"] == "min") & vdf["run_dir"].isin(pending))]
         if len(vdf):
             v1 = vdf[vdf["view"] == "first"] if "view" in vdf else vdf
-            write_tex(tabs / "validity.tex", validity_table(v1))
             add_validity_numbers(num, v1)
             from mmb.analysis import validity_cost as vc
             from mmb.analysis import rq_tables as rq
             if {"sut", "task", "arm", "view"} <= set(vdf.columns):
                 _rq_tables(rq, tabs, df, vdf, grid_suts, num, method_marks(df, ref, pending)[0])
-            # primary view: the minimal crossing (EValid*, validity_main); the first-crossing view is supplement only (EValidFirst*)
-            for view, stem, fam, lab in (("min", "validity_cost_min", "EValid", "minimal crossing"),
-                                         ("first", "validity_cost", "EValidFirst", "first crossing")):
+            for view, fam, lab in (("min", "EValid", "smallest crossing"), ("first", "EValidFirst", "first crossing")):
                 vct = vc.validity_cost(vdf, df, grid_suts, view=view)
                 if len(vct):
-                    write_tex(tabs / f"{stem}.tex", vc.table_tex(vct, TASK_NAMES, objective=(view == "first")))
-                    if view == "min":
-                        write_tex(tabs / "validity_main.tex", validity_main_tex(vct, TASK_NAMES))
                     vc.add_numbers(num, vct, fam, lab)
-                    write_tex(tabs / f"{stem.replace('cost', 'sensitivity')}.tex",
-                              vc.sensitivity_tex(vc.sensitivity(vdf, df, grid_suts, view)))
 
     if agree:
         adf = load_agree(agree)
-        if len(adf) and "run_dir" in adf:       # replayed runs of the exported arms only
+        if len(adf) and "run_dir" in adf:
             adf = adf[~adf["run_dir"].isin(excluded)]
         if len(adf):
             write_tex(tabs / "agree.tex", agree_table(adf))
             add_agree_numbers(num, adf)
 
-    trows = None
     if transfer:
         tdf = tr.load_transfer(transfer, results=csv_paths[0])
-        tdf = tdf[~tdf["run_dir"].isin(excluded)]                 # crossings of the exported arms only
+        tdf = tdf[~tdf["run_dir"].isin(excluded)]
         trows = tr.matrix_rows(tdf) if len(tdf) else []
         if trows:
-            write_tex(tabs / "transfer.tex", tr.matrix_tex(trows, "All", SUT_NAMES))
-            for task in sorted(set(tdf["task"])):
-                write_tex(tabs / f"transfer_{task}.tex", tr.matrix_tex(trows, task, SUT_NAMES))
             add_transfer_numbers(num, trows)
             if "arm" in tdf:
                 for arm_name, tg in tdf.groupby("arm"):
@@ -1163,81 +1117,46 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
                             num.add(["ETransferArm", "N", arm_short(arm_name), camel(task_name)], str(n), f"crossing-destination pairs behind it, arm {arm_name}, {task_name}")
                 add_transfer_paired(num, tdf, ref)
 
-    if len(pt):
-        write_tex(tabs / "generalization_main.tex", generalization_main_tex(pt, trows))
-
     if human is not None and Path(human).exists():
-        hdf = pd.read_csv(human, keep_default_na=False)
-        if len(hdf):
-            write_tex(tabs / "human_validity.tex", human_tex(hdf))
-            add_human_numbers(num, hdf)
+        hdf_ = pd.read_csv(human, keep_default_na=False)
+        if len(hdf_):
+            write_tex(tabs / "human_validity.tex", human_tex(hdf_))
+            add_human_numbers(num, hdf_)
 
     if figures:
         grid_df = sc.get(("All", "All"))
         if grid_df is not None:
-            plots.plot_crossing_curve(grid_df, figs / "crossing-curve.pdf", ref_arm=ref, vlines=[206], n_boot=n_boot,
+            plots.plot_crossing_curve(grid_df, figs / "crossing-curve.pdf", ref_arm=ref, n_boot=n_boot,
                                       label_suffix=method_marks(grid_df, ref, pending)[1])
-        if len(pt):
-            pr.plot_per_cell_diff(df, figs / "per-cell-diff.pdf", ref, "a1_random_tiered")
         if "probe_gen0" in df and df["probe_gen0"].notna().any():
-            plots.plot_predictor_scatter(df[df["sut"].isin(set(grid_suts))], figs / "predictor-main.pdf", arm=ref)
-        gdf = df[df["sut"].isin(set(grid_suts))]
-        if "a1_random_tiered" in set(gdf["arm"]):     # teaser: directed vs random minimal crossing, with difference panes
-            teaser = gallery.select_teaser(gdf, ref, "a1_random_tiered", runs_root=runs_root)
-        else:                                          # random omitted from the paper: MMBA panels only (rule: gallery.select_teaser_single)
-            teaser = gallery.select_teaser_single(gdf, ref, runs_root=runs_root)
-        if not teaser:
-            logger.warning("teaser: no cell with a stored minimal crossing for both arms yet")
+            plots.plot_predictor_scatter(df, figs / "predictor-main.pdf", arm=ref)
+        examples = gallery.select_examples(df, ref, runs_root=runs_root)
+        if not examples:
+            logger.warning("gallery: no MMBA run with a stored in-budget smallest crossing yet")
         else:
             try:
-                gallery.plot_teaser(teaser, figs / "gallery.pdf", runs_root=runs_root)
-                add_teaser_numbers(num, gallery.teaser_facts(teaser, runs_root=runs_root))
+                gallery.plot_teaser(examples, figs / "gallery.pdf", runs_root=runs_root)
+                add_teaser_numbers(num, gallery.teaser_facts(examples, runs_root=runs_root))
             except FileNotFoundError as e:
-                logger.warning("teaser skipped: %s", e)
-    mdf = None
-    if runs_root is not None and Path(runs_root).exists():
-        from mmb.analysis import failure_types as ft, min_types as mtp
-        mdf = mtp.load_runs(runs_root)
-        if len(mdf):
-            mdf = mdf[~mdf["run_dir"].isin(excluded)]                # runs of the exported arms only
-        if len(mdf):
-            write_tex(tabs / "arm_failure.tex", mtp.table_tex(mdf))
-            mtp.add_numbers(num, mdf, camel, f_num, f_pct)
-            from mmb.analysis import hardness as hd
-            hdf = hd.frame(df, mdf)
-            if len(hdf):
-                hd.add_numbers(num, hd.correlations(hdf))
-    elif minimal:
-        from mmb.analysis import failure_types as ft
-        mdf = ft.load_minimal(minimal)
-    if mdf is not None:
-        from mmb.analysis import failure_types as ft
-        if len(mdf):
-            add_failure_numbers(num, mdf)
-            if figures:
-                ft.figure(mdf, figs / "failure-types.pdf", sut_names={k: v.split(" (")[0] for k, v in SUT_NAMES.items()},
-                          task_names=TASK_NAMES)
-    if calib is not None and (Path(calib) / "summary.csv").exists():
-        add_calib_numbers(num, Path(calib), sorted(Path("docs/figs/calib").glob("ladder_single_region_*.json")),
-                          Path("results/diag_edits/codebook_dead.json"), figs if figures else None)
-    if modswap:       # modality attribution by swapping (scripts/modality_swap.py)
+                logger.warning("gallery skipped: %s", e)
+    if calib is not None:
+        add_calib_numbers(num, Path(calib), figs if figures else None)
+    if modswap:
         from mmb.analysis import modality_swap as msw
-        from mmb.analysis.stats import arm_label as _al
         md = msw.load(modswap)
         if len(md):
             for view in ("min", "first"):
                 if (md["view"] == view).any():
                     msw.add_numbers(num, md, camel, view)
             if figures and (md["view"] == "min").any():
-                msw.plot(md, figs / "modality-swap.pdf", _al, view="min")
-    if legacy:        # macros of omitted arms from the full export, kept until the text no longer cites them
+                msw.plot(md, figs / "modality-swap.pdf", st.arm_label, view="min")
+    if legacy:
         kept = []
         for name, (value, desc) in legacy.items():
             if name not in num.seen:
                 num.add_legacy(name, value, desc)
                 kept.append(name)
         (gen / "legacy_macros.txt").write_text("\n".join(sorted(kept)) + ("\n" if kept else ""))
-        logger.info("legacy macros kept (omitted arms): %d, listed in generated/legacy_macros.txt", len(kept))
     else:
         (gen / "legacy_macros.txt").unlink(missing_ok=True)
     num.write(gen)
@@ -1264,13 +1183,12 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--agree", type=Path, nargs="*", default=[], help="agreement_replay CSVs (one per SUT)")
     ap.add_argument("--transfer", type=Path, nargs="*", default=[], help="cross-SUT replay CSVs")
     ap.add_argument("--human-validity", type=Path, default=None, help="analyze_ratings.py output CSV")
-    ap.add_argument("--minimal", type=Path, nargs="*", default=[], help="minimize_crossings.py CSVs (failure types)")
     ap.add_argument("--planned", type=Path, default=None, help="configs/generated/MAIN: planned configurations (data status)")
     ap.add_argument("--n-boot", type=int, default=st.N_BOOT)
     ap.add_argument("--no-figures", action="store_true")
     ap.add_argument("--omit-arms", default=",".join(sorted(PAPER_OMIT_ARMS)),
                     help="arm prefixes kept in the data but omitted from the paper (default: %(default)s; '' = none)")
-    ap.add_argument("--calib", type=Path, default=None, help="calib_final.py output dir (ECalib* macros)")
+    ap.add_argument("--calib", type=Path, default=None, help="calibration output dir with trajectory.csv (ECalibTraj* macros)")
     ap.add_argument("--modswap", type=Path, nargs="*", default=None, help="scripts/modality_swap.py CSVs (EModSwap*, modality-swap.pdf)")
     ap.add_argument("--legacy", action="store_true",
                     help="also keep the macros of omitted arms from a full export (verbatim, listed in legacy_macros.txt)")
@@ -1279,7 +1197,7 @@ def main(argv: list[str] | None = None) -> int:
     omit = frozenset(x for x in args.omit_arms.split(",") if x)
     kw = dict(ref=args.ref, grid_suts=args.grid_suts.split(","), validity=args.validity, runs_root=args.runs_root,
               n_boot=args.n_boot, agree=args.agree or None, transfer=args.transfer or None, human=args.human_validity,
-              planned=args.planned, minimal=args.minimal or None)
+              planned=args.planned)
     legacy = None
     if omit and args.legacy:
         import tempfile

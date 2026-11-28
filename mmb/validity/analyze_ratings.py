@@ -15,7 +15,7 @@ Groups: (stratum, task, arm); controls (unedited codec reconstructions) have an 
 Agreement: Krippendorff's alpha (nominal) and Gwet's AC1 over items with >= 2 ratings, for the valid label and
 for each of the two questions, overall and per stratum x task x arm.
 Calibration: per edited item, the human validity share against the proxies of manifest.csv (img_lpips,
-vis_char_dist; see mmb.validity.calibrate): Spearman rho and AUC for "share >= 0.5", with bootstrap CIs.
+txt_word_edit; see mmb.validity.calibrate): Spearman rho and AUC for "share >= 0.5", with bootstrap CIs.
 """
 from __future__ import annotations
 
@@ -142,8 +142,8 @@ def proxy_calibration(d: pd.DataFrame, threshold: float = 0.5, n_boot: int = cal
     if e.empty:
         return pd.DataFrame()
     per = e.groupby("item_id").agg(validity=("valid", "mean"),
-                                   **{c: (c, "first") for c in ("img_lpips", "vis_char_dist") if c in e})
-    for c in ("img_lpips", "vis_char_dist"):
+                                   **{c: (c, "first") for c in ("img_lpips", "txt_word_edit") if c in e})
+    for c in ("img_lpips", "txt_word_edit"):
         if c in per:
             per[c] = pd.to_numeric(per[c], errors="coerce")
     return cal.calibrate(per.reset_index(), threshold, n_boot)

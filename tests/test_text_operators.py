@@ -1,15 +1,13 @@
-"""Tests for the composite text-manipulator + each operator.
+"""Tests for the text side after the trim (2026-11-28): the run-time text manipulator is the continuous
+question_pool operator alone; the synonym MLM base stays for scripts/build_question_pool.py (via semantic.py).
 
-Surface operators (Fragmentation, Character Noise, Saliency) run with
-real handcrafted TokenSequences — no spaCy load needed since their
-eligibility filters use the PoS tags already on the TokenSequence.
-
-The MLM-based SynonymOperator is exercised via a stub MLM injected
-through ``_set_resources``; the real ModernBERT is exercised in a
-separate smoke test, not in pytest.
+The MLM-based SynonymOperator is exercised via a stub MLM injected through ``_set_resources``; the real
+ModernBERT is not loaded in pytest. The question_pool mapping itself is tested in tests/test_question_pool.py.
 """
 
 from __future__ import annotations
+
+import json
 
 import numpy as np
 import pytest
@@ -20,17 +18,8 @@ from mmb.manipulator.text.composite import (
     CANONICAL_ORDER,
     CompositeTextManipulator,
 )
-from mmb.manipulator.text.operators.base import (
-    deterministic_word_rng,
-    severity_to_k_max,
-)
-from mmb.manipulator.text.operators.character_noise import (
-    HOMOGLYPHS,
-    ZERO_WIDTH,
-    CharacterNoiseOperator,
-)
-from mmb.manipulator.text.operators.fragmentation import FragmentationOperator
-from mmb.manipulator.text.operators.saliency import SaliencyOperator
+from mmb.manipulator.text.operators.base import OperatorContext, severity_to_k_max
+from mmb.manipulator.text.operators.question_pool import QuestionPoolOperator, load_pool
 from mmb.manipulator.text.operators.synonym import (
     NEGATION_PREFIX_RE,
     SynonymOperator,
@@ -55,7 +44,7 @@ def _tokens_quick_brown_fox() -> TokenSequence:
 
 
 # ===========================================================================
-# severity_to_k_max
+# severity_to_k_max (used by the synonym base of the pool builder)
 # ===========================================================================
 
 
@@ -91,194 +80,6 @@ class TestSeverityToKmax:
             severity_to_k_max(0.5, override=-1)
 
 
-# ===========================================================================
-# deterministic_word_rng
-# ===========================================================================
-
-
-class TestDeterministicRng:
-    def test_same_inputs_same_stream(self):
-        a = deterministic_word_rng(42, "fox", 1)
-        b = deterministic_word_rng(42, "fox", 1)
-        assert a.integers(0, 1_000_000) == b.integers(0, 1_000_000)
-
-    def test_different_word_different_stream(self):
-        a = deterministic_word_rng(42, "fox", 1)
-        b = deterministic_word_rng(42, "wolf", 1)
-        assert a.integers(0, 1_000_000) != b.integers(0, 1_000_000)
-
-
-# ===========================================================================
-# FragmentationOperator
-# ===========================================================================
-
-
-class TestFragmentationOperator:
-    def setup_method(self):
-        self.tokens = _tokens_quick_brown_fox()
-
-    def test_severity_zero_disables(self):
-        op = FragmentationOperator(severity=0.0)
-        ctx = op.prepare(self.tokens)
-        assert op.gene_dim(ctx) == 0
-
-    def test_eligibility_min_word_len(self):
-        op = FragmentationOperator(severity=0.5)
-        ctx = op.prepare(self.tokens)
-        eligible_words = [self.tokens.tokens[int(p)] for p in ctx.positions]
-        assert "quick" in eligible_words
-        assert "brown" in eligible_words
-        assert "fox" not in eligible_words  # len=3 < 4
-
-    def test_zero_genes_no_op(self):
-        op = FragmentationOperator(severity=0.5)
-        ctx = op.prepare(self.tokens)
-        genes = np.zeros(ctx.n_positions, dtype=np.int64)
-        out = op.apply(ctx, genes, self.tokens)
-        assert out.text == self.tokens.text
-
-    def test_inserts_spaces(self):
-        op = FragmentationOperator(severity=1.0)
-        ctx = op.prepare(self.tokens)
-        genes = np.full(ctx.n_positions, 2, dtype=np.int64)
-        out = op.apply(ctx, genes, self.tokens)
-        assert len(out.text) > len(self.tokens.text)
-        assert "q" in out.text and "k" in out.text
-
-    def test_deterministic(self):
-        op = FragmentationOperator(severity=0.5)
-        ctx = op.prepare(self.tokens)
-        genes = np.array([1] * ctx.n_positions, dtype=np.int64)
-        a = op.apply(ctx, genes, self.tokens).text
-        b = op.apply(ctx, genes, self.tokens).text
-        assert a == b
-
-
-# ===========================================================================
-# CharacterNoiseOperator
-# ===========================================================================
-
-
-class TestCharacterNoiseOperator:
-    def setup_method(self):
-        self.tokens = _tokens_quick_brown_fox()
-
-    def test_severity_zero_disables(self):
-        op = CharacterNoiseOperator(severity=0.0)
-        ctx = op.prepare(self.tokens)
-        assert op.gene_dim(ctx) == 0
-
-    def test_invalid_mode_raises(self):
-        with pytest.raises(ValueError, match="unknown character_noise mode"):
-            CharacterNoiseOperator(severity=0.5, modes=("not_a_mode",))
-
-    def test_empty_modes_raises(self):
-        with pytest.raises(ValueError, match="non-empty"):
-            CharacterNoiseOperator(severity=0.5, modes=())
-
-    def test_eligibility_alpha_only(self):
-        op = CharacterNoiseOperator(severity=0.5)
-        ctx = op.prepare(self.tokens)
-        assert ctx.n_positions == 4
-
-    def test_zero_genes_no_op(self):
-        op = CharacterNoiseOperator(severity=0.5)
-        ctx = op.prepare(self.tokens)
-        genes = np.zeros(ctx.n_positions, dtype=np.int64)
-        out = op.apply(ctx, genes, self.tokens)
-        assert out.text == self.tokens.text
-
-    def test_homoglyph_mode_replaces_chars(self):
-        op = CharacterNoiseOperator(severity=1.0, modes=("homoglyph",))
-        ctx = op.prepare(self.tokens)
-        genes = np.full(ctx.n_positions, 5, dtype=np.int64)
-        out = op.apply(ctx, genes, self.tokens)
-        homoglyph_chars = set(HOMOGLYPHS.values())
-        assert any(c in homoglyph_chars for c in out.text)
-
-    def test_zero_width_mode_inserts_chars(self):
-        op = CharacterNoiseOperator(severity=1.0, modes=("zero_width",))
-        ctx = op.prepare(self.tokens)
-        genes = np.full(ctx.n_positions, 5, dtype=np.int64)
-        out = op.apply(ctx, genes, self.tokens)
-        zw_chars = set(ZERO_WIDTH)
-        assert any(c in zw_chars for c in out.text)
-
-    def test_deterministic(self):
-        op = CharacterNoiseOperator(severity=0.5)
-        ctx = op.prepare(self.tokens)
-        genes = np.array([1] * ctx.n_positions, dtype=np.int64)
-        a = op.apply(ctx, genes, self.tokens).text
-        b = op.apply(ctx, genes, self.tokens).text
-        assert a == b
-
-
-# ===========================================================================
-# SaliencyOperator
-# ===========================================================================
-
-
-class TestSaliencyOperator:
-    def setup_method(self):
-        self.tokens = _tokens_quick_brown_fox()
-
-    def test_severity_zero_disables(self):
-        op = SaliencyOperator(severity=0.0)
-        ctx = op.prepare(self.tokens)
-        assert op.gene_dim(ctx) == 0
-
-    def test_skips_function_words(self):
-        op = SaliencyOperator(severity=0.5)
-        ctx = op.prepare(self.tokens)
-        eligible = [self.tokens.tokens[int(p)] for p in ctx.positions]
-        assert "The" not in eligible  # DET → filtered
-        assert "quick" in eligible
-        assert "fox" in eligible
-
-    def test_zero_genes_no_op(self):
-        op = SaliencyOperator(severity=0.5)
-        ctx = op.prepare(self.tokens)
-        genes = np.zeros(ctx.n_positions, dtype=np.int64)
-        out = op.apply(ctx, genes, self.tokens)
-        assert out.text == self.tokens.text
-
-    def test_corruption_changes_text(self):
-        op = SaliencyOperator(severity=1.0)
-        ctx = op.prepare(self.tokens)
-        assert ctx.n_positions > 0
-        genes = np.full(ctx.n_positions, 5, dtype=np.int64)
-        out = op.apply(ctx, genes, self.tokens)
-        assert out.text != self.tokens.text
-
-    def test_first_char_preserved(self):
-        op = SaliencyOperator(severity=1.0)
-        ctx = op.prepare(self.tokens)
-        genes = np.full(ctx.n_positions, 5, dtype=np.int64)
-        out = op.apply(ctx, genes, self.tokens)
-        for p in ctx.positions:
-            original = self.tokens.tokens[int(p)]
-            mutated = out.tokens[int(p)]
-            assert mutated[0] == original[0]
-
-    def test_short_words_skipped(self):
-        tokens = make_tokens(
-            ("a", "ADJ", " "),
-            ("quick", "ADJ", " "),
-            ("fox", "NOUN", ""),
-        )
-        op = SaliencyOperator(severity=1.0)
-        ctx = op.prepare(tokens)
-        eligible = [tokens.tokens[int(p)] for p in ctx.positions]
-        assert "a" not in eligible
-
-    def test_deterministic(self):
-        op = SaliencyOperator(severity=0.5)
-        ctx = op.prepare(self.tokens)
-        genes = np.array([1] * ctx.n_positions, dtype=np.int64)
-        a = op.apply(ctx, genes, self.tokens).text
-        b = op.apply(ctx, genes, self.tokens).text
-        assert a == b
-
 
 # ===========================================================================
 # Profile loader + builder
@@ -288,55 +89,26 @@ class TestSaliencyOperator:
 class TestProfileLoader:
     def test_load_actual_library(self):
         from pathlib import Path
-        lib_path = (
-            Path(__file__).resolve().parent.parent
-            / "configs" / "templates" / "text_profiles.yaml"
-        )
+        lib_path = Path(__file__).resolve().parent.parent / "configs" / "templates" / "text_profiles.yaml"
         library = load_profile_library(lib_path)
-        assert "full_stack" in library
-        assert "domain_expert" in library
+        assert set(library) == {"question_pool_only", "noop"}
+        assert [s.name for s in library["question_pool_only"].operators] == ["question_pool"]
+        assert library["noop"].operators == ()
+
+    def _lib(self):
+        return {"p": TextProfile(name="p", operators=(OperatorSpec(name="question_pool", severity=1.0,
+                                                                     extras={"w_txt": 1.0}),))}
 
     def test_resolve_profile_returns_specs(self):
-        lib = {
-            "p": TextProfile(
-                name="p",
-                operators=(
-                    OperatorSpec(name="saliency", severity=0.25),
-                    OperatorSpec(name="synonym", severity=0.10),
-                ),
-            ),
-        }
-        specs = resolve_profile(lib, profile_name="p")
-        assert len(specs) == 2
+        assert len(resolve_profile(self._lib(), profile_name="p")) == 1
 
     def test_resolve_with_overrides(self):
-        lib = {
-            "p": TextProfile(
-                name="p",
-                operators=(
-                    OperatorSpec(name="saliency", severity=0.25),
-                    OperatorSpec(name="synonym", severity=0.10),
-                ),
-            ),
-        }
-        specs = resolve_profile(
-            lib,
-            profile_name="p",
-            overrides={"saliency": {"severity": 0.50}},
-        )
-        sal = next(s for s in specs if s.name == "saliency")
-        syn = next(s for s in specs if s.name == "synonym")
-        assert sal.severity == 0.50
-        assert syn.severity == 0.10
+        specs = resolve_profile(self._lib(), profile_name="p", overrides={"question_pool": {"w_txt": 2.5}})
+        assert specs[0].extras["w_txt"] == 2.5 and specs[0].severity == 1.0
 
     def test_resolve_explicit_operators(self):
-        specs = resolve_profile(
-            library={},
-            profile_name=None,
-            operators=[{"name": "fragmentation", "severity": 0.30}],
-        )
-        assert len(specs) == 1
-        assert specs[0].name == "fragmentation"
+        specs = resolve_profile(library={}, profile_name=None, operators=[{"name": "question_pool", "severity": 1.0}])
+        assert len(specs) == 1 and specs[0].name == "question_pool"
 
     def test_unknown_profile_raises(self):
         with pytest.raises(KeyError, match="not in library"):
@@ -349,62 +121,17 @@ class TestProfileLoader:
 
 class TestBuildOperators:
     def test_severity_zero_skipped(self):
-        specs = (
-            OperatorSpec(name="synonym", severity=0.0),
-            OperatorSpec(name="saliency", severity=0.25),
-        )
-        ops = build_operators_from_specs(specs)
-        assert len(ops) == 1
-        assert ops[0].name == "saliency"
+        assert build_operators_from_specs((OperatorSpec(name="question_pool", severity=0.0),)) == []
 
-    def test_unknown_operator_raises(self):
-        specs = (OperatorSpec(name="bogus", severity=0.5),)
+    def test_question_pool_extras(self):
+        ops = build_operators_from_specs((OperatorSpec(name="question_pool", severity=1.0,
+                                                       extras={"w_txt": 1.5, "d_max": 0.3, "n_bands": 10}),))
+        assert ops[0].name == "question_pool" and ops[0].w_txt == 1.5 and ops[0].d_max == 0.3 and ops[0].n_bands == 10
+
+    @pytest.mark.parametrize("name", ["bogus", "synonym", "character_noise", "fragmentation", "saliency", "paraphrase"])
+    def test_removed_or_unknown_operator_raises(self, name):
         with pytest.raises(ValueError, match="unknown text operator"):
-            build_operators_from_specs(specs)
-
-    def test_character_noise_modes_extracted(self):
-        specs = (
-            OperatorSpec(
-                name="character_noise",
-                severity=0.5,
-                extras={"modes": ["homoglyph", "zero_width"]},
-            ),
-        )
-        ops = build_operators_from_specs(specs)
-        assert ops[0].modes == ("homoglyph", "zero_width")
-
-    def test_synonym_constructed_lazy_no_load(self):
-        specs = (OperatorSpec(name="synonym", severity=0.5),)
-        ops = build_operators_from_specs(specs)
-        assert len(ops) == 1
-        assert ops[0].name == "synonym"
-        # MLM model is lazy — not loaded yet
-        assert ops[0]._model is None
-
-    def test_k_max_override_propagates(self):
-        specs = (
-            OperatorSpec(
-                name="synonym",
-                severity=0.55,
-                extras={"k_max": 25},
-            ),
-        )
-        ops = build_operators_from_specs(specs)
-        assert ops[0].k_max == 25
-
-    def test_k_max_override_works_for_surface_operators(self):
-        specs = (
-            OperatorSpec(name="saliency", severity=0.25, extras={"k_max": 8}),
-            OperatorSpec(name="fragmentation", severity=0.10, extras={"k_max": 4}),
-            OperatorSpec(
-                name="character_noise",
-                severity=0.20,
-                extras={"k_max": 6, "modes": ["homoglyph"]},
-            ),
-        )
-        ops = build_operators_from_specs(specs)
-        kmaxes = {op.name: op.k_max for op in ops}
-        assert kmaxes == {"saliency": 8, "fragmentation": 4, "character_noise": 6}
+            build_operators_from_specs((OperatorSpec(name=name, severity=0.5),))
 
 
 # ===========================================================================
@@ -554,7 +281,9 @@ class TestSynonymOperator:
 
 
 # ===========================================================================
-# CompositeTextManipulator orchestration (stubbed nlp, no MLM load)
+
+# ===========================================================================
+# CompositeTextManipulator orchestration (stubbed nlp, no model load)
 # ===========================================================================
 
 
@@ -599,68 +328,72 @@ class _StubNLP:
         return _Doc([_Tok(t, p, w) for t, p, w in items])
 
 
+class _IntOp:
+    """Minimal integer-gene operator (one gene per NOUN, gene k > 0 appends k '!' to the word)."""
+
+    name = "int_stub"
+
+    def prepare(self, tokens, exclude_words=None):
+        return OperatorContext(positions=np.array([i for i, p in enumerate(tokens.pos_tags) if p == "NOUN"], dtype=np.intp))
+
+    def gene_dim(self, ctx):
+        return ctx.n_positions
+
+    def gene_bounds(self, ctx):
+        return np.full(ctx.n_positions, 3, dtype=np.int64)
+
+    def apply(self, ctx, genes, current):
+        toks = list(current.tokens)
+        for p, k in zip(ctx.positions, genes):
+            toks[p] = toks[p] + "!" * int(k)
+        return TokenSequence(tokens=tuple(toks), pos_tags=current.pos_tags, whitespace=current.whitespace)
+
+
+@pytest.fixture
+def pool(tmp_path):
+    p = tmp_path / "pool.json"
+    p.write_text(json.dumps({"meta": {"d_max": 0.25, "n_bands": 10}, "questions": {"The quick brown fox": {"pool": [
+        {"text": "A quick brown fox", "dist": 0.05}, {"text": "The fast brown fox", "dist": 0.2}]}}}))
+    load_pool.cache_clear()
+    yield str(p)
+    load_pool.cache_clear()
+
+
 class TestCompositeTextManipulator:
     def setup_method(self):
         self.nlp = _StubNLP()
 
-    def _build(self):
-        return CompositeTextManipulator(
-            self.nlp,
-            operators=[
-                FragmentationOperator(severity=0.5),
-                SaliencyOperator(severity=0.5),
-                CharacterNoiseOperator(severity=0.5),
-            ],
-        )
-
-    def test_canonical_order_enforced(self):
-        cm = CompositeTextManipulator(
-            self.nlp,
-            operators=[
-                SaliencyOperator(severity=0.25),
-                FragmentationOperator(severity=0.25),
-                CharacterNoiseOperator(severity=0.25),
-            ],
-        )
-        # synonym slot first (absent here), then frag, char, sal in canonical order
-        assert cm.operator_names == (
-            "fragmentation", "character_noise", "saliency",
-        )
-
-    def test_zero_genotype_returns_original(self):
-        cm = self._build()
+    def test_int_operator_path(self):
+        cm = CompositeTextManipulator(self.nlp, operators=[_IntOp()])
         ctx = cm.prepare("The quick brown fox")
-        genome = ctx.zero_genotype()
-        assert cm.apply(ctx, genome) == ctx.original_tokens.text
-
-    def test_genotype_dim_is_sum(self):
-        cm = self._build()
-        ctx = cm.prepare("The quick brown fox")
-        assert ctx.genotype_dim == sum(ctx.op_gene_dims)
-
-    def test_gene_bounds_concatenated(self):
-        cm = self._build()
-        ctx = cm.prepare("The quick brown fox")
+        assert ctx.genotype_dim == 1 and not ctx.is_continuous
+        assert cm.apply(ctx, ctx.zero_genotype()) == "The quick brown fox"
+        assert cm.apply(ctx, np.array([2])) == "The quick brown fox!!"
         bounds = ctx.gene_bounds
-        assert bounds.dtype == np.int64
-        assert len(bounds) == ctx.genotype_dim
-
-    def test_random_genotype_within_bounds(self):
-        cm = self._build()
-        ctx = cm.prepare("The quick brown fox")
-        if ctx.genotype_dim == 0:
-            pytest.skip("no eligible positions")
+        assert bounds.dtype == np.int64 and len(bounds) == ctx.genotype_dim
         rng = np.random.default_rng(42)
         for _ in range(50):
             g = ctx.random_genotype(rng)
-            assert (g >= 0).all()
-            assert (g < ctx.gene_bounds).all()
+            assert (g >= 0).all() and (g < bounds).all()
 
-    def test_genotype_length_mismatch_raises(self):
-        cm = self._build()
+    def test_question_pool_only(self, pool):
+        cm = CompositeTextManipulator(self.nlp, operators=[QuestionPoolOperator(pool=pool)])
+        ctx = cm.prepare("The quick brown fox")
+        assert cm.is_continuous and ctx.genotype_dim == 2
+        assert cm.apply(ctx, ctx.zero_genotype()) == "The quick brown fox"
+        assert cm.apply(ctx, np.array([0.2, 0.0])) == "A quick brown fox"
+        assert cm.apply(ctx, np.array([0.8, 0.0])) == "The fast brown fox"
+
+    def test_genotype_length_mismatch_raises(self, pool):
+        cm = CompositeTextManipulator(self.nlp, operators=[QuestionPoolOperator(pool=pool)])
         ctx = cm.prepare("The quick brown fox")
         with pytest.raises(ValueError, match="genotype length"):
-            cm.apply(ctx, np.zeros(ctx.genotype_dim + 1, dtype=np.int64))
+            cm.apply(ctx, np.zeros(ctx.genotype_dim + 1))
+
+    def test_empty_composite_noop(self):
+        cm = CompositeTextManipulator(self.nlp, operators=[])
+        ctx = cm.prepare("The quick brown fox")
+        assert ctx.genotype_dim == 0 and cm.apply(ctx, ctx.zero_genotype()) == "The quick brown fox"
 
 
 # ===========================================================================
@@ -670,9 +403,4 @@ class TestCompositeTextManipulator:
 
 class TestCanonicalOrder:
     def test_canonical_order(self):
-        assert CANONICAL_ORDER == (
-            "synonym",
-            "fragmentation",
-            "character_noise",
-            "saliency",
-        )
+        assert CANONICAL_ORDER == ("question_pool",)

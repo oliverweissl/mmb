@@ -15,9 +15,9 @@ is the median over such runs, the anchor beside the Pareto member closest to the
 
 Selection (default): among crossing runs of --arm, per task the per_task cells that most SUTs cross (so a row
 compares SUTs on the same cell), then the smallest mean text cosine distance at the crossing (diag_txt_cosdist),
-ties broken by the smallest image RMS; within a (cell, SUT) the crossing with the smallest text distance, then
-image RMS. One further image-dominated row (a cell with a crossing of text cosine distance < 0.05) is added
-when one exists. A garbled question is therefore never picked in preference to a lightly edited one. --runs takes a CSV with columns
+ties broken by the smallest image RMS. With --minimal: the smallest in-budget crossing (min_cross.png), cells ranked
+by the weighted magnitude of the smallest crossing; one further image-only row when one exists.
+The teaser (select_examples / plot_teaser) shows one MMBA run per task, chosen by magnitude. --runs takes a CSV with columns
 task,sut,run_dir to override the selection. Missing images leave a labelled empty tile.
 """
 from __future__ import annotations
@@ -38,8 +38,7 @@ from PIL import Image  # noqa: E402
 from mmb.analysis.crossing_files import first_crossing, minimal_crossing  # noqa: E402
 from mmb.analysis.stats import load_results  # noqa: E402
 
-SUT_LABELS = {"qwen": "Qwen3.5-4B", "internvl": "InternVL3.5-4B", "ministral": "Ministral-3-3B",
-              "llava": "LLaVA-NeXT-7B"}
+SUT_LABELS = {"qwen": "Qwen3.5-4B", "internvl": "InternVL3.5-4B", "ministral": "Ministral-3-3B"}
 TASK_LABELS = {"imagenet": "ImageNet pairs", "pope": "POPE yes/no"}
 
 
@@ -56,8 +55,6 @@ def select_runs(df: pd.DataFrame, arm: str = "a0_directed", per_task: int = 2,
         d = d[d["sut"].isin(suts)]
     if minimal:
         return _select_minimal(d, per_task, runs_root)
-    if "mag_source" in d and (d["mag_source"] == "diag").any():
-        d = d[d["mag_source"] == "diag"]
     has_mag = "txt_mag_at_cross" in d and d["txt_mag_at_cross"].notna().any()
     if has_mag:
         d = d[d["txt_mag_at_cross"].notna()]
@@ -91,31 +88,41 @@ def select_runs(df: pd.DataFrame, arm: str = "a0_directed", per_task: int = 2,
 
 
 def _select_minimal(d: pd.DataFrame, per_task: int, runs_root: Path | None) -> pd.DataFrame:
-    """Teaser selection on the minimal crossing (the method's output): runs with a stored minimal crossing, per task
-    the per_task cells that most SUTs cross, then the fewest genes at the minimal crossing (ties: fewest text genes);
-    one further image-dominated example (no text gene at the minimal crossing on any SUT) when one exists."""
+    """Gallery on the smallest in-budget crossing (the method's output): runs with a stored min_cross.*, per task the
+    per_task cells that most SUTs cross, then the smallest mean magnitude; one further image-only example (question
+    unchanged on every SUT) when one exists."""
     def has_min(rd) -> bool:
-        p = Path(rd)
-        if not p.is_absolute() and runs_root is not None and not p.exists():
-            p = runs_root / p
-        return minimal_crossing(p) is not None
-    d = d[[has_min(r) for r in d["run_dir"]]]
-    if "min_edits_cross" not in d or not len(d):
+        return minimal_crossing(_resolve(rd, runs_root)) is not None
+    if "magnitude" not in d or not len(d):
         return d.iloc[0:0].assign(example=[], kind=[])
-    d = d.assign(_txt=d["edits_txt_at_min"].fillna(0) if "edits_txt_at_min" in d else 0)
+    d = d[d["magnitude"].notna()]
+    d = d[np.array([has_min(r) for r in d["run_dir"]], dtype=bool)]
+    if not len(d):
+        return d.iloc[0:0].assign(example=[], kind=[])
+    d = d.assign(_txt=_truthy(d["min_text_changed"]).astype(int) if "min_text_changed" in d else 0)
     picks = []
     for task, t in d.groupby("task", sort=True):
-        best = t.sort_values(["min_edits_cross", "_txt", "run_dir"]).groupby(["cell_id", "sut"], as_index=False).first()
-        stat = best.groupby("cell_id").agg(n_sut=("sut", "nunique"), ed=("min_edits_cross", "mean"), tsum=("_txt", "sum"))
-        order = stat.reset_index().sort_values(["n_sut", "ed", "cell_id"], ascending=[False, True, True])
+        best = t.sort_values(["magnitude", "run_dir"]).groupby(["cell_id", "sut"], as_index=False).first()
+        stat = best.groupby("cell_id").agg(n_sut=("sut", "nunique"), mag=("magnitude", "mean"), tsum=("_txt", "sum"))
+        order = stat.reset_index().sort_values(["n_sut", "mag", "cell_id"], ascending=[False, True, True])
         chosen = list(order["cell_id"].head(per_task))
         for ex, cell in enumerate(chosen):
             picks.append(best[best["cell_id"] == cell].assign(example=ex, kind="cross"))
-        cand = order[(order["tsum"] == 0) & ~order["cell_id"].isin(chosen)]       # no text gene on any SUT
+        cand = order[(order["tsum"] == 0) & ~order["cell_id"].isin(chosen)]       # question unchanged on every SUT
         if len(cand):
-            cand = cand.sort_values(["n_sut", "ed", "cell_id"], ascending=[False, True, True])
             picks.append(best[best["cell_id"] == cand.iloc[0]["cell_id"]].assign(example=per_task, kind="img"))
     return pd.concat(picks, ignore_index=True).drop(columns="_txt") if picks else d.iloc[0:0].assign(example=[], kind=[])
+
+
+def _truthy(s: pd.Series) -> pd.Series:
+    return s.astype(str).str.lower().isin(("true", "1", "1.0"))
+
+
+def _resolve(run_dir, runs_root: Path | None) -> Path:
+    p = Path(run_dir)
+    if not p.is_absolute() and runs_root is not None and not p.exists():
+        p = Path(runs_root) / p
+    return p
 
 
 def select_failures(df: pd.DataFrame, arm: str = "a0_directed", suts: list[str] | None = None) -> pd.DataFrame:
@@ -265,114 +272,38 @@ def plot_gallery(picks: pd.DataFrame, out: Path | str, *, runs_root: Path | None
     return out
 
 
-def select_teaser(df: pd.DataFrame, ref: str = "a0_directed", rand: str = "a1_random_tiered",
-                  runs_root: Path | None = None, suts: list[str] | None = None) -> list[dict]:
-    """Two teaser examples, each a (cell, SUT, seed) on which MMBA and random search both crossed and both have a stored
-    minimal crossing: an ImageNet row whose MMBA minimal crossing changes image regions and a POPE row whose MMBA minimal
-    crossing changes the text, each the pair whose edit difference (random minus MMBA) is closest to the task's median
-    difference. Returns dicts with the two run rows."""
-    def ok(d):
-        d = d[d["crossed"].astype(bool)]
-        if suts:
-            d = d[d["sut"].isin(suts)]
-        keep = []
-        for r in d["run_dir"]:
-            p = Path(r)
-            if not p.is_absolute() and runs_root is not None and not p.exists():
-                p = runs_root / p
-            keep.append(minimal_crossing(p) is not None)
-        return d[keep]
-    a, b = ok(df[df["arm"] == ref]), ok(df[df["arm"] == rand])
-    if a.empty or b.empty or "min_edits_cross" not in a:
+def select_examples(df: pd.DataFrame, ref: str = "a0_directed", runs_root: Path | None = None,
+                    suts: list[str] | None = None) -> list[dict]:
+    """Teaser examples, one per task: a run of the method (ref) with a stored smallest in-budget crossing whose
+    magnitude is closest to the task's median magnitude (a typical, not a best-case, example). Preference: ImageNet a
+    crossing that edits the image (min_modality image or joint), POPE one whose question changed (text or joint); when
+    none has the preferred modality, any crossing of the task. Ties: smaller magnitude, then run_dir.
+    Returns [{task, sut, cell_id, dir: {run_dir, magnitude, mag_image, mag_text, modality}}]."""
+    if "magnitude" not in df:
         return []
-    keys = ["task", "sut", "cell_id", "rng_seed"]
-    m = a.merge(b, on=keys, suffixes=("", "_r"))
-    if m.empty:
-        return []
-    m = m.assign(_txt=m["edits_txt_at_min"].fillna(0), _img=m["edits_img_at_min"].fillna(0),
-                 _diff=m["min_edits_cross_r"] - m["min_edits_cross"])
-    out = []
-    # Fixed rule: one ImageNet row whose MMBA minimal crossing changes image regions, one POPE row whose MMBA minimal
-    # crossing changes the text; within each, the pair whose edit difference (random minus MMBA) is closest to the
-    # task's median difference over all matched pairs; ties: fewer MMBA edits, then run_dir.
-    for kind, task, need in (("image", "imagenet", "_img"), ("text", "pope", "_txt")):
-        mt = m[m["task"] == task]
-        if mt.empty:
-            continue
-        med = float(mt["_diff"].median())
-        sel = mt[mt[need] > 0]
-        if sel.empty:
-            sel = mt
-        sel = sel.assign(_dist=(sel["_diff"] - med).abs()).sort_values(["_dist", "min_edits_cross", "run_dir"])
-        r = sel.iloc[0]
-        out.append(dict(kind=kind, task=r["task"], sut=r["sut"], cell_id=r["cell_id"], median_diff=med,
-                        dir=dict(run_dir=r["run_dir"], n=int(r["min_edits_cross"]), img=int(r["edits_img_at_min"]), txt=int(r["edits_txt_at_min"])),
-                        rnd=dict(run_dir=r["run_dir_r"], n=int(r["min_edits_cross_r"]), img=int(r["edits_img_at_min_r"]), txt=int(r["edits_txt_at_min_r"]))))
-    return out
-
-
-def select_teaser_single(df: pd.DataFrame, ref: str = "a0_directed", runs_root: Path | None = None,
-                         suts: list[str] | None = None, n_image: int = 64) -> list[dict]:
-    """Two teaser examples of one method (Fig. 1 with MMBA panels only, 2026-11-27). Fixed rule:
-    over the method's runs with a confirmed minimal crossing (min_cross.json; edit counts from its genotype, the first
-    n_image genes are image regions), take per task the median edit count M of all its minimal crossings; then
-    ImageNet: the run whose minimal crossing has >= 1 image-region edit and an edit count closest to M;
-    POPE: the run whose minimal crossing has >= 1 text edit and an edit count closest to M;
-    ties: fewer edits, then run_dir. Returns dicts with key 'dir' (run_dir, n, img, txt) and no 'rnd'."""
-    import json as _json
-    d = df[(df["arm"] == ref) & df["crossed"].astype(bool)]
+    d = df[(df["arm"] == ref) & pd.to_numeric(df["magnitude"], errors="coerce").notna()]
     if suts:
         d = d[d["sut"].isin(suts)]
-    rows = []
-    for _, r in d.iterrows():
-        p = Path(r["run_dir"])
-        if not p.is_absolute() and runs_root is not None and not p.exists():
-            p = runs_root / p
-        mc = p / "min_cross.json"
-        if not mc.exists():
-            continue
-        m = _json.loads(mc.read_text())
-        if not m.get("confirmed", False):
-            continue
-        g = np.asarray(m["genotype"])
-        rows.append(dict(task=r["task"], sut=r["sut"], cell_id=r["cell_id"], run_dir=r["run_dir"],
-                         n=int((g != 0).sum()), img=int((g[:n_image] != 0).sum()), txt=int((g[n_image:] != 0).sum())))
-    t = pd.DataFrame(rows)
+    d = d[np.array([minimal_crossing(_resolve(r, runs_root)) is not None for r in d["run_dir"]], dtype=bool)]
+    prefer = {"imagenet": ("image", "joint"), "pope": ("text", "joint")}
     out = []
-    if t.empty:
-        return out
-    for kind, task, need in (("image", "imagenet", "img"), ("text", "pope", "txt")):
-        mt = t[t["task"] == task]
-        if mt.empty:
-            continue
-        med = float(mt["n"].median())
-        sel = mt[mt[need] > 0]
-        if sel.empty:
-            continue
-        sel = sel.assign(_dist=(sel["n"] - med).abs()).sort_values(["_dist", "n", "run_dir"])
-        r = sel.iloc[0]
-        out.append(dict(kind=kind, task=task, sut=r["sut"], cell_id=r["cell_id"], median_edits=med,
-                        dir=dict(run_dir=r["run_dir"], n=int(r["n"]), img=int(r["img"]), txt=int(r["txt"]))))
+    for task, t in d.groupby("task", sort=True):
+        med = float(pd.to_numeric(t["magnitude"]).median())
+        mods = t["min_modality"] if "min_modality" in t else pd.Series([None] * len(t), index=t.index)
+        pool = t[mods.isin(prefer.get(task, ()))]
+        pool = pool if len(pool) else t
+        pool = pool.assign(_dist=(pd.to_numeric(pool["magnitude"]) - med).abs())
+        r = pool.sort_values(["_dist", "magnitude", "run_dir"]).iloc[0]
+        out.append(dict(task=task, sut=r["sut"], cell_id=r["cell_id"], median_magnitude=med,
+                        dir=dict(run_dir=r["run_dir"], magnitude=float(r["magnitude"]),
+                                 mag_image=float(r.get("mag_image", float("nan"))),
+                                 mag_text=float(r.get("mag_text", float("nan"))), modality=r.get("min_modality"))))
     return out
-
-
-_ZERO_WIDTH = "".join(map(chr, (0x200B, 0x200C, 0x200D, 0x2060, 0xFEFF)))
-
-
-def _vis(s: str) -> str:
-    """Make invisible characters visible in a caption: each zero-width character becomes a broken bar."""
-    return "".join(chr(0xA6) if ch in _ZERO_WIDTH else ch for ch in s)
-
-
-def _looks_same(a: str, b: str) -> bool:
-    """True when two strings render identically to a reader (NFKC, zero-width removed, homoglyphs mapped)."""
-    from mmb.validity.proxies import normalise_visible
-    return normalise_visible(a) == normalise_visible(b)
 
 
 def teaser_facts(examples: list[dict], runs_root: Path | None = None) -> list[dict]:
     """Per teaser row the facts the introduction quotes: model, candidates, preferred answer and odds before/after,
-    and the edit counts of both crossings (so the text is generated with the figure and cannot drift from it)."""
+    the object (POPE) and the magnitudes of the smallest crossing (so the text is generated with the figure)."""
     out = []
     for ex in examples:
         stats, fc, _, _ = _load(Path(ex["dir"]["run_dir"]), runs_root, False, True)
@@ -382,7 +313,8 @@ def teaser_facts(examples: list[dict], runs_root: Path | None = None) -> list[di
                         before=a if g0 > 0 else b, after=a if g1 > 0 else b,
                         odds_before=float(np.exp(abs(g0))), odds_after=float(np.exp(abs(g1))),
                         obj=(stats.get("seed_metadata") or {}).get("object") or "",
-                        dir=ex["dir"], **({"rnd": ex["rnd"]} if "rnd" in ex else {})))
+                        magnitude=ex["dir"]["magnitude"], mag_image=ex["dir"]["mag_image"],
+                        mag_text=ex["dir"]["mag_text"], dir=ex["dir"]))
     return out
 
 
@@ -408,60 +340,68 @@ def _answer_line(stats: dict, fc: dict) -> str:
     return f"answer: {p0} ({odds(r0)} as likely) → {p1} ({odds(r1)})"
 
 
+def _neighbour(run_dir: Path, runs_root: Path | None):
+    """(image, json) of the OFF side of the boundary pair (min_cross_neighbour.*), or (None, {})."""
+    p = _resolve(run_dir, runs_root)
+    png, js = p / "min_cross_neighbour.png", p / "min_cross_neighbour.json"
+    if png.exists() and js.exists():
+        return Image.open(png).convert("RGB"), json.loads(js.read_text())
+    return None, {}
+
+
 def plot_teaser(examples: list[dict], out: Path | str, *, runs_root: Path | None = None, width_in: float = 7.0) -> Path:
-    """Teaser: per example one row of five panes, anchor | directed minimal crossing | difference | random minimal crossing | difference,
-    with the question, the gene counts and the contrast g under each crossing. The difference pane shows where the image changed
-    (white = changed most; black = unchanged), so a text-only crossing has a black pane."""
+    """Teaser: per example one row of panes: unedited input | smallest crossing | difference | boundary partner (the
+    nearest non-crossing input on the same line, when stored) | difference; under the crossing its magnitude (image and
+    text parts), the edited question and the decision before and after. The difference pane shows where the image
+    changed (white = most; black = unchanged), so a question-only crossing has a black pane."""
     plt.rcParams.update({"pdf.fonttype": 42, "ps.fonttype": 42, "font.size": 6})
     img_in, gap, head_h, txt_h, row_gap = 1.2, 0.09, 0.2, 0.62, 0.1
     n = len(examples)
     height = head_h + n * (img_in + txt_h + row_gap)
     fig = plt.figure(figsize=(width_in, height))
-    x0 = (width_in - (5 * img_in + 4 * gap)) / 2
 
     def axes(x, y, w, h):
         a = fig.add_axes([x / width_in, 1 - (y + h) / height, w / width_in, h / height])
         a.set_axis_off()
         return a
-    roles = ["dir"] + (["rnd"] if examples and all("rnd" in ex for ex in examples) else [])
-    titles = ["unedited input", "MMBA: minimal crossing", "difference"] + (
-        ["random: smallest crossing", "difference"] if "rnd" in roles else [])
+    nb = [_neighbour(Path(ex["dir"]["run_dir"]), runs_root) for ex in examples]
+    with_pair = any(im is not None for im, _ in nb)
+    titles = ["unedited input", "MMBA: smallest crossing", "difference"] + (
+        ["boundary partner (no crossing)", "difference"] if with_pair else [])
     n_pane = len(titles)
     x0 = (width_in - (n_pane * img_in + (n_pane - 1) * gap)) / 2
     for k, t in enumerate(titles):
         axes(x0 + k * (img_in + gap), 0, img_in, head_h).text(0.5, 0.3, t, ha="center", va="center", fontsize=6, fontweight="bold")
     for i, ex in enumerate(examples):
         y0 = head_h + i * (img_in + txt_h + row_gap)
-        loaded = {role: _load(Path(ex[role]["run_dir"]), runs_root, False, True) for role in roles}
-        o = loaded["dir"][2]
-        panes = [o, loaded["dir"][3], None] + ([loaded["rnd"][3], None] if "rnd" in roles else [])
+        stats, fc, o, c = _load(Path(ex["dir"]["run_dir"]), runs_root, False, True)
+        nim, nj = nb[i]
+        panes = [o, c, None] + ([nim, None] if with_pair else [])
         for k in range(n_pane):
             a = axes(x0 + k * (img_in + gap), y0, img_in, img_in)
             if k in (2, 4):
-                c = panes[k - 1]
-                ok_ = o is not None and c is not None
-                a.imshow(diff_image(o, c.resize(o.size)) if ok_ else np.zeros((2, 2)), cmap="gray", vmin=0, vmax=1)
+                src = panes[k - 1]
+                ok_ = o is not None and src is not None
+                a.imshow(diff_image(o, src.resize(o.size)) if ok_ else np.zeros((2, 2)), cmap="gray", vmin=0, vmax=1)
             elif panes[k] is not None:
                 a.imshow(np.asarray(panes[k]))
-        stats0 = loaded["dir"][0]
-        for role, k in [("dir", 1), ("rnd", 3)][:len(roles)]:
-            stats, fc, _, _ = loaded[role]
-            q0 = (stats.get("seed_metadata") or {}).get("prompt_template") or stats.get("prompt_template") or ""
-            q1 = fc.get("text") or ""
-            e = ex[role]
-            if e["txt"] == 0 or not q1:
-                qline = "Q': unchanged"
-            elif q1 == q0 or _looks_same(q0, q1):
-                qline = f"Q': looks unchanged ({e['txt']} invisible character edit{'' if e['txt'] == 1 else 's'})"
-            else:
-                qline = "Q': " + _wrap(_vis(q1), 30, 2)
-            lines = [f"{e['n']} edit{'' if e['n'] == 1 else 's'}: {e['img']} of 64 image regions, {e['txt']} text", qline,
-                     _answer_line(stats, fc)]
-            a = axes(x0 + k * (img_in + gap), y0 + img_in + 0.03, 2 * img_in + gap, txt_h)
-            a.text(0.0, 1, "\n".join(lines), va="top", ha="left", fontsize=5, linespacing=1.15, transform=a.transAxes)
+        q0 = (stats.get("seed_metadata") or {}).get("prompt_template") or stats.get("prompt_template") or ""
+        q1 = fc.get("text") or ""
+        e = ex["dir"]
+        qline = "Q': unchanged" if not q1 or q1.strip() == q0.strip() else "Q': " + _wrap(q1, 30, 2)
+        lines = [f"magnitude {e['magnitude']:.3g} (image {e['mag_image']:.3g}, text {e['mag_text']:.3g})", qline,
+                 _answer_line(stats, fc)]
+        a = axes(x0 + (img_in + gap), y0 + img_in + 0.03, 2 * img_in + gap, txt_h)
+        a.text(0.0, 1, "\n".join(lines), va="top", ha="left", fontsize=5, linespacing=1.15, transform=a.transAxes)
+        if with_pair and nj:
+            qn = nj.get("text") or ""
+            nl = [f"magnitude {float(nj.get('magnitude', float('nan'))):.3g}",
+                  "Q': unchanged" if not qn or qn.strip() == q0.strip() else "Q': " + _wrap(qn, 30, 2),
+                  _answer_line(stats, nj)]
+            a = axes(x0 + 3 * (img_in + gap), y0 + img_in + 0.03, 2 * img_in + gap, txt_h)
+            a.text(0.0, 1, "\n".join(nl), va="top", ha="left", fontsize=5, linespacing=1.15, transform=a.transAxes)
         a = axes(x0, y0 + img_in + 0.03, img_in, txt_h)
-        cand = " / ".join(map(str, (stats0.get("class_a"), stats0.get("class_b"))))
-        q0 = (stats0.get("seed_metadata") or {}).get("prompt_template") or stats0.get("prompt_template") or ""
+        cand = " / ".join(map(str, (stats.get("class_a"), stats.get("class_b"))))
         a.text(0, 1, f"{SUT_LABELS.get(ex['sut'], ex['sut'])}\nanswers: " + _wrap(cand, 24, 2) + "\nQ: " + _wrap(q0, 24, 3),
                va="top", ha="left", fontsize=5, linespacing=1.15, transform=a.transAxes)
     out = Path(out)

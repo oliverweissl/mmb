@@ -46,60 +46,6 @@ def make_run(root, name, *, seed_level=100, cross_level=110, text="What is the m
     return d
 
 
-class TestVisible:
-    def test_homoglyph_and_zero_width_are_visibly_identical(self):
-        from mmb.validity.proxies import normalise_visible, visible_proxies
-        q = "What is the main subject?"
-        cyr = q.replace("a", chr(0x0430)).replace("i", chr(0x0456)).replace("s", chr(0x0455))
-        zw = "Wh" + chr(0x200B) + "at is the" + chr(0x200D) + " main subject?"
-        full = chr(0xFF37) + "hat is the main subject?"
-        assert normalise_visible(cyr) == q and normalise_visible(zw) == q and normalise_visible(full) == q
-        for e in (cyr, zw, full):
-            p = visible_proxies(FakeModels(), q, e)
-            assert p["vis_identical"] and p["vis_char_dist"] == 0.0 and p["vis_within_one_per_word"] and p["vis_minilm_cos"] == 1.0
-
-    def test_visible_changes_are_kept(self):
-        from mmb.validity.proxies import visible_proxies
-        q = "What is the main subject?"
-        frag = visible_proxies(FakeModels(), q, "Wha t is the main subject?")      # a space is visible
-        assert not frag["vis_identical"] and frag["vis_within_one_per_word"] and 0 < frag["vis_char_dist"] < 0.1
-        other = visible_proxies(FakeModels(), q, "Describe the picture in detail please")
-        assert not other["vis_within_one_per_word"] and other["vis_char_dist"] > 0.5
-
-    def test_operator_homoglyphs_are_all_covered(self):
-        from mmb.manipulator.text.operators.character_noise import HOMOGLYPHS
-        from mmb.validity.proxies import normalise_visible
-        for latin, glyph in HOMOGLYPHS.items():
-            assert normalise_visible(glyph) == latin, (latin, hex(ord(glyph)))
-
-
-class TestMinEdit:
-    def test_fewest_genes_among_crossing_archive_members(self, tmp_path):
-        import json as _json
-        import numpy as np, pandas as pd
-        from PIL import Image
-        from mmb.validity.score import min_edit_crossing
-        gts = [[0, 0, 0, 0], [3, 1, 2, 0], [1, 0, 0, 0], [2, 2, 0, 0]]
-        lps = [[-1.0, -3.0], [-3.0, -1.0], [-3.0, -1.5], [-0.5, -2.0]]      # anchor g=+2: rows 1, 2 cross
-        pd.DataFrame(dict(generation=[0, 0, 0, 0], individual=[0, 1, 2, 3], genotype=gts, logprobs=lps,
-                          decoded_text=["q", "q1", "q2", "q3"])).to_parquet(tmp_path / "trace.parquet")
-        (tmp_path / "stats.json").write_text(_json.dumps(dict(anchor_g=2.0, target_classes=[0, 1], categories=["a", "b"], anchor_argmax="a")))
-        for k, gt in ((0, gts[1]), (1, gts[2]), (2, gts[3])):
-            (tmp_path / f"pareto_{k}.json").write_text(_json.dumps(dict(genotype=gt, fitness=[0.1, 0.1, 0.1], text=f"t{k}")))
-            Image.new("RGB", (8, 8)).save(tmp_path / f"pareto_{k}.png")
-        me = min_edit_crossing(tmp_path)
-        assert me["n_edits"] == 1 and me["text"] == "t1" and me["eval_idx"] == 2
-
-    def test_none_without_archive_crossing(self, tmp_path):
-        import json as _json
-        import pandas as pd
-        from mmb.validity.score import min_edit_crossing
-        pd.DataFrame(dict(generation=[0], individual=[0], genotype=[[0, 0]], logprobs=[[-1.0, -3.0]],
-                          decoded_text=["q"])).to_parquet(tmp_path / "trace.parquet")
-        (tmp_path / "stats.json").write_text(_json.dumps(dict(anchor_g=2.0, target_classes=[0, 1])))
-        assert min_edit_crossing(tmp_path) is None
-
-
 class TestScore:
     def test_reference_is_saved_recon_not_raw_origin(self, tmp_path):
         from PIL import Image
@@ -128,23 +74,25 @@ class TestScore:
         assert [r for r in score.score_runs(tmp_path, FakeModels()).view] == ["first"]
         Image.new("RGB", (32, 32), (105,) * 3).save(d / "min_cross.png")
         (d / "min_cross.json").write_text(json.dumps({"text": "What is the main subject?", "g": -0.1, "eval_idx": 40,
-                                                       "generation": 1, "n_edits": 3}))
+                                                       "generation": 1, "magnitude": 0.05, "mag_image": 0.04,
+                                                       "mag_text": 0.03}))
         df = score.score_runs(tmp_path, FakeModels()).set_index("view")
         assert df.loc["min", "img_lpips"] == pytest.approx(5 / 255) and df.loc["first", "img_lpips"] == pytest.approx(40 / 255)
-        assert df.loc["min", "n_edits"] == 3 and df.loc["min", "first_cross_eval"] == 40
+        assert df.loc["min", "magnitude"] == 0.05 and df.loc["min", "mag_image"] == 0.04 and df.loc["min", "mag_text"] == 0.03
+        assert np.isnan(df.loc["first", "magnitude"]) and df.loc["min", "first_cross_eval"] == 40
         assert bool(df.loc["min", "txt_edited"]) is False
 
     def test_boundary_pair_distance_from_the_neighbour(self, tmp_path):
         d = make_run(tmp_path, "r", seed_level=100, cross_level=140, text="What is the primary subject?")
         Image.new("RGB", (32, 32), (105,) * 3).save(d / "min_cross.png")
-        (d / "min_cross.json").write_text(json.dumps({"text": "What is the main subject?", "g": -0.1, "eval_idx": 40, "generation": 1, "n_edits": 3}))
+        (d / "min_cross.json").write_text(json.dumps({"text": "What is the main subject?", "g": -0.1, "eval_idx": 40, "generation": 1, "magnitude": 0.05}))
         df = score.score_runs(tmp_path, FakeModels()).set_index("view")
         assert bool(df.loc["min", "has_partner"]) is False
         Image.new("RGB", (32, 32), (102,) * 3).save(d / "min_cross_neighbour.png")
-        (d / "min_cross_neighbour.json").write_text(json.dumps({"text": "What is the main subject", "g": 0.2, "n_edits": 2}))
+        (d / "min_cross_neighbour.json").write_text(json.dumps({"text": "What is the major subject?", "g": 0.2, "magnitude": 0.049}))
         df = score.score_runs(tmp_path, FakeModels()).set_index("view")
         assert bool(df.loc["min", "has_partner"]) is True and df.loc["min", "pair_lpips"] == pytest.approx(3 / 255)
-        assert df.loc["min", "pair_vis_char"] == pytest.approx(1 / 25) and df.loc["min", "pair_txt_dist"] == pytest.approx(0.5)
+        assert df.loc["min", "pair_word_edit"] == pytest.approx(1 / 5) and df.loc["min", "pair_txt_dist"] == pytest.approx(0.5)
 
     def test_identical_text_and_image_give_neutral_row(self, tmp_path):
         make_run(tmp_path, "same", seed_level=100, cross_level=100)
@@ -157,7 +105,7 @@ class TestScore:
                  meta={"object": "dog"})
         r = score.score_runs(tmp_path, FakeModels()).iloc[0]
         assert bool(r["question_preserved"]) is False and r["question_keyword_sim"] < 0.8
-        make_run(tmp_path, "pope2", prompt="Is there a dog in the image?", text="Is there a d" + chr(0x043E) + "g in the image?",
+        make_run(tmp_path, "pope2", prompt="Is there a dog in the image?", text="Does the image show a dog?",
                  meta={"object": "dog"})
         df = score.score_runs(tmp_path, FakeModels()).set_index("item_id")
         assert bool(df.loc["pope2", "question_preserved"]) is True

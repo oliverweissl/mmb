@@ -249,21 +249,6 @@ class TestGenerator:
         with pytest.raises(ValueError, match="seeds.mode='slot_items'"):
             slot_items_seeds(None, ExperimentConfig(), None)
 
-    def test_cone_filter_rejected(self, tmp_path) -> None:
-        from mmb.manipulator.image.manipulator import ConeFilterConfig
-
-        exp = ExperimentConfig(
-            image=ImageConfig(cone_filter=ConeFilterConfig(enabled=True)),
-            seeds=SeedConfig(
-                mode="slot_items",
-                slot_items=SlotItemsConfig(
-                    items=(_item(image=_tiny_png(tmp_path)),),
-                ),
-            ),
-        )
-        with pytest.raises(ValueError, match="cone_filter"):
-            slot_items_seeds(None, exp, None)
-
     def test_build_seed_triples_is_pure(self) -> None:
         img = Image.new("RGB", (4, 4))
         (seed,) = build_seed_triples([_item()], [img])
@@ -336,7 +321,7 @@ class TestTesterWiring:
         import pandas as pd
         import torch
 
-        from conftest import FakeCompositeTextManipulator, FakeImageManipulator
+        from conftest import make_vlm_manipulator, write_question_pool
         from mmb.evolutionary.vlm_boundary_tester import VLMBoundaryTester
         from mmb.manipulator.vlm_manipulator import VLMManipulator
         from mmb.objectives import (
@@ -344,7 +329,7 @@ class TestTesterWiring:
             MatrixDistance,
             TargetedBalance,
         )
-        from mmb.optimizer.discrete_pymoo_optimizer import DiscretePymooOptimizer
+        from mmb.optimizer.real_pymoo_optimizer import RealPymooOptimizer
 
         calls: list[tuple[str, tuple[str, ...]]] = []
 
@@ -387,12 +372,10 @@ class TestTesterWiring:
         objectives = CriterionCollection(MatrixDistance(), TargetedBalance())
         tester = VLMBoundaryTester(
             sut=RecordingSUT(),
-            manipulator=VLMManipulator(
-                image_manipulator=FakeImageManipulator(),
-                text_manipulator=FakeCompositeTextManipulator(),
-            ),
-            optimizer=DiscretePymooOptimizer(
-                gene_bounds=np.ones(1, dtype=np.int64) * 2,
+            # continuous blocks; no pool entry for this prompt -> empty text block (image only)
+            manipulator=make_vlm_manipulator(write_question_pool(tmp_path / "pool.json", ["unused?"])),
+            optimizer=RealPymooOptimizer(
+                space=None,
                 num_objectives=objectives.num_objectives,
                 pop_size=exp.pop_size,
                 seed=exp.seed,

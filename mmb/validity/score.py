@@ -11,9 +11,11 @@ The original question is ``stats["prompt_template"]``, unless the run records a 
 (``seed_metadata["prompt_template"]``). The object word for the question check comes from
 ``first_cross.json["meta"]["object"]``, ``seed_metadata["object"]`` or ``stats["object"]`` (POPE).
 
-One row per crossing run: identifiers (``item_id`` = directory name, run_dir, cell_id, arm, sut, task,
-rng_seed), the crossing (first_cross_eval, generation, g) and the proxies of
-:mod:`mmb.validity.proxies`. The proxies are descriptive, not validity.
+Up to two rows per crossing run: view "first" (first_cross.*) and view "min" (min_cross.*, the run's smallest
+in-budget crossing, the method's output) with its weighted magnitudes (magnitude, mag_image, mag_text) and the
+boundary pair (min_cross_neighbour.*, the OFF side). Identifiers (``item_id`` = directory name, run_dir, cell_id,
+arm, sut, task, rng_seed), the crossing (eval index, generation, g) and the proxies of :mod:`mmb.validity.proxies`.
+The proxies are descriptive, not validity.
 """
 from __future__ import annotations
 
@@ -29,7 +31,7 @@ from PIL import Image
 
 from mmb.analysis.collect import _load_config, resolve_meta
 from mmb.analysis.crossing_files import first_crossing, minimal_crossing
-from mmb.validity.proxies import ProxyModels, image_proxies, text_proxies, visible_proxies
+from mmb.validity.proxies import ProxyModels, image_proxies, text_proxies, word_edit_distance
 
 logger = logging.getLogger(__name__)
 
@@ -37,11 +39,12 @@ ID_COLUMNS = ["item_id", "run_dir", "cell_id", "arm", "sut", "task", "rng_seed"]
 CROSS_COLUMNS = ["first_cross_eval", "first_cross_gen", "g_at_cross"]
 IMAGE_COLUMNS = ["img_clip_cos", "img_dino_cos", "img_lpips", "img_ssim"]
 TEXT_COLUMNS = ["txt_minilm_cos", "txt_word_edit", "question_preserved", "question_keyword_sim",
-                "question_content_kept", "txt_edited",
-                "vis_char_dist", "vis_word_edit", "vis_minilm_cos", "vis_identical", "vis_within_one_per_word"]
-#: the boundary pair (min view only): the minimal crossing against its non-crossing neighbour one edit away
-PAIR_COLUMNS = ["has_partner", "pair_lpips", "pair_vis_char", "pair_txt_dist"]
-COLUMNS = ID_COLUMNS + ["view", "n_edits"] + CROSS_COLUMNS + ["img_ref"] + IMAGE_COLUMNS + TEXT_COLUMNS + PAIR_COLUMNS
+                "question_content_kept", "txt_edited"]
+#: weighted magnitudes of the smallest crossing (min view only, from min_cross.json)
+MAG_COLUMNS = ["magnitude", "mag_image", "mag_text"]
+#: the boundary pair (min view only): the smallest crossing against its non-crossing neighbour (OFF side)
+PAIR_COLUMNS = ["has_partner", "pair_lpips", "pair_word_edit", "pair_txt_dist"]
+COLUMNS = ID_COLUMNS + ["view"] + CROSS_COLUMNS + MAG_COLUMNS + ["img_ref"] + IMAGE_COLUMNS + TEXT_COLUMNS + PAIR_COLUMNS
 
 
 def find_crossing_runs(root: Path) -> list[Path]:
@@ -92,69 +95,17 @@ def anchor_reference(run_dir: Path) -> tuple[Image.Image, str]:
     return _RECON_CACHE[key], "computed"
 
 
-def min_edit_crossing(run_dir: Path) -> dict | None:
-    """The search's own minimal-edit crossing among the saved archive (Pareto) members: the crossing evaluation
-    with the fewest active genes whose genotype is a saved Pareto member (those are the ones with an image on
-    disk); ties by the smaller text cosine distance, then image RMS, then the earlier evaluation. None when no
-    archive member crosses. Returns {png, text, eval_idx, n_edits}."""
-    import numpy as np
-    import pyarrow.parquet as pq
-    from mmb.analysis.collect import evaluate_trace
-
-    run_dir = Path(run_dir)
-    stats = json.loads((run_dir / "stats.json").read_text())
-    names = set(pq.read_schema(run_dir / "trace.parquet").names)
-    want = [c for c in ("generation", "individual", "genotype", "logprobs", "decoded_text", "diag_img_rms",
-                        "diag_txt_cosdist") if c in names]
-    df = pd.read_parquet(run_dir / "trace.parquet", columns=want).sort_values(["generation", "individual"], kind="stable")
-    df = df.drop_duplicates(["generation", "individual"], keep="last").reset_index(drop=True)
-    if not len(df):
-        return None
-    tc = stats.get("target_classes") or (0, 1)
-    lp = np.vstack([np.asarray(v, dtype=float) for v in df["logprobs"]])
-    anchor_row = next((i for i, gt in enumerate(df["genotype"]) if not np.any(np.asarray(gt))), None)
-    cats = stats.get("categories") or []
-    a = stats.get("anchor_argmax")
-    anchor_argmax = cats.index(a) if isinstance(a, str) and a in cats else (a if isinstance(a, int) else None)
-    res = evaluate_trace(lp, df["generation"].to_numpy(), target_classes=(int(tc[0]), int(tc[1])), anchor_row=anchor_row,
-                         anchor_g=stats.get("anchor_g"), anchor_argmax=anchor_argmax)
-    cross = np.asarray(res["_crossing"], dtype=bool)
-    arch = {}
-    for jf in sorted(run_dir.glob("pareto_*.json")):
-        try:
-            j = json.loads(jf.read_text())
-        except ValueError:
-            continue
-        if jf.with_suffix(".png").exists():
-            arch[tuple(int(x) for x in j["genotype"])] = (jf.with_suffix(".png"), j.get("text"))
-    best = None
-    for i in np.flatnonzero(cross):
-        key = tuple(int(x) for x in df["genotype"].iloc[i])
-        if key not in arch:
-            continue
-        n_edits = int(np.count_nonzero(key))
-        tx = float(df["diag_txt_cosdist"].iloc[i]) if "diag_txt_cosdist" in df else 0.0
-        im = float(df["diag_img_rms"].iloc[i]) if "diag_img_rms" in df else 0.0
-        rank = (n_edits, tx if tx == tx else 9.0, im if im == im else 9.0, int(i))
-        if best is None or rank < best[0]:
-            best = (rank, i, key)
-    if best is None:
-        return None
-    png, text = arch[best[2]]
-    return dict(png=png, text=text or str(df["decoded_text"].iloc[best[1]]), eval_idx=int(best[1]), n_edits=best[0][0])
-
 
 def pair_proxies(models: ProxyModels, run_dir: Path, cross_png: Path, cross_text: str) -> dict:
-    """Distance across the boundary pair: LPIPS between min_cross.png and min_cross_neighbour.png, the visible character change
-    (fraction) and the semantic distance (1 - MiniLM cosine) between their questions. Empty when the run has no partner."""
+    """Distance across the boundary pair: LPIPS between min_cross.png and min_cross_neighbour.png, the word edit distance and
+    the semantic distance (1 - MiniLM cosine) between their questions. Empty when the run has no partner."""
     npng, njson = Path(run_dir) / "min_cross_neighbour.png", Path(run_dir) / "min_cross_neighbour.json"
     if not (npng.is_file() and njson.is_file()):
         return {"has_partner": False}
     ntext = str(json.loads(njson.read_text()).get("text", ""))
-    vis = visible_proxies(models, cross_text, ntext)
     return {"has_partner": True,
             "pair_lpips": models.lpips(Image.open(cross_png).convert("RGB"), Image.open(npng).convert("RGB")),
-            "pair_vis_char": vis["vis_char_dist"],
+            "pair_word_edit": word_edit_distance(cross_text, ntext),
             "pair_txt_dist": 0.0 if cross_text == ntext else 1.0 - models.minilm_cos(cross_text, ntext)}
 
 
@@ -176,7 +127,7 @@ def score_run(run_dir: Path, models: ProxyModels, root: Path | None = None, defa
         "first_cross_eval": fc.get("eval_idx"), "first_cross_gen": fc.get("generation"),
         "g_at_cross": fc.get("g"), "img_ref": ref_kind,
     }
-    row["view"], row["n_edits"] = "first", None
+    row["view"] = "first"
     row.update(image_proxies(models, seed_img, cross_img))
     row.update(text_proxies(models, original_question(stats), str(fc.get("text", "")), object_word(stats, fc)))
     out = [{c: row.get(c) for c in COLUMNS}]
@@ -188,7 +139,7 @@ def score_run(run_dir: Path, models: ProxyModels, root: Path | None = None, defa
                   g_at_cross=mj.get("g"))
         r2.update(image_proxies(models, seed_img, Image.open(mpng).convert("RGB")))
         r2.update(text_proxies(models, original_question(stats), str(mj.get("text", "")), object_word(stats, fc)))
-        r2["n_edits"] = mj.get("n_edits")
+        r2.update({k: mj.get(k) for k in MAG_COLUMNS})
         r2.update(pair_proxies(models, run_dir, mpng, str(mj.get("text", ""))))
         out.append({c: r2.get(c) for c in COLUMNS})
     return out

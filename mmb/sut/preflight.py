@@ -159,25 +159,12 @@ def preflight_cost_check(
         origin_class=seed.class_a,
     )
 
-    gene_bounds = manipulator.gene_bounds
-    n_genes = len(gene_bounds)
+    xl, xu = np.asarray(manipulator.xl, float), np.asarray(manipulator.xu, float)
     rng = np.random.default_rng(rng_seed)
 
     def _random_genotype() -> np.ndarray:
-        """Draw a fresh random genotype uniformly within gene bounds.
-
-        ``gene_bounds[i]`` is the *exclusive* upper bound (matches
-        :class:`DiscretePymooOptimizer`'s convention where
-        ``xu = gene_bounds - 1``), so the valid range for gene ``i`` is
-        ``[0, gene_bounds[i] - 1]``. ``rng.integers`` is half-open by
-        default, so we pass ``ub`` directly — passing ``ub + 1`` would
-        admit ``ub`` itself, which is out of range and crashes the image
-        manipulator's candidate-index lookup at high ``n_candidates``.
-        """
-        g = np.empty(n_genes, dtype=np.int64)
-        for i, ub in enumerate(gene_bounds):
-            g[i] = rng.integers(0, int(ub))
-        return g.reshape(1, -1)
+        """A random real-coded genotype, uniform in the box [xl, xu)."""
+        return (xl + rng.random(len(xl)) * (xu - xl)).reshape(1, -1)
 
     def _one_call() -> float:
         """Render a fresh genotype and time a single SUT call."""

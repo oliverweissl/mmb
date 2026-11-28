@@ -3,7 +3,7 @@
 Usage::
 
     python -m mmb.analysis.stats results/e1.csv [more.csv ...] --ref a0_directed \\
-        --out results/tables [--budgets 30,100,206,500,1000,1500]
+        --out results/tables [--budgets 50,100,250,500,1000,1500]
 
 Input: CSVs written by :mod:`mmb.analysis.collect` (one row per run). Output (in ``--out``):
 ``summary.csv/.tex``, ``curve.csv``, ``curve_budgets.tex``, ``paired.csv/.tex``.
@@ -12,9 +12,12 @@ Method
 ------
 * Shares: Wilson 95% CI. Curve bands and medians: percentile bootstrap, 10,000 resamples, seed 42,
   resampling runs (or whole clusters if a cluster column is given).
+* Every metric is budget-bound (collect.py uses in-budget evaluations only; the smallest crossing's magnitude is
+  NaN unless it was found within the budget).
 * Paired comparison of every arm against the reference arm on matched ``(cell_id, rng_seed)``:
   exact McNemar test for ``crossed`` (two-sided binomial test on the discordant pairs);
-  Wilcoxon signed-rank for ``first_cross_eval`` (censored at the budget) and for
+  Wilcoxon signed-rank for ``first_cross_eval`` (censored at the budget), for ``log10(magnitude)`` of the
+  smallest crossing (pairs where both arms crossed within the budget) and for
   ``log10(floor_nats)`` (log scale: floors span decades, and signed-rank tests depend on the
   scale through the ranks of the differences). Effect size: matched-pairs rank-biserial
   correlation r = (W+ - W-) / (W+ + W-) over the non-zero differences, sign = arm minus reference,
@@ -38,9 +41,12 @@ logger = logging.getLogger(__name__)
 
 N_BOOT = 10_000
 BOOT_SEED = 42
-DEFAULT_BUDGETS = (30, 100, 206, 500, 1000, 1500)
+DEFAULT_BUDGETS = (50, 100, 250, 500, 1000, 1500)
 PAIR_KEYS = ["cell_id", "rng_seed"]
-METRICS = ("crossed", "first_cross_eval", "floor")
+METRICS = ("crossed", "first_cross_eval", "magnitude", "floor")
+BOOL_COLUMNS = ("crossed", "crossed_at_gen0", "label_flip", "reached_band", "complete", "min_found", "min_within_budget",
+                "min_confirmed", "min_text_changed", "bp_text_differs")
+PAIR_SOURCES = ("own_phase2", "posthoc_bisection")
 
 
 # ---------------------------------------------------------------------------
@@ -50,8 +56,7 @@ METRICS = ("crossed", "first_cross_eval", "floor")
 
 def load_results(paths: Sequence[Path | str]) -> pd.DataFrame:
     df = pd.concat([pd.read_csv(p) for p in paths], ignore_index=True)
-    for c in ("crossed", "crossed_at_gen0", "label_flip", "reached_band", "complete", "crossed_robust", "crossed_robust_at_gen0",
-              "min_confirmed"):
+    for c in BOOL_COLUMNS:
         if c in df:
             df[c] = df[c].astype(str).str.lower().isin(("true", "1", "1.0"))
     return df
@@ -159,12 +164,24 @@ def arm_summary(df: pd.DataFrame, n_boot: int = N_BOOT) -> pd.DataFrame:
         med_fc, fc_lo, fc_hi = bootstrap_stat(g["first_cross_eval"].to_numpy(float), n_boot=n_boot)
         med_fl, fl_lo, fl_hi = bootstrap_stat(g["floor_nats"].to_numpy(float), n_boot=n_boot)
         q1, q3 = np.percentile(g["first_cross_eval"].to_numpy(float), [25, 75])
+        mag = g["magnitude"].dropna().to_numpy(float) if "magnitude" in g else np.zeros(0)
+        med_mg, mg_lo, mg_hi = bootstrap_stat(mag, n_boot=n_boot)
+        mod = g["min_modality"].dropna() if "min_modality" in g else pd.Series(dtype=object)
+        has_pair = g["bp_source"].isin(PAIR_SOURCES) if "bp_source" in g else pd.Series(False, index=g.index)
         rows.append(dict(
             arm=arm, n_runs=n, n_crossed=k, share_crossed=k / n, wilson_lo=lo, wilson_hi=hi,
             n_crossed_gen0=k0, share_gen0=k0 / n, gen0_lo=l0, gen0_hi=h0,
             share_band=float(g["reached_band"].mean()), share_label_flip=float(g["label_flip"].mean()),
             median_first_cross_eval=med_fc, mfc_lo=fc_lo, mfc_hi=fc_hi, fc_q1=float(q1), fc_q3=float(q3),
             median_floor_nats=med_fl, mfl_lo=fl_lo, mfl_hi=fl_hi,
+            n_min=len(mag), median_magnitude=med_mg, mmg_lo=mg_lo, mmg_hi=mg_hi,
+            share_min_image=float((mod == "image").mean()) if len(mod) else float("nan"),
+            share_min_text=float((mod == "text").mean()) if len(mod) else float("nan"),
+            share_min_joint=float((mod == "joint").mean()) if len(mod) else float("nan"),
+            n_pair=int(has_pair.sum()),
+            median_bp_gap=float(g.loc[has_pair, "bp_gap"].astype(float).median()) if has_pair.any() else float("nan"),
+            share_bp_text_step=float((g.loc[has_pair, "bp_kind"] == "text_step").mean()) if has_pair.any() else float("nan"),
+            median_nb_extra_calls=float(g["nb_extra_calls"].astype(float).median()) if "nb_extra_calls" in g else float("nan"),
         ))
     return pd.DataFrame(rows)
 
@@ -217,10 +234,12 @@ def wilcoxon_paired(ref: np.ndarray, arm: np.ndarray) -> dict:
 
 def matched(df: pd.DataFrame, ref_arm: str, arm: str) -> pd.DataFrame:
     """Inner join of the two arms on (cell_id, rng_seed); columns suffixed _ref / _arm."""
-    cols = PAIR_KEYS + ["crossed", "first_cross_eval", "floor_nats"]
+    cols = PAIR_KEYS + ["crossed", "first_cross_eval", "floor_nats", "magnitude"]
     out = []
     for name, a in (("ref", ref_arm), ("arm", arm)):
-        sub = df.loc[df["arm"] == a, cols]
+        sub = df.loc[df["arm"] == a, [c for c in cols if c in df]]
+        if "magnitude" not in sub:
+            sub = sub.assign(magnitude=np.nan)
         if sub.duplicated(PAIR_KEYS).any():
             dup = sub[sub.duplicated(PAIR_KEYS, keep=False)][PAIR_KEYS].drop_duplicates().head(3)
             raise ValueError(f"arm {a!r} has several runs per (cell_id, rng_seed), e.g. {dup.values.tolist()}")
@@ -257,6 +276,17 @@ def paired_vs_reference(df: pd.DataFrame, ref_arm: str, arms: Sequence[str] | No
                              p=w["p"], effect=w["r_rb"], effect_name="rank-biserial r",
                              n_nonzero=w["n_nonzero"], median_diff=w["median_diff"],
                              dz=tf.cohens_dz(arm_v.to_numpy(float) - ref_v.to_numpy(float))))
+        both = m["magnitude_ref"].notna() & m["magnitude_arm"].notna()       # both crossed within the budget
+        if both.any():
+            ref_v = np.log10(m.loc[both, "magnitude_ref"].astype(float).clip(lower=1e-300))
+            arm_v = np.log10(m.loc[both, "magnitude_arm"].astype(float).clip(lower=1e-300))
+            w = wilcoxon_paired(ref_v.to_numpy(), arm_v.to_numpy())
+            rows.append(dict(arm=arm, ref=ref_arm, metric="magnitude", n_pairs=int(both.sum()),
+                             ref_value=float(np.median(m.loc[both, "magnitude_ref"])),
+                             arm_value=float(np.median(m.loc[both, "magnitude_arm"])),
+                             p=w["p"], effect=w["r_rb"], effect_name="rank-biserial r",
+                             n_nonzero=w["n_nonzero"], median_diff=w["median_diff"],
+                             dz=tf.cohens_dz(arm_v.to_numpy(float) - ref_v.to_numpy(float))))
     out = pd.DataFrame(rows)
     if len(out):
         out["p_holm"] = np.nan
@@ -271,13 +301,12 @@ def paired_vs_reference(df: pd.DataFrame, ref_arm: str, arms: Sequence[str] | No
 # ---------------------------------------------------------------------------
 
 
-ARM_LABELS = {"a0": "Directed", "a1": "Random", "a3": "GA", "a4": "NSGA-II",
-              "a5": "MIMICRY-style", "a7": "Image-only", "a8": "Hill climber",
-              "a9": "DeepJanus-style", "a6": "Text-only", "x1": "w/o guidance", "x2": "Patch edits"}
+ARM_LABELS = {"a0": "MMBA", "a5": "MIMICRY-style", "a9": "DeepJanus-style", "a6": "Text-only", "a7": "Image-only",
+              "x1": "w/o guidance"}
 
 
 def arm_label(arm: str) -> str:
-    """Short paper label of an arm id ('a0_directed' -> 'Directed'); unknown ids pass through."""
+    """Short paper label of an arm id ('a0_directed' -> 'MMBA'); unknown ids pass through."""
     return ARM_LABELS.get(str(arm).split("_")[0], str(arm))
 
 
@@ -316,6 +345,7 @@ def summary_rows(s: pd.DataFrame) -> list[list[str]]:
         col(100 * s.share_crossed, lambda v: f"{v:.1f}", "crossed"),
         col(100 * s.share_gen0, lambda v: f"{v:.1f}", "gen0"),                 # descriptive: neutral
         col(s.median_first_cross_eval, lambda v: f"{v:.0f}", "first_cross_eval"),
+        col(s.median_magnitude, lambda v: f"{v:.3g}", "magnitude"),
         col(s.median_floor_nats, lambda v: f"{v:.2g}", "floor"),
         col(100 * s.share_band, lambda v: f"{v:.1f}", "band"),
     ]
@@ -324,15 +354,16 @@ def summary_rows(s: pd.DataFrame) -> list[list[str]]:
 
 
 SUMMARY_HEADER = ["Arm", "Runs", tf.head(r"Crossing rate (\%)", "crossed"), r"Generation-0 crossing rate (\%)",
-                  tf.head("Model calls to first crossing", "first_cross_eval"), tf.head("Closest approach (nats)", "floor"),
+                  tf.head("Model calls to first crossing", "first_cross_eval"),
+                  tf.head("Magnitude of the smallest crossing", "magnitude"), tf.head("Closest approach (nats)", "floor"),
                   tf.head(r"Within $10^{-2}$ nats (\%)", "band")]
 
 
 def summary_tex(s: pd.DataFrame) -> str:
-    return _booktabs("lrrrrrr", SUMMARY_HEADER, summary_rows(s))
+    return _booktabs("lrrrrrrr", SUMMARY_HEADER, summary_rows(s))
 
 
-GEN0_BUDGET = 30     # budget of the initial population: descriptive, neutral in the tables
+GEN0_BUDGET = 50     # budget of the initial population (pop_size): descriptive, neutral in the tables
 
 
 def _budget_key(b: int) -> str | None:
@@ -353,12 +384,13 @@ def budgets_tex(curve: pd.DataFrame, budgets: Sequence[int]) -> str:
 def paired_tex(p: pd.DataFrame) -> str:
     """One effect size per comparison with its magnitude bullet and dagger (explained once in the text): the
     difference in percentage points for the crossing rate, Cohen's d_z for the other metrics."""
-    names = {"crossed": "Crossing rate (pp)", "first_cross_eval": "Model calls to first crossing", "floor": "Closest approach"}
+    names = {"crossed": "Crossing rate (pp)", "first_cross_eval": "Model calls to first crossing",
+             "magnitude": "Magnitude of the smallest crossing", "floor": "Closest approach"}
     rows = []
     for _, r in p.iterrows():
         text = f"{100 * r.effect:+.0f}" if r.metric == "crossed" else f"{r.dz:+.2f}"
         rows.append([tex_escape(arm_label(r.arm)), names[r.metric], str(int(r.n_pairs)), tf.effect_cell(text, r.dz, r.p_holm)])
-    return _booktabs("llrr", ["Arm", "Metric", "Pairs", r"Effect (arm $-$ directed)"], rows)
+    return _booktabs("llrr", ["Arm", "Metric", "Pairs", r"Effect (arm $-$ MMBA)"], rows)
 
 
 # ---------------------------------------------------------------------------

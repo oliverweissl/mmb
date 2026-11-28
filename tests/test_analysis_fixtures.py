@@ -39,8 +39,11 @@ def write_run(
     seed_idx: int = 0,
     generations: int | None = None,
     config: dict | None = None,
+    min_cross: dict | None = None,
+    boundary_pair: dict | None = None,
 ) -> Path:
-    """Create ``<root>/<name>/{trace.parquet,stats.json}`` for a run with the given contrasts."""
+    """Create ``<root>/<name>/{trace.parquet,stats.json}`` for a run with the given contrasts (plus min_cross.json /
+    boundary_pair.json when given)."""
     g_values = list(g_values)
     n = len(g_values)
     gens = generations if generations is not None else n // pop
@@ -62,8 +65,8 @@ def write_run(
             "predicted_class": [class_a, class_b][int(np.argmax(lp[:2]))],
             "p_class_a": pa,
             "p_class_b": 1 - pa,
-            "fitness_MatrixDistance_fro": float(img_mag[i]) if img_mag is not None else 0.1 * (i + 1),
-            "fitness_TextDist": float(txt_mag[i]) if txt_mag is not None else 0.01 * (i + 1),
+            "diag_img_rms": float(img_mag[i]) if img_mag is not None else 0.1 * (i + 1),
+            "diag_txt_cosdist": float(txt_mag[i]) if txt_mag is not None else 0.01 * (i + 1),
             "fitness_TgtBal": abs(float(g)),
         })
     pd.DataFrame(rows).to_parquet(run / "trace.parquet")
@@ -81,6 +84,10 @@ def write_run(
     (run / "stats.json").write_text(json.dumps(stats))
     if config is not None:
         (run / "config.json").write_text(json.dumps(config))
+    if min_cross is not None:
+        (run / "min_cross.json").write_text(json.dumps(min_cross))
+    if boundary_pair is not None:
+        (run / "boundary_pair.json").write_text(json.dumps(boundary_pair))
     return run
 
 

@@ -15,14 +15,10 @@ if _root not in sys.path:
 from dataclasses import dataclass
 
 import numpy as np
+import torch
+import torch.nn.functional as F
 from PIL import Image
 
-from mmb.manipulator.image.manipulator import apply_genotype as apply_image_genotype
-from mmb.manipulator.image.types import (
-    CodeGrid,
-    ManipulationContext as ImageManipulationContext,
-    PatchSelection,
-)
 from mmb.manipulator.text.composite import CompositeManipulationContext
 from mmb.manipulator.text.operators.base import OperatorContext
 from mmb.manipulator.text.types import TokenSequence
@@ -40,20 +36,6 @@ def make_tokens(*items: tuple[str, str, str]) -> TokenSequence:
         pos_tags=tuple(p for _, p, _ in items),
         whitespace=tuple(s for _, _, s in items),
     )
-
-
-def make_image_context() -> ImageManipulationContext:
-    """Synthetic image context: 2x2 grid with 2 selected patches."""
-    grid = CodeGrid(np.array([[10, 20], [30, 40]], dtype=np.int64))
-    selection = PatchSelection(
-        positions=np.array([[0, 0], [1, 1]], dtype=np.intp),
-        candidates=(
-            np.array([11, 12, 13], dtype=np.int64),
-            np.array([41, 42], dtype=np.int64),
-        ),
-        original_codes=np.array([10, 40], dtype=np.int64),
-    )
-    return ImageManipulationContext(original_grid=grid, selection=selection)
 
 
 # ---------------------------------------------------------------------------
@@ -105,55 +87,6 @@ class _FakeSynonymOperator:
         return current.replace(positions, words)
 
 
-class FakeImageManipulator:
-    """Minimal image manipulator for testing."""
-
-    def prepare(
-        self,
-        image: Image.Image,
-        target_class: str | None = None,
-        origin_class: str | None = None,
-    ) -> ImageManipulationContext:
-        # Build a context that mirrors the real manipulator's surface:
-        # target_class + candidate_strategy propagate to trace metadata.
-        from mmb.manipulator.image.types import (
-            CodeGrid,
-            ManipulationContext as _Ctx,
-            PatchSelection,
-        )
-
-        grid = CodeGrid(np.array([[10, 20], [30, 40]], dtype=np.int64))
-        selection = PatchSelection(
-            positions=np.array([[0, 0], [1, 1]], dtype=np.intp),
-            candidates=(
-                np.array([11, 12, 13], dtype=np.int64),
-                np.array([41, 42], dtype=np.int64),
-            ),
-            original_codes=np.array([10, 40], dtype=np.int64),
-        )
-        return _Ctx(
-            original_grid=grid,
-            selection=selection,
-            target_class=target_class,
-            candidate_strategy="knn",
-        )
-
-    def apply(self, ctx: ImageManipulationContext, genotype) -> Image.Image:
-        apply_image_genotype(ctx.original_grid, ctx.selection, genotype)
-        r = int(np.sum(genotype)) % 256
-        return Image.new("RGB", (8, 8), (r, 0, 0))
-
-    def apply_batch(
-        self,
-        ctx: ImageManipulationContext,
-        genotypes,
-    ) -> list[Image.Image]:
-        return [self.apply(ctx, g) for g in genotypes]
-
-    def baseline_image(self, ctx: ImageManipulationContext) -> Image.Image:
-        return self.apply(ctx, np.zeros(ctx.genotype_dim, dtype=np.int64))
-
-
 class FakeCompositeTextManipulator:
     """Minimal composite-shaped text manipulator for VLMManipulator tests.
 
@@ -189,3 +122,53 @@ class FakeCompositeTextManipulator:
         op_ctx = ctx.op_contexts["synonym"]
         out = self._op.apply(op_ctx, genotype, ctx.original_tokens)
         return out.text
+
+
+# ---------------------------------------------------------------------------
+# Continuous manipulators for tests (2026-11-28): fake VQ model + latent backend,
+# question-pool text over a temporary pool file
+# ---------------------------------------------------------------------------
+
+
+class FakeVQ(torch.nn.Module):
+    """VQModel stand-in: encode = 8x average pool -> (n, 4, 32, 32); decode = upsample + tanh."""
+
+    def encode(self, x):
+        p = F.avg_pool2d(x, 8)
+        return torch.cat([p, p.mean(1, keepdim=True)], 1), None, None
+
+    def decode(self, z):
+        return torch.tanh(F.interpolate(z[:, :3], scale_factor=8, mode="nearest"))
+
+
+def make_latent_manipulator(d: int = 8, m_max: float = 0.2):
+    from mmb.manipulator.image.latent import LatentImageConfig, LatentImageManipulator
+    return LatentImageManipulator(FakeVQ(), LatentImageConfig(d=d, m_max=m_max), device="cpu",
+                                  decode_batch_size=4)
+
+
+POOL_DISTANCES = (0.0, 0.012, 0.03, 0.045, 0.051, 0.08, 0.12, 0.2)
+
+
+def write_question_pool(path: Path, questions) -> str:
+    """A small question pool (configs/text/question_pool.json format) for the given questions."""
+    import json
+    from mmb.manipulator.text.operators.question_pool import load_pool
+    path.write_text(json.dumps({"meta": {"d_max": 0.25, "n_bands": 10}, "questions": {
+        q: {"pool": [{"text": f"{q.rstrip('?.')} variant {i}?", "dist": float(x)}
+                     for i, x in enumerate(POOL_DISTANCES[1:], 1)]} for q in questions}}))
+    load_pool.cache_clear()
+    return str(path)
+
+
+def make_question_pool_text(pool: str):
+    import spacy
+    from mmb.manipulator.text.composite import CompositeTextManipulator
+    from mmb.manipulator.text.operators.question_pool import QuestionPoolOperator
+    return CompositeTextManipulator(spacy.blank("en"), [QuestionPoolOperator(pool=pool)])
+
+
+def make_vlm_manipulator(pool: str, d: int = 8):
+    """VLMManipulator over the latent backend (fake VQ) and the question-pool text block."""
+    from mmb.manipulator.vlm_manipulator import VLMManipulator
+    return VLMManipulator(make_latent_manipulator(d=d), make_question_pool_text(pool))

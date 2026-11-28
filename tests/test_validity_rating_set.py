@@ -35,7 +35,7 @@ def built(tmp_path_factory):
     csv = root.parent / "main.csv"
     assert collect.main([str(root), "--out", str(csv), "--exp-id", "T"]) == 0
     out = root.parent / "study"
-    info = rating_set.build(csv, out, n=24, controls=6, arms=("a0_directed", "a1_random_tiered"), seed=1)
+    info = rating_set.build(csv, out, n=24, controls=6, arms=("a0_directed", "a9_deepjanus"), seed=1)
     return csv, out, info
 
 
@@ -52,10 +52,10 @@ class TestSampler:
         csv, out, _ = built
         for f in ("rater_view.json", "rate.html"):
             text = (out / f).read_text()
-            assert not re.search(r"a0_directed|a1_random|qwen|internvl|ministral|llava|run_dir|/tmp/", text)
+            assert not re.search(r"a0_directed|a9_deepjanus|qwen|internvl|ministral|llava|run_dir|/tmp/", text)
         k = pd.read_csv(out / "manifest.csv", keep_default_na=False)
         assert {"item_id", "stratum", "run_id", "task", "sut", "arm", "run_dir", "cell_id", "rng_seed", "candidates",
-                "anchor_label", "gt", "img_lpips", "vis_char_dist"} <= set(k.columns)
+                "anchor_label", "gt", "img_lpips", "txt_word_edit"} <= set(k.columns)
         assert set(k.stratum) == {"edited", "control"} and (k[k.stratum == "control"].arm == "").all()
 
     def test_even_over_task_and_arm_and_spread_over_suts(self, built):
@@ -103,7 +103,7 @@ class TestSampler:
 
     def test_deterministic(self, built, tmp_path):
         csv, out, _ = built
-        rating_set.build(csv, tmp_path / "again", n=24, controls=6, arms=("a0_directed", "a1_random_tiered"), seed=1)
+        rating_set.build(csv, tmp_path / "again", n=24, controls=6, arms=("a0_directed", "a9_deepjanus"), seed=1)
         assert (tmp_path / "again" / "manifest.csv").read_text() == (out / "manifest.csv").read_text()
 
 
@@ -189,7 +189,7 @@ class TestAnalysis:
         assert allv.krippendorff_alpha == pytest.approx(1.0) and allv.gwet_ac1 == pytest.approx(1.0)
         ids = sorted(d.item_id.unique())
         d["img_lpips"] = d.item_id.map({i: str(0.01 * n) for n, i in enumerate(ids)})
-        d["vis_char_dist"] = d.item_id.map({i: str(0.02 * (n % 7)) for n, i in enumerate(ids)})
+        d["txt_word_edit"] = d.item_id.map({i: str(0.02 * (n % 7)) for n, i in enumerate(ids)})
         c = analyze_ratings.proxy_calibration(d, n_boot=50)
         assert len(c) > 0
 

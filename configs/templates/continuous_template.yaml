@@ -1,0 +1,60 @@
+# VLM Boundary Test — continuous (real-coded) genotype, 2026-11-28
+#
+# Search-side settings of the continuous design (docs/METHODOLOGY_REVIEW_2026-11-28.md,
+# docs/SEARCH_REAL_CODED.md). Combine with the shared blocks of
+# evolutionary_template.yaml (sut, image, text, seeds, ...). Every value below is the
+# dataclass default; it is spelled out so a run's config records the design.
+#
+# Genotype: [c in [-1,1]^d_img | t in [0,1], u in [0,1)]; all-zero = unedited seed.
+# The manipulator owns the decoding and the per-modality weights w_img / w_txt
+# (they weight the magnitudes MMBA minimises; the optimizer never applies them).
+#
+# Balanced design: every arm uses the same sampler, SBX, block-wise PM, seeds and
+# budget (generations x pop_size = 30 x 50 = 1500). Only optimizer.algorithm differs.
+
+generations: 30
+pop_size: 50
+
+sut:
+  batched_scoring: false          # canonical scoring: one single-path SUT call per input (C2 decision 2026-11-28)
+
+image:
+  backend: vqgan_latent           # continuous low-rank edits of the quantised VQGAN latent, no re-quantisation
+  preset: f8-16384
+  resolution: 256
+  decode_batch_size: 1            # canonical: every image decoded alone (docs/DETERMINISM_2026-11-28.md)
+  latent:
+    basis: dct                    # dct | dctmid | bump (docs/figs/image_pilot)
+    d: 16                         # image genes c in [-1, 1]^d
+    m_max: 0.2                    # relative latent magnitude at w_img = 1, RMS(c) = 1
+    w_img: 1.0                    # calibration weight (applied by the manipulator)
+
+text:
+  spacy_model: en_core_web_sm
+  composite:
+    profile: question_pool_only   # genes (t, u): whole-question pool, configs/text/question_pool.json
+                                  # w_txt lives in the profile (configs/templates/text_profiles.yaml)
+
+optimizer:
+  algorithm: mmba                 # mmba | mmba_unguided | agemoea2 | nsga2 | ga | random | hillclimb | deepjanus
+  # boundary_objective: logprob_gap   # softmax_balance + algorithm ga = MIMICRY-style arm
+  # proximity_only: false
+
+  sampling:
+    mode: stratified_magnitude    # shared generation 0; legacy integer modes are rejected
+    r_min: 0.02                   # strata r_k = r_min + (r_max - r_min) * ((k + U) / n) ** power
+    r_max: 1.0
+    power: 2.0                    # > 1: denser at small magnitudes
+
+  crossover:                      # SBX (pymoo real-coded default)
+    prob: 0.9
+    eta: 15.0
+
+  mutation:                       # polynomial mutation; fair coin picks ONE block,
+    prob: null                    # then p = 1/len(block) per gene (null), at least one gene
+    eta: 20.0
+
+  mmba:
+    eps: 0.001                    # line search stops when the ON/OFF pair differs by <= eps in lam
+    tau: 0.0                      # crossing: signed margin m < -tau
+

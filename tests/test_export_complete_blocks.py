@@ -13,16 +13,17 @@ def _rows(arm, seed, cells, suts=("qwen", "internvl"), tasks=("imagenet", "pope"
 def test_partial_block_is_held_back_and_complete_kept():
     df = pd.DataFrame(_rows("a0_directed", 0, "abc") + _rows("a0_directed", 1, "abc")
                       + _rows("a5_mimicry_objective", 0, "ab")              # partial seed-0 block
-                      + _rows("x1_unguided", 0, "abc"))             # complete seed-0 block, no seed 1
+                      + _rows("x1_mmba_unguided", 0, "abc"))        # complete seed-0 block, no seed 1
     out = complete_blocks(df, "a0_directed", ("qwen", "internvl"))
     assert "a5_mimicry_objective" not in set(out.arm)
-    assert len(out[out.arm == "x1_unguided"]) == 12 and len(out[out.arm == "a0_directed"]) == 24
+    assert len(out[out.arm == "x1_mmba_unguided"]) == 12 and len(out[out.arm == "a0_directed"]) == 24
 
 
 def test_unconfirmed_runs_are_pending_and_marked():
-    rows = [dict(arm="a0_directed", rng_seed=s, run_dir=f"a0/{s}/{c}", min_confirmed=True) for s in (0, 1) for c in "ab"]
-    rows += [dict(arm="a5_mimicry_objective", rng_seed=0, run_dir=f"a5/0/{c}", min_confirmed=False) for c in "ab"]
-    rows += [dict(arm="a1_random_tiered", rng_seed=0, run_dir=f"a1/0/{c}", min_confirmed=True) for c in "ab"]
+    rows = [dict(arm="a0_directed", rng_seed=s, run_dir=f"a0/{s}/{c}", min_found=True, min_confirmed=True) for s in (0, 1) for c in "ab"]
+    rows += [dict(arm="a5_mimicry_objective", rng_seed=0, run_dir=f"a5/0/{c}", min_found=True, min_confirmed=False) for c in "ab"]
+    rows += [dict(arm="a9_deepjanus", rng_seed=0, run_dir=f"a9/0/{c}", min_found=True, min_confirmed=True) for c in "ab"]
+    rows += [dict(arm="a9_deepjanus", rng_seed=1, run_dir=f"a9/1/{c}", min_found=False, min_confirmed=None) for c in "ab"]
     df = pd.DataFrame(rows)
     pend = pending_confirmation(df)
     assert pend == {"a5/0/a", "a5/0/b"}
@@ -66,10 +67,11 @@ def test_ablation_table_text_only_lpips_dash_and_no_baseline_rows():
     def runs(lp):
         return pd.DataFrame({"lpips": lp, "crossed": [1.0] * len(lp)})
     a = pd.DataFrame([
-        dict(label="Full \\sysname", pre="a0", n_runs=3, CR=97.0, SCR=81.0, lpips=0.20, edits=11.0, first_cross_eval=56.0, wall=170.0, _runs=runs([0.2, 0.1, 0.3])),
-        dict(label="Text only", pre="a6", n_runs=3, CR=7.0, SCR=5.0, lpips=0.0, edits=1.0, first_cross_eval=1500.0, wall=220.0, _runs=runs([0.0, 0.0, np.nan])),
-        dict(label="Patch edits", pre="x2", n_runs=3, CR=44.0, SCR=42.0, lpips=0.03, edits=23.0, first_cross_eval=1500.0, wall=170.0, _runs=runs([0.03, 0.02, 0.04])),
+        dict(label="Full \\sysname", pre="a0", n_runs=3, CR=97.0, SCR=81.0, lpips=0.20, magnitude=0.11, first_cross_eval=56.0, wall=170.0, _runs=runs([0.2, 0.1, 0.3])),
+        dict(label="Text only", pre="a6", n_runs=3, CR=7.0, SCR=5.0, lpips=0.0, magnitude=0.3, first_cross_eval=1500.0, wall=220.0, _runs=runs([0.0, 0.0, np.nan])),
+        dict(label="Image only", pre="a7", n_runs=3, CR=44.0, SCR=42.0, lpips=0.03, magnitude=0.05, first_cross_eval=1500.0, wall=170.0, _runs=runs([0.03, 0.02, 0.04])),
     ])
     t = rq.ablation_tex(a, pd.DataFrame())
     assert "Text only & 7 & 5 & -- &" in t and r"\textbf{0.03}" in t and r"\textbf{0.00}" not in t
-    assert not [v for v in rq.VARIANTS if v[1] in ("a5", "a9")]
+    assert r"\textbf{0.050}" in t
+    assert not [v for v in rq.VARIANTS if v[1] in ("a5", "a9", "x2")] and not [v for v in rq.VARIANTS if v[0] == "w/o Phase 2"]

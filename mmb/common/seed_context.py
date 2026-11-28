@@ -50,14 +50,7 @@ def build_context_meta(manipulator: VLMManipulator) -> dict[str, Any]:
 
     Requires ``manipulator.prepare()`` to have been called.
 
-    Image side: dispatches on the backend. For the VQGAN backend the
-    flat ``selection`` with ``positions`` / ``original_codes`` /
-    ``candidates`` is recorded along with ``image_candidate_strategy``
-    (``"knn"`` or ``"cone_filter"``) and ``image_target_class``. For the
-    StyleGAN backend the genome is per-layer κ levels, so the meta
-    records ``image_num_ws`` and ``image_kappa_quant_levels`` plus the
-    origin / target class labels. The ``image_backend`` field marks
-    which case applies; see ``EVOLUTIONARY_SCHEMA_VERSION`` v4.
+    Image side: the continuous latent backend (vqgan_latent) records basis, d, ||z0|| and m_max.
 
     Text side (post 2026-04-28 composite cleanup): the text context is a
     :class:`CompositeManipulationContext` carrying the original tokenised
@@ -74,29 +67,25 @@ def build_context_meta(manipulator: VLMManipulator) -> dict[str, Any]:
         "text_gene_bounds": txt_ctx.gene_bounds.tolist(),
     }
 
-    if hasattr(img_ctx, "selection"):
-        # VQGAN backend.
-        img_sel = img_ctx.selection
+    if hasattr(img_ctx, "basis_name"):
+        # Continuous VQGAN latent backend (2026-11-28).
         return {
-            "image_backend": "vqgan_codebook",
-            "image_patch_positions": img_sel.positions.tolist(),
-            "image_original_codes": img_sel.original_codes.tolist(),
-            "image_candidates": [c.tolist() for c in img_sel.candidates],
-            "image_candidate_strategy": img_ctx.candidate_strategy,
+            "image_backend": "vqgan_latent",
+            "image_basis": img_ctx.basis_name,
+            "image_d": int(img_ctx.genotype_dim),
+            "image_z0_norm": float(img_ctx.z0_norm),
+            "image_latent_meta": dict(img_ctx.meta),
             "image_target_class": img_ctx.target_class,
+            "image_candidate_strategy": img_ctx.candidate_strategy,
             **text_meta,
         }
 
-    # StyleGAN backend.
+    # Any other backend: the generic surface of the context.
     return {
-        "image_backend": "stylegan_xl",
-        "image_num_ws": int(getattr(img_ctx, "num_ws", img_ctx.genotype_dim)),
-        "image_kappa_quant_levels": int(
-            getattr(img_ctx, "kappa_quant_levels", img_ctx.gene_bounds[0] - 1)
-        ),
-        "image_origin_class": getattr(img_ctx, "origin_class", None),
-        "image_target_class": img_ctx.target_class,
-        "image_candidate_strategy": img_ctx.candidate_strategy,
+        "image_backend": type(img_ctx).__name__,
+        "image_d": int(img_ctx.genotype_dim),
+        "image_target_class": getattr(img_ctx, "target_class", None),
+        "image_candidate_strategy": getattr(img_ctx, "candidate_strategy", None),
         **text_meta,
     }
 

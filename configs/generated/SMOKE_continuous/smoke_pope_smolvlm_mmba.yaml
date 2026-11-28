@@ -1,0 +1,85 @@
+name: SMOKE_continuous_pope_smolvlm_mmba
+device: cuda
+save_dir: runs/SMOKE/continuous/pope/smolvlm/mmba
+cache_dirs:
+- ~/.cache/imagenet
+categories:
+- junco
+- ostrich
+- green iguana
+- boa constrictor
+- cello
+- marimba
+generations: 10
+pop_size: 10
+seed: 0
+sut:
+  model_id: HuggingFaceTB/SmolVLM-256M-Instruct
+  backend: torch
+  batched_scoring: false
+seeds:
+  mode: slot_items
+  slot_items:
+    items:
+    - image: ~/data/cells/pope/COCO_val2014_000000551881.jpg
+      prompt: Is there a person in the image?
+      template: '{slot}'
+      fillers:
+      - 'No'
+      - 'Yes'
+      pair:
+      - 'No'
+      - 'Yes'
+      meta:
+        task: pope
+        pope_question_id: '776'
+        gt: 'no'
+        object: person
+        image_source: COCO_val2014_000000551881
+        cell_key: pope|COCO_val2014_000000551881|person|no
+        cell_idx: 2
+        anchor_g_by_sut:
+          llava_hf_llava_v1_6_mistral_7b_hf: 3.515625
+          mistralai_ministral_3_3b_instruct_2512: 7.625000024447218
+          opengvlab_internvl3_5_4b_hf: 1.6249999701976776
+          qwen_qwen3_5_4b: 3.281249936670065
+        protect_words:
+        - person
+        - image
+        calibration_holdout: true
+image:
+  backend: vqgan_latent
+  preset: f8-16384
+  resolution: 256
+  decode_batch_size: 1
+  latent:
+    basis: dct
+    d: 16
+    m_max: 0.2
+    w_img: 1.0
+text:
+  spacy_model: en_core_web_sm
+  composite:
+    profile: question_pool_only
+optimizer:
+  algorithm: mmba
+  sampling:
+    mode: stratified_magnitude
+    r_min: 0.02
+    r_max: 1.0
+    power: 2.0
+  crossover:
+    prob: 0.9
+    eta: 15.0
+  mutation:
+    prob: null
+    eta: 20.0
+  mmba:
+    eps: 0.001
+    tau: 0.0
+  proximity_only: true
+tags:
+  exp_id: SMOKE_continuous
+  task: pope
+  sut: smolvlm
+  arm: a0_directed

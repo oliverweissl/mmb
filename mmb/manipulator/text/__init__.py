@@ -1,23 +1,15 @@
-"""Composite text-mutation pipeline.
+"""Text manipulator (run time: the continuous question_pool operator).
 
-Single supported path: :class:`CompositeTextManipulator` stacks four
-operators (Synonym, Fragmentation, Character Noise, Saliency) under a
-per-operator-block genotype layout. The Synonym operator is MLM-based
-(default ``answerdotai/ModernBERT-large``) with a fine-grained PoS
-filter, lemma reject, and morphological-negation reject.
-
-Genotype encoding (uniform across operators)::
-
-    0              → keep original word
-    k ∈ [1, K]     → use the k-th candidate / bucket value
+The text block of the genotype is two floats (t, u): t in [0, 1] = magnitude, u in [0, 1) = choice within a distance
+band of a precomputed, validated pool of whole edited questions (configs/text/question_pool.json, built offline by
+scripts/build_question_pool.py from semantic word substitutions, the paraphrase bank and T5 paraphrases).
 
 Usage::
 
-    from mmb.manipulator.text import CompositeTextManipulator
-    from mmb.config import TextConfig
-    cm = CompositeTextManipulator.from_config(text_config)
-    ctx = cm.prepare("The quick brown fox.")
-    out = cm.apply(ctx, ctx.zero_genotype())
+    from mmb.manipulator.text import CompositeTextManipulator, TextConfig
+    cm = CompositeTextManipulator.from_config(TextConfig())          # profile question_pool_only
+    ctx = cm.prepare("Is there a dog in the image?")
+    out = cm.apply(ctx, ctx.zero_genotype())                         # the original question
 """
 
 from .composite import (

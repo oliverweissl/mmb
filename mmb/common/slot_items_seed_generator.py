@@ -165,7 +165,6 @@ def slot_items_seeds(
         raise ValueError(
             "seeds.mode='slot_items' requires a seeds.slot_items config block."
         )
-    _reject_class_target_backends(exp_cfg)
 
     items = list(cfg.items)
     paths = [resolve_item_image(it.image) for it in items]
@@ -180,33 +179,6 @@ def slot_items_seeds(
         ),
     )
     return seeds
-
-
-def _reject_class_target_backends(exp_cfg: ExperimentConfig) -> None:
-    """Fail fast on image backends that need an ImageNet L0 target class.
-
-    Both the VQGAN cone filter and StyleGAN-XL resolve the seed's target
-    class against the ImageNet cache to build a modal target. A slot
-    item's ``class_b`` is a carrier sentence, so those lookups would fail
-    deep inside the precompute — much later, with a far worse message.
-    """
-    if (
-        exp_cfg.image.backend == "vqgan_codebook"
-        and exp_cfg.image.cone_filter.enabled
-    ):
-        raise ValueError(
-            "seeds.mode='slot_items' is incompatible with "
-            "image.cone_filter.enabled=true: the cone's modal target is "
-            "built from an ImageNet class, but slot-item candidates are "
-            "carrier sentences. Set image.cone_filter.enabled: false."
-        )
-    if exp_cfg.image.backend == "stylegan_xl":
-        raise ValueError(
-            "seeds.mode='slot_items' is incompatible with "
-            "image.backend='stylegan_xl': StyleGAN synthesis is "
-            "conditioned on an ImageNet class, but slot-item candidates "
-            "are carrier sentences. Use image.backend: vqgan_codebook."
-        )
 
 
 __all__ = [

@@ -5,11 +5,11 @@ from mmb.analysis import validity_cost as vc
 def _data():
     rng = np.random.default_rng(0)
     rows, v = [], []
-    for arm in ("a0_directed", "a1_random_tiered"):
+    for arm in ("a0_directed", "a9_deepjanus"):
         for i in range(12):
             cr = i % 3 != 0
-            rows.append(dict(arm=arm, task="imagenet", sut="qwen", crossed=cr, run_dir=f"{arm}{i}", mag_source="diag",
-                             best_txt_mag_cross=rng.uniform(0, 0.3) if cr else np.nan))
+            rows.append(dict(arm=arm, task="imagenet", sut="qwen", crossed=cr, run_dir=f"{arm}{i}", min_within_budget=cr,
+                             min_text_d=rng.uniform(0, 0.3) if cr else np.nan))
             if cr:
                 v.append(dict(arm=arm, task="imagenet", sut="qwen", run_dir=f"{arm}{i}", first_cross_eval=10 + i,
                               img_lpips=rng.uniform(0.1, 0.5), txt_minilm_cos=rng.uniform(0.7, 1.0), txt_edited=True))
@@ -25,7 +25,7 @@ def test_table_and_macros():
     assert r.n_runs == 12 and r.n_cross == 8 and 0 <= r.cons_share <= r.both_share <= 1
     n = Numbers(); vc.add_numbers(n, t)
     assert any(x["macro"].startswith("EValidConsShare") for x in n.rows)
-    assert "Directed" in vc.table_tex(t, TASK_NAMES)
+    assert "MMBA" in vc.table_tex(t, TASK_NAMES) and r.obj_n == 8 and 0 <= r.obj_txt_share <= 1
     assert len(vc.sensitivity(v, d, ["qwen"])) == 2 * 16
 
 
@@ -33,4 +33,4 @@ def test_empty_arm_is_nan_not_crash():
     v, d = _data()
     v = v[v.arm == "a0_directed"]
     t = vc.validity_cost(v, d, ["qwen"])
-    assert np.isnan(t[(t.task == "All") & (t.arm == "a1_random_tiered")].iloc[0].med_lpips)
+    assert np.isnan(t[(t.task == "All") & (t.arm == "a9_deepjanus")].iloc[0].med_lpips)

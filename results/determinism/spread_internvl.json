@@ -1,0 +1,1296 @@
+{
+ "sut": "internvl",
+ "model_id": "OpenGVLab/InternVL3_5-4B-HF",
+ "batch_chunk": 15,
+ "decode_batch_size": 8,
+ "anchors": [
+  {
+   "file": "cells/imagenet_cells.yaml",
+   "idx": 0,
+   "cell": "boa constrictor|ostrich|La0-Lt1|p0",
+   "anchor_g": 6.69789981842041,
+   "anchor_g_stored": {
+    "llava_hf_llava_v1_6_mistral_7b_hf": 2.9946421682834625,
+    "mistralai_ministral_3_3b_instruct_2512": 4.29330537840724,
+    "opengvlab_internvl3_5_4b_hf": 6.7187323570251465,
+    "qwen_qwen3_5_4b": 1.4374591489322484
+   }
+  },
+  {
+   "file": "cells/imagenet_cells.yaml",
+   "idx": 1,
+   "cell": "cello|junco|La2-Lt2|p3",
+   "anchor_g": 19.255725860595703,
+   "anchor_g_stored": {
+    "llava_hf_llava_v1_6_mistral_7b_hf": 22.74341630935669,
+    "mistralai_ministral_3_3b_instruct_2512": 15.409041417296976,
+    "opengvlab_internvl3_5_4b_hf": 19.122512340545654,
+    "qwen_qwen3_5_4b": 3.3215186409652233
+   }
+  },
+  {
+   "file": "cells/imagenet_cells.yaml",
+   "idx": 2,
+   "cell": "green iguana|cello|La0-Lt0|p3",
+   "anchor_g": 7.20388650894165,
+   "anchor_g_stored": {
+    "llava_hf_llava_v1_6_mistral_7b_hf": 8.842833518981934,
+    "mistralai_ministral_3_3b_instruct_2512": 7.3095199866220355,
+    "opengvlab_internvl3_5_4b_hf": 7.3914830684661865,
+    "qwen_qwen3_5_4b": 2.2109726555645466
+   }
+  },
+  {
+   "file": "cells/imagenet_cells.yaml",
+   "idx": 3,
+   "cell": "junco|marimba|La0-Lt1|p2",
+   "anchor_g": 4.079853057861328,
+   "anchor_g_stored": {
+    "llava_hf_llava_v1_6_mistral_7b_hf": 4.072989225387573,
+    "mistralai_ministral_3_3b_instruct_2512": 6.183052163571119,
+    "opengvlab_internvl3_5_4b_hf": 4.111845970153809,
+    "qwen_qwen3_5_4b": 4.4264294151216745
+   }
+  },
+  {
+   "file": "cells/imagenet_cells.yaml",
+   "idx": 4,
+   "cell": "marimba|boa constrictor|La2-Lt2|p3",
+   "anchor_g": 4.479188919067383,
+   "anchor_g_stored": {
+    "llava_hf_llava_v1_6_mistral_7b_hf": 3.1243209838867188,
+    "mistralai_ministral_3_3b_instruct_2512": 9.18828794080764,
+    "opengvlab_internvl3_5_4b_hf": 4.458355247974396,
+    "qwen_qwen3_5_4b": 2.4375030542432796
+   }
+  },
+  {
+   "file": "cells/imagenet_cells.yaml",
+   "idx": 5,
+   "cell": "ostrich|marimba|La2-Lt1|p0",
+   "anchor_g": 2.1503729820251465,
+   "anchor_g_stored": {
+    "llava_hf_llava_v1_6_mistral_7b_hf": 2.1317808628082275,
+    "mistralai_ministral_3_3b_instruct_2512": 6.305229518562555,
+    "opengvlab_internvl3_5_4b_hf": 2.346902370452881,
+    "qwen_qwen3_5_4b": 2.973741018155124
+   }
+  },
+  {
+   "file": "cells/imagenet_cells.yaml",
+   "idx": 6,
+   "cell": "boa constrictor|marimba|La1-Lt2|p1",
+   "anchor_g": 2.366095542907715,
+   "anchor_g_stored": {
+    "llava_hf_llava_v1_6_mistral_7b_hf": 6.2264284491539,
+    "mistralai_ministral_3_3b_instruct_2512": 5.149443666450679,
+    "opengvlab_internvl3_5_4b_hf": 2.343435525894165,
+    "qwen_qwen3_5_4b": 2.055465077748522
+   }
+  },
+  {
+   "file": "cells/imagenet_cells.yaml",
+   "idx": 7,
+   "cell": "cello|ostrich|La0-Lt2|p2",
+   "anchor_g": 16.404888153076172,
+   "anchor_g_stored": {
+    "llava_hf_llava_v1_6_mistral_7b_hf": 18.081248253583908,
+    "mistralai_ministral_3_3b_instruct_2512": 16.870370591059327,
+    "opengvlab_internvl3_5_4b_hf": 16.58784556388855,
+    "qwen_qwen3_5_4b": 2.59971621632576
+   }
+  },
+  {
+   "file": "cells/imagenet_cells.yaml",
+   "idx": 8,
+   "cell": "green iguana|marimba|La1-Lt1|p1",
+   "anchor_g": 6.599888801574707,
+   "anchor_g_stored": {
+    "llava_hf_llava_v1_6_mistral_7b_hf": 2.4213972091674805,
+    "mistralai_ministral_3_3b_instruct_2512": 6.110313735902309,
+    "opengvlab_internvl3_5_4b_hf": 6.62103271484375,
+    "qwen_qwen3_5_4b": 2.5204229371156543
+   }
+  },
+  {
+   "file": "cells/imagenet_cells.yaml",
+   "idx": 9,
+   "cell": "junco|marimba|La2-Lt0|p1",
+   "anchor_g": 2.975111484527588,
+   "anchor_g_stored": {
+    "llava_hf_llava_v1_6_mistral_7b_hf": 6.1037381291389465,
+    "mistralai_ministral_3_3b_instruct_2512": 5.507486322894692,
+    "opengvlab_internvl3_5_4b_hf": 2.9225106239318848,
+    "qwen_qwen3_5_4b": 4.023370243405225
+   }
+  },
+  {
+   "file": "cells/imagenet_cells.yaml",
+   "idx": 10,
+   "cell": "marimba|boa constrictor|La1-Lt1|p2",
+   "anchor_g": 14.645270347595215,
+   "anchor_g_stored": {
+    "llava_hf_llava_v1_6_mistral_7b_hf": 21.502565622329712,
+    "mistralai_ministral_3_3b_instruct_2512": 7.044088687747717,
+    "opengvlab_internvl3_5_4b_hf": 14.813145160675049,
+    "qwen_qwen3_5_4b": 8.61406509950757
+   }
+  },
+  {
+   "file": "cells/imagenet_cells.yaml",
+   "idx": 11,
+   "cell": "ostrich|marimba|La0-Lt2|p1",
+   "anchor_g": 3.741962432861328,
+   "anchor_g_stored": {
+    "llava_hf_llava_v1_6_mistral_7b_hf": 3.2499704360961914,
+    "mistralai_ministral_3_3b_instruct_2512": 5.2144212163984776,
+    "opengvlab_internvl3_5_4b_hf": 3.700406074523926,
+    "qwen_qwen3_5_4b": 2.171366318129003
+   }
+  },
+  {
+   "file": "cells/imagenet_cells.yaml",
+   "idx": 12,
+   "cell": "boa constrictor|marimba|La2-Lt2|p3",
+   "anchor_g": 5.062497615814209,
+   "anchor_g_stored": {
+    "llava_hf_llava_v1_6_mistral_7b_hf": 3.485374093055725,
+    "mistralai_ministral_3_3b_instruct_2512": 5.621453173458576,
+    "opengvlab_internvl3_5_4b_hf": 4.999997615814209,
+    "qwen_qwen3_5_4b": 2.7552185033418937
+   }
+  },
+  {
+   "file": "cells/imagenet_cells.yaml",
+   "idx": 13,
+   "cell": "cello|junco|La2-Lt0|p3",
+   "anchor_g": 11.842763900756836,
+   "anchor_g_stored": {
+    "llava_hf_llava_v1_6_mistral_7b_hf": 8.817065954208374,
+    "mistralai_ministral_3_3b_instruct_2512": 4.550075177568942,
+    "opengvlab_internvl3_5_4b_hf": 11.825121283531189,
+    "qwen_qwen3_5_4b": 2.7982700921129435
+   }
+  },
+  {
+   "file": "cells/imagenet_cells.yaml",
+   "idx": 14,
+   "cell": "green iguana|marimba|La0-Lt1|p3",
+   "anchor_g": 3.1422126293182373,
+   "anchor_g_stored": {
+    "llava_hf_llava_v1_6_mistral_7b_hf": 5.288612484931946,
+    "mistralai_ministral_3_3b_instruct_2512": 6.779960407875478,
+    "opengvlab_internvl3_5_4b_hf": 3.2047271728515625,
+    "qwen_qwen3_5_4b": 1.7860578149557114
+   }
+  },
+  {
+   "file": "cells/imagenet_cells.yaml",
+   "idx": 15,
+   "cell": "junco|cello|La2-Lt0|p1",
+   "anchor_g": 7.588506698608398,
+   "anchor_g_stored": {
+    "llava_hf_llava_v1_6_mistral_7b_hf": 8.36103904247284,
+    "mistralai_ministral_3_3b_instruct_2512": 8.073015592992306,
+    "opengvlab_internvl3_5_4b_hf": 7.635982513427734,
+    "qwen_qwen3_5_4b": 5.4541000514582265
+   }
+  },
+  {
+   "file": "cells/imagenet_cells.yaml",
+   "idx": 16,
+   "cell": "marimba|ostrich|La2-Lt2|p0",
+   "anchor_g": 19.884504318237305,
+   "anchor_g_stored": {
+    "llava_hf_llava_v1_6_mistral_7b_hf": 25.85977077484131,
+    "mistralai_ministral_3_3b_instruct_2512": 16.62631739117205,
+    "opengvlab_internvl3_5_4b_hf": 19.810772836208344,
+    "qwen_qwen3_5_4b": 7.797302752253017
+   }
+  },
+  {
+   "file": "cells/imagenet_cells.yaml",
+   "idx": 17,
+   "cell": "ostrich|green iguana|La2-Lt1|p0",
+   "anchor_g": 3.748523235321045,
+   "anchor_g_stored": {
+    "llava_hf_llava_v1_6_mistral_7b_hf": 3.7607624530792236,
+    "mistralai_ministral_3_3b_instruct_2512": 8.128004685044289,
+    "opengvlab_internvl3_5_4b_hf": 3.8419785499572754,
+    "qwen_qwen3_5_4b": 4.085755105770659
+   }
+  },
+  {
+   "file": "cells/pope_cells.yaml",
+   "idx": 0,
+   "cell": "pope|COCO_val2014_000000083275|dog|no",
+   "anchor_g": 8.0,
+   "anchor_g_stored": {
+    "llava_hf_llava_v1_6_mistral_7b_hf": 6.343749906285666,
+    "mistralai_ministral_3_3b_instruct_2512": 7.875000067753717,
+    "opengvlab_internvl3_5_4b_hf": 8.124999773746822,
+    "qwen_qwen3_5_4b": 5.593750176951289
+   }
+  },
+  {
+   "file": "cells/pope_cells.yaml",
+   "idx": 1,
+   "cell": "pope|COCO_val2014_000000267684|person|yes",
+   "anchor_g": 13.875,
+   "anchor_g_stored": {
+    "llava_hf_llava_v1_6_mistral_7b_hf": 3.5312500540167093,
+    "mistralai_ministral_3_3b_instruct_2512": 4.874999798834324,
+    "opengvlab_internvl3_5_4b_hf": 13.87500047616777,
+    "qwen_qwen3_5_4b": 3.4687499795109034
+   }
+  },
+  {
+   "file": "cells/pope_cells.yaml",
+   "idx": 2,
+   "cell": "pope|COCO_val2014_000000059383|toilet|no",
+   "anchor_g": 8.25,
+   "anchor_g_stored": {
+    "llava_hf_llava_v1_6_mistral_7b_hf": 6.109375024680048,
+    "mistralai_ministral_3_3b_instruct_2512": 8.124999614432454,
+    "opengvlab_internvl3_5_4b_hf": 8.250000307831215,
+    "qwen_qwen3_5_4b": 5.624999872874469
+   }
+  },
+  {
+   "file": "cells/pope_cells.yaml",
+   "idx": 3,
+   "cell": "pope|COCO_val2014_000000102439|remote|yes",
+   "anchor_g": 13.625,
+   "anchor_g_stored": {
+    "llava_hf_llava_v1_6_mistral_7b_hf": 4.718750162981451,
+    "mistralai_ministral_3_3b_instruct_2512": 2.6249998807907104,
+    "opengvlab_internvl3_5_4b_hf": 13.500000393949449,
+    "qwen_qwen3_5_4b": 3.593750063329935
+   }
+  },
+  {
+   "file": "cells/pope_cells.yaml",
+   "idx": 4,
+   "cell": "pope|COCO_val2014_000000023084|car|no",
+   "anchor_g": 9.25,
+   "anchor_g_stored": {
+    "llava_hf_llava_v1_6_mistral_7b_hf": 5.343750161584467,
+    "mistralai_ministral_3_3b_instruct_2512": 7.124999893363565,
+    "opengvlab_internvl3_5_4b_hf": 9.375000139989424,
+    "qwen_qwen3_5_4b": 3.906249960884452
+   }
+  },
+  {
+   "file": "cells/pope_cells.yaml",
+   "idx": 5,
+   "cell": "pope|COCO_val2014_000000327038|person|yes",
+   "anchor_g": 14.5,
+   "anchor_g_stored": {
+    "llava_hf_llava_v1_6_mistral_7b_hf": 3.609374977648258,
+    "mistralai_ministral_3_3b_instruct_2512": 4.249999832361937,
+    "opengvlab_internvl3_5_4b_hf": 14.749999524276063,
+    "qwen_qwen3_5_4b": 2.7968749329447746
+   }
+  },
+  {
+   "file": "cells/pope_cells.yaml",
+   "idx": 6,
+   "cell": "pope|COCO_val2014_000000316700|person|no",
+   "anchor_g": 6.125,
+   "anchor_g_stored": {
+    "llava_hf_llava_v1_6_mistral_7b_hf": 4.546875089406967,
+    "mistralai_ministral_3_3b_instruct_2512": 7.999999595107511,
+    "opengvlab_internvl3_5_4b_hf": 5.874999895691872,
+    "qwen_qwen3_5_4b": 3.5468751080334187
+   }
+  },
+  {
+   "file": "cells/pope_cells.yaml",
+   "idx": 7,
+   "cell": "pope|COCO_val2014_000000394535|person|yes",
+   "anchor_g": 15.0,
+   "anchor_g_stored": {
+    "llava_hf_llava_v1_6_mistral_7b_hf": 3.2968749962747097,
+    "mistralai_ministral_3_3b_instruct_2512": 4.500000145286322,
+    "opengvlab_internvl3_5_4b_hf": 14.874999525425665,
+    "qwen_qwen3_5_4b": 3.6718750093132257
+   }
+  },
+  {
+   "file": "cells/pope_cells.yaml",
+   "idx": 8,
+   "cell": "pope|COCO_val2014_000000465418|dining table|no",
+   "anchor_g": 4.75,
+   "anchor_g_stored": {
+    "llava_hf_llava_v1_6_mistral_7b_hf": 4.468749989755452,
+    "mistralai_ministral_3_3b_instruct_2512": 8.250000388361514,
+    "opengvlab_internvl3_5_4b_hf": 4.874999982304871,
+    "qwen_qwen3_5_4b": 4.843749855645001
+   }
+  },
+  {
+   "file": "cells/pope_cells.yaml",
+   "idx": 9,
+   "cell": "pope|COCO_val2014_000000199122|person|yes",
+   "anchor_g": 14.25,
+   "anchor_g_stored": {
+    "llava_hf_llava_v1_6_mistral_7b_hf": 3.2187500782310963,
+    "mistralai_ministral_3_3b_instruct_2512": 4.999999966472387,
+    "opengvlab_internvl3_5_4b_hf": 14.375000122330675,
+    "qwen_qwen3_5_4b": 3.8750000577419996
+   }
+  },
+  {
+   "file": "cells/pope_cells.yaml",
+   "idx": 10,
+   "cell": "pope|COCO_val2014_000000477598|car|no",
+   "anchor_g": 9.5,
+   "anchor_g_stored": {
+    "llava_hf_llava_v1_6_mistral_7b_hf": 6.093749954132363,
+    "mistralai_ministral_3_3b_instruct_2512": 8.687499929452315,
+    "opengvlab_internvl3_5_4b_hf": 9.875000187254045,
+    "qwen_qwen3_5_4b": 5.31249987706542
+   }
+  },
+  {
+   "file": "cells/pope_cells.yaml",
+   "idx": 11,
+   "cell": "pope|COCO_val2014_000000562155|person|yes",
+   "anchor_g": 14.75,
+   "anchor_g_stored": {
+    "llava_hf_llava_v1_6_mistral_7b_hf": 5.109375207219273,
+    "mistralai_ministral_3_3b_instruct_2512": 5.499999850988388,
+    "opengvlab_internvl3_5_4b_hf": 14.624999883359123,
+    "qwen_qwen3_5_4b": 4.390624791383743
+   }
+  },
+  {
+   "file": "cells/pope_cells.yaml",
+   "idx": 12,
+   "cell": "pope|COCO_val2014_000000021645|tv|no",
+   "anchor_g": 2.125,
+   "anchor_g_stored": {
+    "llava_hf_llava_v1_6_mistral_7b_hf": 1.9062499701976776,
+    "mistralai_ministral_3_3b_instruct_2512": 4.625000185333192,
+    "opengvlab_internvl3_5_4b_hf": 2.125000111758709,
+    "qwen_qwen3_5_4b": 1.9531249850988388
+   }
+  },
+  {
+   "file": "cells/pope_cells.yaml",
+   "idx": 13,
+   "cell": "pope|COCO_val2014_000000574692|person|yes",
+   "anchor_g": 15.0,
+   "anchor_g_stored": {
+    "llava_hf_llava_v1_6_mistral_7b_hf": 4.281250029802322,
+    "mistralai_ministral_3_3b_instruct_2512": 5.999999784864485,
+    "opengvlab_internvl3_5_4b_hf": 14.999999881101758,
+    "qwen_qwen3_5_4b": 4.062499959021807
+   }
+  },
+  {
+   "file": "cells/pope_cells.yaml",
+   "idx": 14,
+   "cell": "pope|COCO_val2014_000000480122|person|no",
+   "anchor_g": 2.875,
+   "anchor_g_stored": {
+    "llava_hf_llava_v1_6_mistral_7b_hf": 3.578125011175871,
+    "mistralai_ministral_3_3b_instruct_2512": 5.875000010244548,
+    "opengvlab_internvl3_5_4b_hf": 2.3749998956918716,
+    "qwen_qwen3_5_4b": 3.8437501080334187
+   }
+  },
+  {
+   "file": "cells/pope_cells.yaml",
+   "idx": 15,
+   "cell": "pope|COCO_val2014_000000424642|person|yes",
+   "anchor_g": 15.375,
+   "anchor_g_stored": {
+    "llava_hf_llava_v1_6_mistral_7b_hf": 1.4843749403953552,
+    "mistralai_ministral_3_3b_instruct_2512": 4.8749998062849045,
+    "opengvlab_internvl3_5_4b_hf": 15.37499964386734,
+    "qwen_qwen3_5_4b": 3.468750026077032
+   }
+  },
+  {
+   "file": "cells/pope_cells.yaml",
+   "idx": 16,
+   "cell": "pope|COCO_val2014_000000288042|handbag|no",
+   "anchor_g": 4.75,
+   "anchor_g_stored": {
+    "llava_hf_llava_v1_6_mistral_7b_hf": 2.7499999701976776,
+    "mistralai_ministral_3_3b_instruct_2512": 6.500000079162419,
+    "opengvlab_internvl3_5_4b_hf": 5.00000009778887,
+    "qwen_qwen3_5_4b": 1.3124999701976776
+   }
+  },
+  {
+   "file": "cells/pope_cells.yaml",
+   "idx": 17,
+   "cell": "pope|COCO_val2014_000000332025|dog|yes",
+   "anchor_g": 16.25,
+   "anchor_g_stored": {
+    "llava_hf_llava_v1_6_mistral_7b_hf": 4.046875167638063,
+    "mistralai_ministral_3_3b_instruct_2512": 4.24999987706542,
+    "opengvlab_internvl3_5_4b_hf": 16.249999297389877,
+    "qwen_qwen3_5_4b": 3.625000113621354
+   }
+  },
+  {
+   "file": "cells/imagenet_calib.yaml",
+   "idx": 0,
+   "cell": "marimba|ostrich|La0-Lt2|p1",
+   "anchor_g": 15.901920318603516,
+   "anchor_g_stored": {
+    "llava_hf_llava_v1_6_mistral_7b_hf": 19.028114080429077,
+    "mistralai_ministral_3_3b_instruct_2512": 5.932020127773285,
+    "opengvlab_internvl3_5_4b_hf": 15.697633981704712,
+    "qwen_qwen3_5_4b": 4.210798528045416
+   }
+  },
+  {
+   "file": "cells/imagenet_calib.yaml",
+   "idx": 1,
+   "cell": "cello|ostrich|La1-Lt2|p1",
+   "anchor_g": 21.33111000061035,
+   "anchor_g_stored": {
+    "llava_hf_llava_v1_6_mistral_7b_hf": 23.519627571105957,
+    "mistralai_ministral_3_3b_instruct_2512": 17.00541694276035,
+    "opengvlab_internvl3_5_4b_hf": 21.447261095046997,
+    "qwen_qwen3_5_4b": 5.314987612422556
+   }
+  },
+  {
+   "file": "cells/imagenet_calib.yaml",
+   "idx": 2,
+   "cell": "junco|green iguana|La2-Lt1|p0",
+   "anchor_g": 5.407613277435303,
+   "anchor_g_stored": {
+    "llava_hf_llava_v1_6_mistral_7b_hf": 6.1284403800964355,
+    "mistralai_ministral_3_3b_instruct_2512": 8.542620651423931,
+    "opengvlab_internvl3_5_4b_hf": 5.252624034881592,
+    "qwen_qwen3_5_4b": 4.515597245772369
+   }
+  },
+  {
+   "file": "cells/imagenet_calib.yaml",
+   "idx": 3,
+   "cell": "green iguana|ostrich|La2-Lt2|p0",
+   "anchor_g": 18.270910263061523,
+   "anchor_g_stored": {
+    "llava_hf_llava_v1_6_mistral_7b_hf": 15.42094111442566,
+    "mistralai_ministral_3_3b_instruct_2512": 13.59244491159916,
+    "opengvlab_internvl3_5_4b_hf": 18.085261702537537,
+    "qwen_qwen3_5_4b": 5.1760445246472955
+   }
+  },
+  {
+   "file": "cells/pope_calib.yaml",
+   "idx": 0,
+   "cell": "pope|COCO_val2014_000000500257|person|yes",
+   "anchor_g": 14.125,
+   "anchor_g_stored": {
+    "llava_hf_llava_v1_6_mistral_7b_hf": 3.3750001043081284,
+    "mistralai_ministral_3_3b_instruct_2512": 3.8749999403953552,
+    "opengvlab_internvl3_5_4b_hf": 13.999999880908945,
+    "qwen_qwen3_5_4b": 3.2031249292194843
+   }
+  },
+  {
+   "file": "cells/pope_calib.yaml",
+   "idx": 1,
+   "cell": "pope|COCO_val2014_000000331366|person|yes",
+   "anchor_g": 14.375,
+   "anchor_g_stored": {
+    "llava_hf_llava_v1_6_mistral_7b_hf": 2.968749985098839,
+    "mistralai_ministral_3_3b_instruct_2512": 4.625000234693289,
+    "opengvlab_internvl3_5_4b_hf": 14.25000027794158,
+    "qwen_qwen3_5_4b": 3.1406249292194843
+   }
+  },
+  {
+   "file": "cells/pope_calib.yaml",
+   "idx": 2,
+   "cell": "pope|COCO_val2014_000000551881|person|no",
+   "anchor_g": 1.625,
+   "anchor_g_stored": {
+    "llava_hf_llava_v1_6_mistral_7b_hf": 3.515625,
+    "mistralai_ministral_3_3b_instruct_2512": 7.625000024447218,
+    "opengvlab_internvl3_5_4b_hf": 1.6249999701976776,
+    "qwen_qwen3_5_4b": 3.281249936670065
+   }
+  },
+  {
+   "file": "cells/pope_calib.yaml",
+   "idx": 3,
+   "cell": "pope|COCO_val2014_000000113701|dining table|no",
+   "anchor_g": 1.125,
+   "anchor_g_stored": {
+    "llava_hf_llava_v1_6_mistral_7b_hf": 2.5625000596046448,
+    "mistralai_ministral_3_3b_instruct_2512": 7.250000115483999,
+    "opengvlab_internvl3_5_4b_hf": 1.1250000596046448,
+    "qwen_qwen3_5_4b": 4.796874768100679
+   }
+  },
+  {
+   "file": "cells/imagenet_calib2.yaml",
+   "idx": 0,
+   "cell": "ostrich|marimba|La0-Lt2|p2",
+   "anchor_g": 3.5608084201812744,
+   "anchor_g_stored": {
+    "llava_hf_llava_v1_6_mistral_7b_hf": 4.0116846561431885,
+    "mistralai_ministral_3_3b_instruct_2512": 5.089590638875961,
+    "opengvlab_internvl3_5_4b_hf": 3.456577777862549,
+    "qwen_qwen3_5_4b": 2.2287764974171296
+   }
+  },
+  {
+   "file": "cells/imagenet_calib2.yaml",
+   "idx": 1,
+   "cell": "green iguana|ostrich|La2-Lt2|p2",
+   "anchor_g": 17.978355407714844,
+   "anchor_g_stored": {
+    "llava_hf_llava_v1_6_mistral_7b_hf": 15.072986125946045,
+    "mistralai_ministral_3_3b_instruct_2512": 13.993620924651623,
+    "opengvlab_internvl3_5_4b_hf": 17.791067481040955,
+    "qwen_qwen3_5_4b": 4.631950804265216
+   }
+  },
+  {
+   "file": "cells/imagenet_calib2.yaml",
+   "idx": 2,
+   "cell": "boa constrictor|junco|La1-Lt1|p2",
+   "anchor_g": 4.841325283050537,
+   "anchor_g_stored": {
+    "llava_hf_llava_v1_6_mistral_7b_hf": 5.395706534385681,
+    "mistralai_ministral_3_3b_instruct_2512": 6.349235337227583,
+    "opengvlab_internvl3_5_4b_hf": 4.9032745361328125,
+    "qwen_qwen3_5_4b": 2.1107188630849123
+   }
+  },
+  {
+   "file": "cells/imagenet_calib2.yaml",
+   "idx": 3,
+   "cell": "cello|ostrich|La0-Lt2|p0",
+   "anchor_g": 19.85102653503418,
+   "anchor_g_stored": {
+    "llava_hf_llava_v1_6_mistral_7b_hf": 19.002857208251953,
+    "mistralai_ministral_3_3b_instruct_2512": 16.71340194903314,
+    "opengvlab_internvl3_5_4b_hf": 19.82079029083252,
+    "qwen_qwen3_5_4b": 2.210853047668934
+   }
+  },
+  {
+   "file": "cells/pope_calib2.yaml",
+   "idx": 0,
+   "cell": "pope|COCO_val2014_000000280810|broccoli|yes",
+   "anchor_g": 15.625,
+   "anchor_g_stored": {
+    "llava_hf_llava_v1_6_mistral_7b_hf": 5.1093747788108885,
+    "mistralai_ministral_3_3b_instruct_2512": 4.8750000316649675,
+    "opengvlab_internvl3_5_4b_hf": 15.874999526808097,
+    "qwen_qwen3_5_4b": 4.093749836087227
+   }
+  },
+  {
+   "file": "cells/pope_calib2.yaml",
+   "idx": 1,
+   "cell": "pope|COCO_val2014_000000125524|fire hydrant|yes",
+   "anchor_g": 15.125,
+   "anchor_g_stored": {
+    "llava_hf_llava_v1_6_mistral_7b_hf": 3.265624988824129,
+    "mistralai_ministral_3_3b_instruct_2512": 5.874999824911356,
+    "opengvlab_internvl3_5_4b_hf": 15.249999670879333,
+    "qwen_qwen3_5_4b": 3.562499927356839
+   }
+  },
+  {
+   "file": "cells/pope_calib2.yaml",
+   "idx": 2,
+   "cell": "pope|COCO_val2014_000000348524|car|no",
+   "anchor_g": 10.5,
+   "anchor_g_stored": {
+    "llava_hf_llava_v1_6_mistral_7b_hf": 4.859375097323209,
+    "mistralai_ministral_3_3b_instruct_2512": 7.6249999310821295,
+    "opengvlab_internvl3_5_4b_hf": 10.499999582913006,
+    "qwen_qwen3_5_4b": 5.531250099185854
+   }
+  },
+  {
+   "file": "cells/pope_calib2.yaml",
+   "idx": 3,
+   "cell": "pope|COCO_val2014_000000235203|car|no",
+   "anchor_g": 4.75,
+   "anchor_g_stored": {
+    "llava_hf_llava_v1_6_mistral_7b_hf": 2.0312499031424522,
+    "mistralai_ministral_3_3b_instruct_2512": 7.5000000526197255,
+    "opengvlab_internvl3_5_4b_hf": 5.000000004656613,
+    "qwen_qwen3_5_4b": 2.9687499180436134
+   }
+  }
+ ],
+ "spread": [
+  {
+   "file": "cells/imagenet_calib.yaml",
+   "idx": 0,
+   "magnitude": [
+    0.0,
+    0.6033016863278998,
+    0.25126076024355204,
+    0.08192673747492495,
+    1.0698499377143622,
+    0.2579268399048349,
+    0.49794790100132036,
+    0.6917468804485416,
+    0.048349037964585825,
+    0.02276115130064643,
+    0.04380242814755267,
+    0.31704641352898527,
+    0.7283428217391282
+   ],
+   "g_single": [
+    15.901920318603516,
+    17.049087524414062,
+    16.3668155670166,
+    15.833246231079102,
+    15.9102201461792,
+    16.683719635009766,
+    16.32276725769043,
+    15.007546424865723,
+    15.77751350402832,
+    15.901920318603516,
+    15.730330467224121,
+    15.09890365600586,
+    15.83072280883789
+   ],
+   "spread": [
+    0.0012340545654296875,
+    0.1854076385498047,
+    0.32607269287109375,
+    0.10543346405029297,
+    0.032797813415527344,
+    0.1877288818359375,
+    0.20234107971191406,
+    0.13588523864746094,
+    0.18723201751708984,
+    0.0012340545654296875,
+    0.17016887664794922,
+    0.21941471099853516,
+    0.2259979248046875
+   ],
+   "max_dev_batch_vs_single": [
+    0.0012340545654296875,
+    0.1854076385498047,
+    0.29801368713378906,
+    0.10543346405029297,
+    0.032797813415527344,
+    0.00029754638671875,
+    0.04592323303222656,
+    0.13588523864746094,
+    0.18723201751708984,
+    0.0012340545654296875,
+    0.17016887664794922,
+    0.21941471099853516,
+    0.2259979248046875
+   ],
+   "dev_scorer_only": [
+    0.0012340545654296875,
+    0.08015823364257812,
+    0.32607269287109375,
+    0.10543346405029297,
+    0.01656818389892578,
+    0.18743133544921875,
+    0.1564178466796875,
+    0.13588523864746094,
+    0.046718597412109375,
+    0.0012340545654296875,
+    0.030971527099609375,
+    0.21941471099853516,
+    0.16277217864990234
+   ]
+  },
+  {
+   "file": "cells/imagenet_calib.yaml",
+   "idx": 1,
+   "magnitude": [
+    0.0,
+    0.03080552085485074,
+    0.39359935559393094,
+    0.22016819706029844,
+    0.7673199988705015,
+    0.9260151117642985,
+    0.178348002522577,
+    0.5174558415264794,
+    0.47695503654631966,
+    0.1465281434801105,
+    0.04589043373660917,
+    0.051288000249455915,
+    0.7221950790917951
+   ],
+   "g_single": [
+    21.33111000061035,
+    21.353588104248047,
+    21.59071159362793,
+    22.903532028198242,
+    18.851686477661133,
+    25.081687927246094,
+    22.160110473632812,
+    18.07497215270996,
+    20.798702239990234,
+    21.778316497802734,
+    21.456085205078125,
+    22.430850982666016,
+    21.163806915283203
+   ],
+   "spread": [
+    0.11431884765625,
+    0.11619186401367188,
+    0.3435630798339844,
+    0.01711273193359375,
+    0.12387847900390625,
+    0.21457290649414062,
+    0.15514373779296875,
+    0.0017185211181640625,
+    0.09392929077148438,
+    0.5407752990722656,
+    0.32122039794921875,
+    0.06527519226074219,
+    0.10340690612792969
+   ],
+   "max_dev_batch_vs_single": [
+    0.11431884765625,
+    0.022396087646484375,
+    0.33525657653808594,
+    0.01711273193359375,
+    0.12387847900390625,
+    0.21457290649414062,
+    0.12111663818359375,
+    0.0017185211181640625,
+    0.062347412109375,
+    0.4159679412841797,
+    5.14984130859375e-05,
+    0.06527519226074219,
+    0.10340690612792969
+   ],
+   "dev_scorer_only": [
+    0.11431884765625,
+    0.11619186401367188,
+    0.008306503295898438,
+    0.01711273193359375,
+    0.09276580810546875,
+    0.21457290649414062,
+    0.15514373779296875,
+    0.0017185211181640625,
+    0.09392929077148438,
+    0.5407752990722656,
+    0.32122039794921875,
+    0.06527519226074219,
+    0.025783538818359375
+   ]
+  },
+  {
+   "file": "cells/imagenet_calib.yaml",
+   "idx": 2,
+   "magnitude": [
+    0.0,
+    0.4860112199929694,
+    0.646383124309557,
+    0.8660931299032918,
+    0.07389909158779832,
+    0.031474706003711245,
+    0.028942981387728873,
+    0.35874716704517906,
+    0.24333387218860628,
+    0.39680787155513186,
+    0.1202940398510918,
+    0.16401184966673407,
+    0.8806255913638565
+   ],
+   "g_single": [
+    5.407613277435303,
+    6.206096649169922,
+    5.189667701721191,
+    9.747469902038574,
+    5.536216735839844,
+    5.188843727111816,
+    5.438333511352539,
+    4.969237327575684,
+    4.068569660186768,
+    5.959421157836914,
+    5.652346134185791,
+    5.189738750457764,
+    8.690911293029785
+   ],
+   "spread": [
+    0.030961036682128906,
+    0.09263038635253906,
+    0.12586116790771484,
+    0.0612335205078125,
+    0.0005421638488769531,
+    0.12487173080444336,
+    0.3732147216796875,
+    0.21975326538085938,
+    0.1562037467956543,
+    0.21555805206298828,
+    0.0007090568542480469,
+    0.3432178497314453,
+    0.11398601531982422
+   ],
+   "max_dev_batch_vs_single": [
+    0.030961036682128906,
+    0.09263038635253906,
+    0.03228044509887695,
+    0.0612335205078125,
+    0.0005421638488769531,
+    0.0618128776550293,
+    0.09313440322875977,
+    0.21975326538085938,
+    0.1562037467956543,
+    0.21555805206298828,
+    0.0007090568542480469,
+    0.15503883361816406,
+    0.08149147033691406
+   ],
+   "dev_scorer_only": [
+    0.030961036682128906,
+    0.09263038635253906,
+    0.12586116790771484,
+    0.0612335205078125,
+    0.0005421638488769531,
+    0.12487173080444336,
+    0.3732147216796875,
+    0.001556396484375,
+    0.1562037467956543,
+    0.2144603729248047,
+    0.0005278587341308594,
+    0.3432178497314453,
+    0.11398601531982422
+   ]
+  },
+  {
+   "file": "cells/imagenet_calib.yaml",
+   "idx": 3,
+   "magnitude": [
+    0.0,
+    0.521654515198871,
+    0.04300688481917442,
+    0.5054185091522468,
+    0.30568433062126127,
+    0.5852627592566964,
+    0.18960922548233738,
+    0.22089229848436723,
+    0.07340413789464609,
+    0.7314302042361244,
+    1.0135456039775825,
+    0.1073281052470028,
+    0.0200499240571927
+   ],
+   "g_single": [
+    18.270910263061523,
+    15.717304229736328,
+    18.14592170715332,
+    18.000829696655273,
+    16.651344299316406,
+    15.880819320678711,
+    17.525127410888672,
+    18.042739868164062,
+    18.210309982299805,
+    18.03553009033203,
+    20.51011085510254,
+    17.98981285095215,
+    18.270910263061523
+   ],
+   "spread": [
+    0.24788856506347656,
+    0.2700233459472656,
+    0.16912078857421875,
+    0.2872123718261719,
+    0.12252998352050781,
+    0.4166107177734375,
+    0.13750076293945312,
+    0.22769546508789062,
+    0.2058258056640625,
+    0.35063743591308594,
+    0.3591747283935547,
+    0.106353759765625,
+    0.24788856506347656
+   ],
+   "max_dev_batch_vs_single": [
+    0.24788856506347656,
+    0.2492828369140625,
+    0.06241798400878906,
+    0.268463134765625,
+    0.12252998352050781,
+    0.4166107177734375,
+    0.13750076293945312,
+    0.20550155639648438,
+    0.20575904846191406,
+    0.3123912811279297,
+    0.12508010864257812,
+    0.106353759765625,
+    0.24788856506347656
+   ],
+   "dev_scorer_only": [
+    0.24788856506347656,
+    0.020740509033203125,
+    0.10670280456542969,
+    0.2872123718261719,
+    0.12252998352050781,
+    0.4166107177734375,
+    0.005825042724609375,
+    0.02219390869140625,
+    6.67572021484375e-05,
+    0.03824615478515625,
+    0.23409461975097656,
+    0.106353759765625,
+    0.24788856506347656
+   ]
+  },
+  {
+   "file": "cells/pope_calib.yaml",
+   "idx": 0,
+   "magnitude": [
+    0.0,
+    0.6033016863278998,
+    0.25126076024355204,
+    0.08192673747492495,
+    1.0698499377143622,
+    0.2579268399048349,
+    0.49794790100132036,
+    0.6917468804485416,
+    0.048349037964585825,
+    0.02276115130064643,
+    0.04380242814755267,
+    0.31704641352898527,
+    0.7283428217391282
+   ],
+   "g_single": [
+    14.125,
+    14.125,
+    13.125,
+    14.375,
+    14.0,
+    13.75,
+    14.0,
+    14.5,
+    13.875,
+    14.125,
+    13.875,
+    13.625,
+    14.75
+   ],
+   "spread": [
+    0.0,
+    0.5,
+    0.125,
+    0.0,
+    0.125,
+    0.125,
+    0.125,
+    0.25,
+    0.375,
+    0.0,
+    0.25,
+    0.0,
+    0.25
+   ],
+   "max_dev_batch_vs_single": [
+    0.0,
+    0.25,
+    0.0,
+    0.0,
+    0.0,
+    0.125,
+    0.0,
+    0.25,
+    0.125,
+    0.0,
+    0.25,
+    0.0,
+    0.25
+   ],
+   "dev_scorer_only": [
+    0.0,
+    0.25,
+    0.125,
+    0.0,
+    0.125,
+    0.0,
+    0.125,
+    0.25,
+    0.375,
+    0.0,
+    0.0,
+    0.0,
+    0.25
+   ]
+  },
+  {
+   "file": "cells/pope_calib.yaml",
+   "idx": 1,
+   "magnitude": [
+    0.0,
+    0.03080552085485074,
+    0.39359935559393094,
+    0.22016819706029844,
+    0.7673199988705015,
+    0.9260151117642985,
+    0.178348002522577,
+    0.5174558415264794,
+    0.47695503654631966,
+    0.1465281434801105,
+    0.04589043373660917,
+    0.051288000249455915,
+    0.7221950790917951
+   ],
+   "g_single": [
+    14.375,
+    14.5,
+    13.875,
+    14.0,
+    15.5,
+    15.25,
+    15.0,
+    15.625,
+    13.625,
+    14.375,
+    14.25,
+    14.1875,
+    14.25
+   ],
+   "spread": [
+    0.0,
+    0.25,
+    0.0,
+    0.0,
+    0.125,
+    0.0,
+    0.125,
+    0.125,
+    0.125,
+    0.125,
+    0.25,
+    0.25,
+    0.0
+   ],
+   "max_dev_batch_vs_single": [
+    0.0,
+    0.125,
+    0.0,
+    0.0,
+    0.125,
+    0.0,
+    0.125,
+    0.125,
+    0.0,
+    0.125,
+    0.125,
+    0.25,
+    0.0
+   ],
+   "dev_scorer_only": [
+    0.0,
+    0.25,
+    0.0,
+    0.0,
+    0.125,
+    0.0,
+    0.125,
+    0.125,
+    0.125,
+    0.0,
+    0.25,
+    0.25,
+    0.0
+   ]
+  },
+  {
+   "file": "cells/pope_calib.yaml",
+   "idx": 2,
+   "magnitude": [
+    0.0,
+    0.4860112199929694,
+    0.646383124309557,
+    0.8660931299032918,
+    0.07389909158779832,
+    0.031474706003711245,
+    0.028942981387728873,
+    0.35874716704517906,
+    0.24333387218860628,
+    0.39680787155513186,
+    0.1202940398510918,
+    0.16401184966673407,
+    0.8806255913638565
+   ],
+   "g_single": [
+    1.625,
+    3.0,
+    2.125,
+    5.25,
+    2.625,
+    1.75,
+    1.625,
+    2.5,
+    1.75,
+    2.375,
+    3.125,
+    1.625,
+    6.5
+   ],
+   "spread": [
+    0.125,
+    0.0,
+    0.25,
+    0.0,
+    0.0,
+    0.25,
+    0.125,
+    0.125,
+    0.25,
+    0.125,
+    0.0,
+    0.125,
+    0.125
+   ],
+   "max_dev_batch_vs_single": [
+    0.125,
+    0.0,
+    0.25,
+    0.0,
+    0.0,
+    0.25,
+    0.125,
+    0.125,
+    0.25,
+    0.0,
+    0.0,
+    0.125,
+    0.125
+   ],
+   "dev_scorer_only": [
+    0.125,
+    0.0,
+    0.12500011920928955,
+    0.0,
+    0.0,
+    0.12500011920928955,
+    0.125,
+    0.0,
+    0.25,
+    0.125,
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "file": "cells/pope_calib.yaml",
+   "idx": 3,
+   "magnitude": [
+    0.0,
+    0.521654515198871,
+    0.04300688481917442,
+    0.5054185091522468,
+    0.30568433062126127,
+    0.5852627592566964,
+    0.18960922548233738,
+    0.22089229848436723,
+    0.07340413789464609,
+    0.7314302042361244,
+    1.0135456039775825,
+    0.1073281052470028,
+    0.0200499240571927
+   ],
+   "g_single": [
+    1.125,
+    6.375,
+    1.875,
+    2.25,
+    5.25,
+    6.5,
+    5.0,
+    1.25,
+    1.25,
+    2.125,
+    9.25,
+    1.375,
+    3.25
+   ],
+   "spread": [
+    0.125,
+    0.25,
+    0.25,
+    0.375,
+    0.125,
+    0.125,
+    0.125,
+    0.375,
+    0.25,
+    0.25,
+    0.25,
+    0.125,
+    0.0
+   ],
+   "max_dev_batch_vs_single": [
+    0.125,
+    0.25,
+    0.25,
+    0.375,
+    0.125,
+    0.125,
+    0.0,
+    0.25,
+    0.25,
+    0.25,
+    0.125,
+    0.125,
+    0.0
+   ],
+   "dev_scorer_only": [
+    0.125,
+    0.0,
+    0.125,
+    0.125,
+    0.125,
+    0.125,
+    0.125,
+    0.125,
+    0.25,
+    0.0,
+    0.125,
+    0.125,
+    0.0
+   ]
+  }
+ ],
+ "timing": {
+  "batched": {
+   "seconds_per_generation": 5.058267244021408,
+   "runs": [
+    5.065102556021884,
+    5.051431932020932
+   ]
+  },
+  "canonical": {
+   "seconds_per_generation": 6.005569529952481,
+   "runs": [
+    6.006267022923566,
+    6.004872036981396
+   ]
+  },
+  "ratio": 1.1872780223407002,
+  "per_run_hours_1500_calls": {
+   "batched": 0.042152227033511735,
+   "canonical": 0.05004641274960401
+  }
+ },
+ "summary": {
+  "n_inputs": 104,
+  "spread_median": 0.125,
+  "spread_p90": 0.3380743026733399,
+  "spread_max": 0.5407752990722656,
+  "dev_batch_vs_single_median": 0.125,
+  "dev_batch_vs_single_p90": 0.25,
+  "dev_batch_vs_single_max": 0.4166107177734375
+ }
+}

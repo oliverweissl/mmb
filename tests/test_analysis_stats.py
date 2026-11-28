@@ -6,10 +6,12 @@ import pytest
 from mmb.analysis import stats as st
 
 
-def frame(arm, firsts, floors=None, crossed=None, seeds=None, cells=None, budget=100):
+def frame(arm, firsts, floors=None, crossed=None, seeds=None, cells=None, budget=100, mags=None):
     n = len(firsts)
     crossed = [f is not None for f in firsts] if crossed is None else crossed
+    mags = mags if mags is not None else [np.nan if f is None else 0.01 * f for f in firsts]
     return pd.DataFrame({
+        "magnitude": mags,
         "arm": arm,
         "cell_id": cells if cells is not None else [f"c{i}" for i in range(n)],
         "rng_seed": seeds if seeds is not None else [0] * n,
@@ -121,11 +123,35 @@ class TestPairedTests:
             st.paired_vs_reference(frame("a", [1, 2]), "nope")
 
 
+class TestMagnitude:
+    def test_magnitude_paired_only_where_both_crossed(self):
+        cells = [f"c{i}" for i in range(6)]
+        ref = frame("ref", [10, 10, 10, 10, None, 10], cells=cells, mags=[0.1, 0.2, 0.3, 0.4, np.nan, 0.5])
+        arm = frame("arm", [10, 10, 10, 10, 10, None], cells=cells, mags=[0.2, 0.4, 0.6, 0.8, 0.1, np.nan])
+        out = st.paired_vs_reference(pd.concat([ref, arm]), "ref").set_index("metric")
+        r = out.loc["magnitude"]
+        assert r["n_pairs"] == 4                       # c4 and c5: one side did not cross within the budget
+        assert r["effect"] == pytest.approx(1.0)       # arm larger in every pair
+        assert r["ref_value"] == pytest.approx(0.25) and r["arm_value"] == pytest.approx(0.5)
+
+    def test_summary_pair_and_modality_columns(self):
+        d = frame("a0_directed", [5, 6, 7, None])
+        d["min_modality"] = ["image", "text", "image", None]
+        d["bp_source"] = ["own_phase2", "posthoc_bisection", "none", None]
+        d["bp_gap"] = [0.001, 0.003, np.nan, np.nan]
+        d["bp_kind"] = ["continuous", "text_step", None, None]
+        d["nb_extra_calls"] = [3, 9, 11, np.nan]
+        s = st.arm_summary(d, n_boot=200).iloc[0]
+        assert s.share_min_image == pytest.approx(2 / 3) and s.share_min_text == pytest.approx(1 / 3)
+        assert s.n_pair == 2 and s.median_bp_gap == pytest.approx(0.002) and s.share_bp_text_step == 0.5
+        assert s.median_nb_extra_calls == 9
+
+
 class TestTablesAndCli:
     def make(self):
         cells = [f"c{i}" for i in range(10)]
         a = frame("a0_directed", [3, 8, 12, 20, 40, 90, None, None, 5, 60], cells=cells)
-        b = frame("a1_random_tiered", [30, 80, None, None, None, None, None, None, 50, None], cells=cells)
+        b = frame("a9_deepjanus", [30, 80, None, None, None, None, None, None, 50, None], cells=cells)
         return pd.concat([a, b], ignore_index=True)
 
     def test_run_all_writes_csv_and_latex(self, tmp_path):
@@ -135,9 +161,12 @@ class TestTablesAndCli:
             assert (tmp_path / f).is_file(), f
         tex = (tmp_path / "paired.tex").read_text()
         assert r"\toprule" in tex and r"\midrule" in tex and r"\bottomrule" in tex
-        assert "Random" in tex and "a1_random_tiered" not in tex.replace(r"\_", "")
+        assert "DeepJanus-style" in tex and "a9_deepjanus" not in tex.replace(r"\_", "")
+        assert "Magnitude of the smallest crossing" in tex and "MMBA" in tex
         s = res["summary"].set_index("arm")
-        assert s.loc["a0_directed", "n_crossed"] == 8 and s.loc["a1_random_tiered", "n_crossed"] == 3
+        assert s.loc["a0_directed", "n_crossed"] == 8 and s.loc["a9_deepjanus", "n_crossed"] == 3
+        assert s.loc["a0_directed", "n_min"] == 8 and s.loc["a9_deepjanus", "n_min"] == 3
+        assert s.loc["a9_deepjanus", "median_magnitude"] == pytest.approx(0.5)            # 0.3, 0.5, 0.8
         assert s.loc["a0_directed", "median_first_cross_eval"] == pytest.approx(30.0)   # sorted: 3,5,8,12,20,40,60,90,100,100 -> (20+40)/2
 
     def test_load_results_normalises_booleans(self, tmp_path):

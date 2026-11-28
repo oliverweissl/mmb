@@ -1,0 +1,99 @@
+{
+ "sut": "HuggingFaceTB/SmolVLM-256M-Instruct",
+ "render_deterministic": [
+  true,
+  true
+ ],
+ "texts_equal": true,
+ "anchor_g_rescored": 0.28125,
+ "anchor_g_run": 0.28125,
+ "saved_png_g": {},
+ "max_pixel_diff_render_vs_saved_png": {},
+ "g_trace": {
+  "on": -0.15625,
+  "off": null
+ },
+ "on": {
+  "conditions": {
+   "single_path": [
+    0.0312,
+    0.0312,
+    0.0312,
+    0.0312,
+    0.0312
+   ],
+   "batch_alone": [
+    0.0312,
+    0.0312,
+    0.0312,
+    0.0312,
+    0.0312
+   ],
+   "pair_batch": [
+    0.375,
+    0.375
+   ],
+   "mixed_batch": [
+    0.375,
+    0.375,
+    0.1875,
+    0.0,
+    0.0,
+    0.0,
+    0.1875,
+    0.1562,
+    0.1875,
+    0.1875,
+    0.1562,
+    0.0
+   ]
+  },
+  "min": 0.0,
+  "max": 0.375,
+  "spread": 0.375,
+  "mean": 0.11979166666666667
+ },
+ "off": {
+  "conditions": {
+   "single_path": [
+    0.125,
+    0.125,
+    0.125,
+    0.125,
+    0.125
+   ],
+   "batch_alone": [
+    0.125,
+    0.125,
+    0.125,
+    0.125,
+    0.125
+   ],
+   "pair_batch": [
+    0.1875,
+    0.1875
+   ],
+   "mixed_batch": [
+    0.1875,
+    0.1875,
+    0.1875,
+    0.0,
+    0.0,
+    0.0,
+    -0.3125,
+    0.3438,
+    0.3438,
+    -0.3125,
+    0.3438,
+    0.0
+   ]
+  },
+  "min": -0.3125,
+  "max": 0.34375,
+  "spread": 0.65625,
+  "mean": 0.10807291666666667
+ },
+ "pair_diff_mean": 0.01171875,
+ "sign_flips_on": 24,
+ "sign_flips_off": 2
+}

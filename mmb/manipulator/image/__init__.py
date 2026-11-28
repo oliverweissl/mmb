@@ -1,45 +1,16 @@
-"""Discrete image manipulation via VQGAN codebook swaps.
+"""Image side: continuous low-rank edits of the VQGAN f8-16384 latent (2026-11-28).
 
-A VQGAN encodes any image into a spatial grid of discrete codebook
-indices — typically 16×16 = 256 tokens, each drawn from a vocabulary
-of 1024+ codewords. Manipulation means replacing selected tokens
-with semantically nearby alternatives from the codebook.
-
-The design separates three concerns:
-
-    codec       — encode/decode between PIL images and code grids
-    selection   — which patches to mutate, with which candidates
-    manipulator — orchestrate prepare → apply cycles for the optimizer
-
-Usage::
-
-    from mmb.manipulator.image import ImageManipulator
-    from mmb.config import ImageConfig
-
-    m = ImageManipulator.from_preset(device="mps")
-
-    ctx = m.prepare(seed_image)
-    genotype = ctx.random_genotype(rng=np.random.default_rng(42))
-    mutated = m.apply(ctx, genotype)
+    codec        — encode/decode between PIL images and code grids (diagnostics, pilot)
+    loading      — VQGAN presets and weights
+    latent       — LatentImageManipulator (the ImageBackend used by the pipeline)
+    latent_bases — dct / dctmid / bump latent directions
+    config       — ImageConfig
 """
 
 from .codec import VQGANCodec
-from .manipulator import ImageManipulator, apply_genotype
-from .types import (
-    CandidateStrategy,
-    CodeGrid,
-    ManipulationContext,
-    PatchSelection,
-    PatchStrategy,
-)
+from .config import ImageConfig
+from .latent import LatentImageConfig, LatentImageManipulator, LatentManipulationContext
+from .types import CodeGrid
 
-__all__ = [
-    "CandidateStrategy",
-    "CodeGrid",
-    "ImageManipulator",
-    "ManipulationContext",
-    "PatchSelection",
-    "PatchStrategy",
-    "VQGANCodec",
-    "apply_genotype",
-]
+__all__ = ["CodeGrid", "ImageConfig", "LatentImageConfig", "LatentImageManipulator",
+           "LatentManipulationContext", "VQGANCodec"]

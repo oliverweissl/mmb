@@ -1,35 +1,34 @@
-"""Collect one CSV row per evolutionary run.
+"""Collect one CSV row per run (continuous genotype, 2026-11-28).
 
 Usage::
 
-    python -m mmb.analysis.collect <runs_root> --out results/<exp>.csv \\
-        [--default arm=a1_random_tiered] [--exp-id E1] [--epsilon 1e-2]
+    python -m mmb.analysis.collect <runs_root> --out results/<exp>.csv [--exp-id E] [--default arm=a0_directed]
 
-A run directory is any directory under ``runs_root`` that holds a ``trace.parquet``
-(written by :class:`mmb.evolutionary.vlm_boundary_tester.VLMBoundaryTester`).
+A run directory is any directory under ``runs_root`` that holds a ``trace.parquet`` (written by
+:class:`mmb.evolutionary.vlm_boundary_tester.VLMBoundaryTester`).
 
 Definitions
 -----------
-* ``g = logprobs[class_a] - logprobs[class_b]`` per evaluation, with the pair positions
-  taken from ``stats["target_classes"]`` (default ``(0, 1)``); class_a is the anchor answer.
-* Anchor sign: sign of g on the unmodified seed. Preferred source: the explicit anchor reference
-  evaluation the tester stores as ``stats["anchor_g"]`` (outside the budget; ``anchor_source =
-  "reference_eval"``). Fallbacks: the first evaluation whose genotype is all zeros
-  (``"zero_genotype"``), then an assumed class_a anchor (``"assumed_class_a"``, sign +1).
-* A run *crosses* if some evaluation has ``sign(g) * anchor_sign < 0`` (strict: g == 0 is not a
-  crossing). ``first_cross_eval`` is the 1-based position in evaluation order (generation-major,
-  then individual) counting cache hits; a run that never crosses is censored at its budget
-  (``generations * pop_size``, else the number of evaluations). ``first_cross_eval_nocache``
-  counts only evaluations with ``cache_hit == False``.
-* *Crossing* (primary definition, METHODOLOGY 2026-11-22 22:10 UTC): the predicted answer differs from the nominal
-  answer of the seed, i.e. the sign of the contrast reverses (``crossed``, ``first_cross_eval``). The cost-of-crossing
-  columns and the magnitudes refer to these crossings. Numerical noise is handled by verification (replay CSVs),
-  not by a threshold. ``*_robust`` columns (|g| >= ROBUST_TAU = 0.15) are an internal diagnostic only.
-* ``floor_nats = min |g|`` over all evaluations, ``reached_band = floor_nats <= epsilon``.
-* ``label_flip``: the argmax over *all scored candidates* differs from the anchor's argmax in
-  some evaluation.
+* ``g = logprobs[class_a] - logprobs[class_b]`` per evaluation (pair positions ``stats["target_classes"]``).
+  Anchor sign: sign of ``stats["anchor_g"]`` (reference evaluation outside the budget); fallbacks: the first
+  all-zero genotype, then class_a.
+* Budget: ``run_meta.eval_budget`` (else generations x pop_size). Every trace-based metric uses only the first
+  ``budget`` evaluations (evaluation order = generation-major, then individual).
+* A run *crosses* if some in-budget evaluation has ``sign(g) * anchor_sign < 0``. ``first_cross_eval`` is the
+  1-based position of the first such evaluation, censored at the budget.
+* Smallest crossing (``min_cross.json``, written by the tester): the in-budget crossing of smallest weighted
+  magnitude. Columns ``magnitude, mag_image, mag_text`` (weighted block magnitudes), ``min_eval_idx``,
+  ``min_confirmed`` (re-scored on the canonical path). Budget-bound: they are NaN unless ``within_budget``.
+  ``min_text_changed``: the rendered question differs from the original; ``min_text_d``: its MiniLM distance
+  from the question pool (configs/text/question_pool.json; 0 = original). ``min_modality``: image (image
+  edited, question unchanged), text (question changed, no image edit), joint, or none.
+* Boundary pair (``boundary_pair.json``): ``bp_source`` (own_phase2 | posthoc_bisection | none), ``bp_gap``,
+  ``bp_lam_on/off``, ``bp_kind`` (text_step | continuous), ``bp_text_differs``, per side g / magnitude /
+  mag_image / mag_text / text, and ``nb_extra_calls`` (canonical calls outside the budget).
+* ``floor_nats = min |g|`` over in-budget evaluations, ``reached_band = floor_nats <= epsilon``; ``label_flip``:
+  the argmax over all scored candidates differs from the anchor's in some in-budget evaluation.
 
-Run metadata (``exp_id, arm, task, sut, cell_id, rng_seed``) comes from ``stats.json`` and a config
+Run metadata (``exp_id, arm, task, sut, cell_id, rng_seed``) comes from ``stats.json`` (run_meta) and the config
 snapshot, never from the directory name; see :func:`resolve_meta`.
 """
 from __future__ import annotations
@@ -44,62 +43,41 @@ from typing import Any, Iterable
 import numpy as np
 import pandas as pd
 
-from mmb.analysis.cost import cost_of_crossing  # noqa: E402
-
 logger = logging.getLogger(__name__)
 
 EPSILON = 1e-2
-#: internal diagnostic only (not in the paper): crossing with a margin of at least this many nats
-ROBUST_TAU = 0.15
 
-#: Per-row magnitude diagnostics logged for EVERY arm (not optimised): RMS pixel difference to the origin at
-#: codec resolution ([0, 1]) and the SUT text-embedding cosine distance to the original question. They are the
-#: primary magnitude columns; the optimised fitness_* columns of the multi-objective arms are the fallback.
+#: Arms of the study (balanced design): MMBA, the two baselines, the ablations.
+ARMS = ("a0_directed", "a5_mimicry_objective", "a9_deepjanus", "a6_text_only", "a7_image_only", "x1_mmba_unguided")
+
+#: Per-row magnitude diagnostics of the trace (every arm): RMS pixel difference to the origin and the SUT text-embedding
+#: cosine distance to the original question, read at the first crossing.
 DIAG_COLUMNS = ("diag_img_rms", "diag_txt_cosdist")
 
-
-def _mag_name(kind: str, columns, fit_cols, diag_only: bool = False):
-    """Column holding the image ('img') or text ('txt') magnitude: diag_* first, else fitness_* (unless diag_only)."""
-    diag = "diag_img_rms" if kind == "img" else "diag_txt_cosdist"
-    if diag in columns:
-        return diag
-    if diag_only:
-        return None
-    prefix = "fitness_MatrixDistance" if kind == "img" else "fitness_TextDist"
-    hit = [c for c in fit_cols if c.startswith(prefix)]
-    return hit[0] if hit else None
-
-#: Columns requested by the paper's E1 table, in this order.
-CORE_COLUMNS = [
-    "exp_id", "arm", "task", "sut", "cell_id", "rng_seed",
-    "crossed", "crossed_at_gen0", "first_cross_eval", "label_flip",
-    "floor_nats", "reached_band", "evals_total",
-    "img_mag_at_cross", "txt_mag_at_cross", "wall_s", "run_dir",
+ID_COLUMNS = ["exp_id", "arm", "task", "sut", "cell_id", "rng_seed", "seed_idx", "algorithm", "w_img", "w_txt"]
+CROSS_COLUMNS = [
+    "budget", "evals_total", "evals_in_budget", "complete", "anchor_source",
+    "crossed", "crossed_at_gen0", "first_cross_eval", "first_cross_gen", "first_cross_eval_nocache", "n_cross_evals",
+    "label_flip", "floor_nats", "reached_band", "img_mag_at_cross", "txt_mag_at_cross",
 ]
-#: Extra bookkeeping columns appended after the core ones.
-EXTRA_COLUMNS = [
-    "first_cross_gen", "first_cross_eval_nocache", "n_cross_evals",
-    "budget", "complete", "anchor_source", "seed_idx",
-    "crossed_robust", "crossed_robust_at_gen0", "first_cross_eval_robust",
-    # predictors of E2b (see mmb.analysis.predictors)
-    "anchor_g", "prior_g", "probe_gen0", "min_gen0", "answer_words_a", "answer_words_b",
-    # cost of the run: the evaluation at which its smallest crossing was found
-    "min_cross_eval",
-    # the single-input confirmation (scripts/confirm_crossings.py) has run on this run: its min_cross.json, if any, is confirmed
-    "min_confirmed",
+MIN_COLUMNS = [
+    "min_found", "min_within_budget", "min_eval_idx", "min_confirmed", "magnitude", "mag_image", "mag_text",
+    "min_text", "min_text_changed", "min_text_d", "min_modality",
 ]
-#: Cost-of-crossing columns (see mmb.analysis.cost).
-COST_COLUMNS = [
-    "min_edits_cross", "edits_img_at_min", "edits_txt_at_min", "hv_edits_cross", "min_txt_chardist_cross",
-    "best_img_mag_cross", "best_txt_mag_cross", "hv_mag_cross", "mag_source",
+PAIR_COLUMNS = [
+    "bp_source", "bp_gap", "bp_lam_on", "bp_lam_off", "bp_kind", "bp_text_differs", "bp_eps", "nb_extra_calls",
+    "bp_on_g", "bp_on_magnitude", "bp_on_mag_image", "bp_on_mag_text", "bp_on_text",
+    "bp_off_g", "bp_off_magnitude", "bp_off_mag_image", "bp_off_mag_text", "bp_off_text",
 ]
-COLUMNS = CORE_COLUMNS + EXTRA_COLUMNS + COST_COLUMNS
+PREDICTOR_COLUMNS = ["anchor_g", "prior_g", "probe_gen0", "min_gen0", "answer_words_a", "answer_words_b"]
+COLUMNS = ID_COLUMNS + CROSS_COLUMNS + MIN_COLUMNS + PAIR_COLUMNS + PREDICTOR_COLUMNS + ["question", "wall_s", "run_dir"]
 
 CONFIG_FILENAMES = (
     "config.json", "config.yaml", "config.yml",
     "resolved_config.json", "resolved_config.yaml", "run_config.json", "run_config.yaml",
 )
 META_KEYS = ("exp_id", "arm", "task", "sut", "cell_id", "rng_seed")
+POOL_PATH = Path(__file__).resolve().parents[2] / "configs" / "text" / "question_pool.json"
 
 
 # ---------------------------------------------------------------------------
@@ -117,7 +95,6 @@ def evaluate_trace(
     anchor_argmax: int | None = None,
     cache_hit: np.ndarray | None = None,
     epsilon: float = EPSILON,
-    tau: float = ROBUST_TAU,
 ) -> dict[str, Any]:
     """Crossing statistics of one run from rows already in evaluation order.
 
@@ -153,8 +130,6 @@ def evaluate_trace(
     with np.errstate(invalid="ignore"):
         crossing = (np.sign(g) * anchor_sign) < 0          # NaN -> False
     flips = np.argmax(lp, axis=1) != anchor_arg
-    with np.errstate(invalid="ignore"):
-        robust = crossing & (np.abs(g) >= tau)
 
     g0 = np.abs(g[gen == 0]) if len(gen) else np.zeros(0)
     g0 = g0[~np.isnan(g0)]
@@ -166,11 +141,6 @@ def evaluate_trace(
         "label_flip": bool(flips.any()),
         "floor_nats": float(np.nanmin(np.abs(g))) if len(g) and not np.all(np.isnan(g)) else float("nan"),
         "n_cross_evals": int(crossing.sum()),
-        "crossed_robust": bool(robust.any()),
-        "crossed_robust_at_gen0": bool(robust[gen == 0].any()),
-        "first_cross_eval_robust": int(np.argmax(robust)) + 1 if robust.any() else None,
-        "cross_index_robust": int(np.argmax(robust)) if robust.any() else None,
-        "_crossing_robust": robust,
         "anchor_source": source,
         "anchor_g": anchor_g_val if source != "assumed_class_a" else float("nan"),
         "cross_index": None,
@@ -197,7 +167,7 @@ def evaluate_trace(
 
 
 def derive_arm(cfg: dict[str, Any]) -> str | None:
-    """Arm id (see scripts/make_arm_configs.py) from a raw/nested config dict."""
+    """Arm id (scripts/make_arm_configs.py) from a raw/nested config dict; unknown algorithms pass through."""
     if not cfg:
         return None
     modality = _dig(cfg, "modality")
@@ -208,19 +178,14 @@ def derive_arm(cfg: dict[str, Any]) -> str | None:
         return "a7_image_only"
     if algo is None:
         return None
-    if algo == "random":
-        mode = _dig(cfg, "optimizer", "sampling", "mode")
-        return "a2_random_uniform" if mode == "uniform" else "a1_random_tiered"
-    if algo == "ga":
-        return "a3_ga_single"
-    if algo == "nsga2":
-        return "a4_nsga2"
+    if _dig(cfg, "optimizer", "boundary_objective") == "softmax_balance":
+        return "a5_mimicry_objective"
+    if algo == "mmba":
+        return "a0_directed"
+    if algo == "mmba_unguided":
+        return "x1_mmba_unguided"
     if algo == "deepjanus":
         return "a9_deepjanus"
-    if algo == "agemoea2":
-        if _dig(cfg, "optimizer", "boundary_objective") == "softmax_balance":
-            return "a5_mimicry_objective"
-        return "a0_directed"
     return str(algo)
 
 
@@ -281,6 +246,8 @@ def derive_cell_id(stats: dict[str, Any]) -> str:
     that arms run on the same cell *and* photograph match. Otherwise ``<class_a>|<class_b>|i<seed_idx>``.
     """
     meta = stats.get("seed_metadata") or {}
+    if meta.get("cell_key"):                       # cells/*_cells.yaml: shared by every arm and SUT
+        return str(meta["cell_key"])
     if "anchor_class_concrete" in meta and "target_class_concrete" in meta:
         parts = [
             str(meta["anchor_class_concrete"]), str(meta["target_class_concrete"]),
@@ -367,40 +334,134 @@ def _load_config(run_dir: Path, stats: dict[str, Any], runs_root: Path) -> dict[
     return {}
 
 
+def _read_json(p: Path) -> dict[str, Any] | None:
+    try:
+        return json.loads(p.read_text()) if p.is_file() else None
+    except (ValueError, OSError) as exc:
+        logger.warning("unreadable %s: %s", p, exc)
+        return None
+
+
+_POOLS: dict[str, dict[str, dict[str, float]]] = {}
+
+
+def pool_distance(question: str | None, text: str | None, pool_path: Path | None = None) -> float:
+    """MiniLM distance of an edited question from the question pool (0 for the original, NaN when unknown)."""
+    if question is None or text is None:
+        return float("nan")
+    if text.strip() == question.strip():
+        return 0.0
+    key = str(Path(pool_path or POOL_PATH))
+    if key not in _POOLS:
+        P = _read_json(Path(key)) or {}
+        _POOLS[key] = {q: {x["text"]: float(x["dist"]) for x in e.get("pool", [])}
+                       for q, e in (P.get("questions") or {}).items()}
+    return float((_POOLS[key].get(question.strip()) or {}).get(text.strip(), float("nan")))
+
+
+def modality_of(mag_image: float, text_changed: bool | None) -> str | None:
+    """image | text | joint | none for a crossing (image edited = mag_image > 0)."""
+    if mag_image != mag_image or text_changed is None:
+        return None
+    img = mag_image > 0
+    return "joint" if img and text_changed else "image" if img else "text" if text_changed else "none"
+
+
+def block_magnitudes(genotype, stats: dict[str, Any]) -> tuple[float, float] | None:
+    """(mag_image, mag_text) of a real genotype as in mmb.optimizer.genotype: w_img * RMS(c) and w_txt * t (the text
+    block's magnitude gene is its first gene; u is a choice). None when the stats lack the block slices."""
+    if genotype is None or not stats.get("image_slice") or not stats.get("text_slice"):
+        return None
+    g = np.asarray(genotype, dtype=float)
+    (a, b), (c, d) = stats["image_slice"], stats["text_slice"]
+    img, txt = g[int(a):int(b)], g[int(c):int(d)]
+    mi = float(stats.get("w_img") or 1.0) * (float(np.linalg.norm(img) / np.sqrt(img.size)) if img.size else 0.0)
+    mt = float(stats.get("w_txt") or 1.0) * (float(txt[0]) if txt.size else 0.0)
+    return mi, mt
+
+
+def min_cross_columns(mc: dict[str, Any] | None, question: str | None, pool_path: Path | None = None,
+                      stats: dict[str, Any] | None = None) -> dict[str, Any]:
+    """MIN_COLUMNS from a min_cross.json dict (budget-bound: magnitudes NaN unless within_budget). Block magnitudes
+    missing from the file (tester branch without a confirmed crossing) are recomputed from the genotype."""
+    nan = float("nan")
+    out: dict[str, Any] = {c: None for c in MIN_COLUMNS}
+    out.update(min_found=mc is not None, magnitude=nan, mag_image=nan, mag_text=nan, min_text_d=nan)
+    if mc is None:
+        return out
+    wb = bool(mc.get("within_budget", mc.get("eval_idx") is not None))
+    text = mc.get("text")
+    changed = None if text is None or question is None else text.strip() != question.strip()
+    out.update(min_within_budget=wb, min_confirmed=mc.get("confirmed"), min_text=text, min_text_changed=changed)
+    if wb:
+        if mc.get("mag_image") is None and stats is not None:
+            bm = block_magnitudes(mc.get("genotype"), stats)
+            if bm is not None:
+                mc = {**mc, "mag_image": bm[0], "mag_text": bm[1]}
+        out.update(min_eval_idx=mc.get("eval_idx"),
+                   magnitude=float(mc.get("magnitude", nan)), mag_image=float(mc.get("mag_image", nan)),
+                   mag_text=float(mc.get("mag_text", nan)),
+                   min_text_d=pool_distance(question, text, pool_path), min_modality=modality_of(
+                       float(mc.get("mag_image", nan)), changed))
+    return out
+
+
+def pair_columns(bp: dict[str, Any] | None) -> dict[str, Any]:
+    """PAIR_COLUMNS from a boundary_pair.json dict (missing file: bp_source None)."""
+    out: dict[str, Any] = {c: None for c in PAIR_COLUMNS}
+    if bp is None:
+        return out
+    out.update(bp_source=bp.get("pair_source"), bp_gap=bp.get("gap"), bp_lam_on=bp.get("lam_on"),
+               bp_lam_off=bp.get("lam_off"), bp_kind=bp.get("kind"), bp_text_differs=bp.get("text_differs"),
+               bp_eps=bp.get("eps"), nb_extra_calls=bp.get("nb_extra_calls"))
+    for side in ("on", "off"):
+        s = bp.get(side) or {}
+        for k in ("g", "magnitude", "mag_image", "mag_text", "text"):
+            out[f"bp_{side}_{k}"] = s.get(k)
+    return out
+
+
+def original_question(stats: dict[str, Any]) -> str | None:
+    return (stats.get("seed_metadata") or {}).get("prompt_template") or stats.get("prompt_template")
+
+
 def load_run(
     run_dir: Path,
     runs_root: Path | None = None,
     defaults: dict[str, Any] | None = None,
     epsilon: float = EPSILON,
+    pool_path: Path | None = None,
 ) -> dict[str, Any]:
     """One output row (a dict with :data:`COLUMNS`) for the run in *run_dir*."""
     run_dir = Path(run_dir)
     runs_root = Path(runs_root) if runs_root is not None else run_dir
-    stats_path = run_dir / "stats.json"
-    stats = json.loads(stats_path.read_text()) if stats_path.is_file() else {}
+    stats = _read_json(run_dir / "stats.json") or {}
     cfg = _load_config(run_dir, stats, runs_root)
 
     import pyarrow.parquet as pq
 
     names = set(pq.read_schema(run_dir / "trace.parquet").names)
-    want = [c for c in ("generation", "individual", "genotype", "logprobs", "cache_hit", "decoded_text") if c in names]
-    fit_cols = sorted(c for c in names if c.startswith("fitness_"))
+    want = [c for c in ("generation", "individual", "genotype", "logprobs", "cache_hit") if c in names]
     diag_cols = sorted(c for c in names if c in DIAG_COLUMNS)
-    df = pd.read_parquet(run_dir / "trace.parquet", columns=want + fit_cols + diag_cols)
+    df = pd.read_parquet(run_dir / "trace.parquet", columns=want + diag_cols)
     df = df.sort_values(["generation", "individual"], kind="stable")
     df = df.drop_duplicates(["generation", "individual"], keep="last").reset_index(drop=True)
 
-    tc = stats.get("target_classes") or (0, 1)
-    lp = np.vstack([np.asarray(v, dtype=float) for v in df["logprobs"]]) if len(df) else np.zeros((0, 2))
-    gen = df["generation"].to_numpy() if len(df) else np.zeros(0, dtype=int)
+    n_evals = len(df)
+    gens, pop = stats.get("generations"), stats.get("pop_size")
+    rm = stats.get("run_meta") or {}
+    budget = int(rm["eval_budget"]) if rm.get("eval_budget") else (int(gens) * int(pop) if gens and pop else n_evals)
+    dfb = df.iloc[:budget]                         # budget-bound: in-budget evaluations only
 
+    tc = stats.get("target_classes") or (0, 1)
+    lp = np.vstack([np.asarray(v, dtype=float) for v in dfb["logprobs"]]) if len(dfb) else np.zeros((0, 2))
+    gen = dfb["generation"].to_numpy() if len(dfb) else np.zeros(0, dtype=int)
     anchor_row = None
-    if "genotype" in df and len(df):
-        for i, gt in enumerate(df["genotype"]):
+    if "genotype" in dfb and len(dfb):
+        for i, gt in enumerate(dfb["genotype"]):
             if not np.any(np.asarray(gt)):
                 anchor_row = i
                 break
-    cache_hit = df["cache_hit"].to_numpy() if "cache_hit" in df else None
     anchor_argmax = None
     if stats.get("anchor_argmax") is not None:
         cats = stats.get("categories") or []
@@ -409,83 +470,50 @@ def load_run(
     res = evaluate_trace(
         lp, gen, target_classes=(int(tc[0]), int(tc[1])), anchor_row=anchor_row,
         anchor_g=stats.get("anchor_g"), anchor_argmax=anchor_argmax,
-        cache_hit=cache_hit, epsilon=epsilon,
+        cache_hit=dfb["cache_hit"].to_numpy() if "cache_hit" in dfb else None, epsilon=epsilon,
     )
 
-    n_evals = len(df)
-    gens, pop = stats.get("generations"), stats.get("pop_size")
-    rm_budget = (stats.get("run_meta") or {}).get("eval_budget")
-    budget = int(rm_budget) if rm_budget else (int(gens) * int(pop) if gens and pop else n_evals)
-    meta = resolve_meta(stats, cfg, defaults)
-
-    def mag(prefix: str) -> float:
-        c = _mag_name("img" if "Matrix" in prefix else "txt", df.columns, fit_cols)
-        if res["cross_index"] is None or c is None:
+    def at_cross(col: str) -> float:
+        if res["cross_index"] is None or col not in dfb:
             return float("nan")
-        return float(df[c].iloc[res["cross_index"]])
+        return float(dfb[col].iloc[res["cross_index"]])
 
-    def mag_col(kind: str):
-        c = _mag_name(kind, df.columns, fit_cols)
-        return df[c].to_numpy(float) if c else None
-
-    seed_text = (stats.get("seed_metadata") or {}).get("prompt_template") or stats.get("prompt_template")
-    cost = cost_of_crossing(
-        res["_crossing"], list(df["genotype"]) if "genotype" in df else [],
-        int(stats.get("image_dim") or 0), int(stats.get("text_dim") or 0),
-        img_mag=mag_col("img"), txt_mag=mag_col("txt"),
-        texts=list(df["decoded_text"]) if "decoded_text" in df else None, seed_text=seed_text,
-    ) if "genotype" in df and len(df) else {}
-
+    meta = resolve_meta(stats, cfg, defaults)
+    question = original_question(stats)
     row = {
         **meta,
-        **cost,
-        "mag_source": "diag" if _mag_name("img", df.columns, fit_cols, True) else (
-            "fitness" if _mag_name("img", df.columns, fit_cols) else "none"),
+        **min_cross_columns(_read_json(run_dir / "min_cross.json"), question, pool_path, stats),
+        **pair_columns(_read_json(run_dir / "boundary_pair.json")),
+        "seed_idx": stats.get("seed_idx"),
+        "algorithm": rm.get("algorithm") or _dig(cfg, "optimizer", "algorithm"),
+        "w_img": stats.get("w_img"), "w_txt": stats.get("w_txt"),
+        "budget": budget, "evals_total": n_evals, "evals_in_budget": len(dfb),
+        # complete = all configured generations are in the trace, or the run stopped early on purpose
+        "complete": bool((gens and len(df) and int(df["generation"].max()) + 1 >= int(gens))
+                         or "early_stop" in stats or (not gens and n_evals > 0)),
+        "anchor_source": res["anchor_source"],
         "crossed": res["crossed"],
         "crossed_at_gen0": res["crossed_at_gen0"],
         "first_cross_eval": res["first_cross_eval"] if res["crossed"] else budget,
-        "label_flip": res["label_flip"],
-        "floor_nats": res["floor_nats"],
-        "reached_band": res["reached_band"],
-        "evals_total": n_evals,
-        "img_mag_at_cross": mag("fitness_MatrixDistance"),
-        "txt_mag_at_cross": mag("fitness_TextDist"),
-        "wall_s": stats.get("runtime_seconds", float("nan")),
-        "run_dir": str(run_dir),
         "first_cross_gen": res["first_cross_gen"],
         "first_cross_eval_nocache": res["first_cross_eval_nocache"],
         "n_cross_evals": res["n_cross_evals"],
-        "crossed_robust": res["crossed_robust"],
-        "crossed_robust_at_gen0": res["crossed_robust_at_gen0"],
-        "first_cross_eval_robust": res["first_cross_eval_robust"] if res["crossed_robust"] else budget,
-        "budget": budget,
-        # complete = all configured generations are in the trace (a generation can hold fewer than
-        # pop_size rows when the optimizer drops duplicates) or the run stopped early on purpose
-        "complete": bool(
-            (gens and len(gen) and int(gen.max()) + 1 >= int(gens)) or "early_stop" in stats
-            or (not gens and n_evals > 0)
-        ),
-        "min_cross_eval": _min_cross_eval(run_dir),
-        "min_confirmed": (Path(run_dir) / "min_cross_search.json").is_file(),
-        "anchor_source": res["anchor_source"],
-        "seed_idx": stats.get("seed_idx"),
+        "label_flip": res["label_flip"],
+        "floor_nats": res["floor_nats"],
+        "reached_band": res["reached_band"],
+        "img_mag_at_cross": at_cross("diag_img_rms"),
+        "txt_mag_at_cross": at_cross("diag_txt_cosdist"),
         "anchor_g": res["anchor_g"],
         "prior_g": float(stats["prior_g"]) if stats.get("prior_g") is not None else float("nan"),
         "probe_gen0": res["probe_gen0"],
         "min_gen0": res["min_gen0"],
         "answer_words_a": len(str(stats.get("class_a", "")).split()) or None,
         "answer_words_b": len(str(stats.get("class_b", "")).split()) or None,
+        "question": question,
+        "wall_s": stats.get("runtime_seconds", float("nan")),
+        "run_dir": str(run_dir),
     }
     return {c: row.get(c) for c in COLUMNS}
-
-
-def _min_cross_eval(run_dir: Path) -> float:
-    """Evaluation index (1-based) at which the run's smallest crossing was evaluated (min_cross.json), else NaN."""
-    p = Path(run_dir) / "min_cross.json"
-    try:
-        return float(json.loads(p.read_text())["eval_idx"]) + 1 if p.is_file() else float("nan")
-    except (ValueError, KeyError, TypeError):
-        return float("nan")
 
 
 def collect(

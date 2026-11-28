@@ -1,15 +1,16 @@
 """VLM boundary tester — the main orchestrator.
 
 Wires together :class:`VLMManipulator`, :class:`VLMSUT`,
-:class:`DiscretePymooOptimizer`, and 3 live objectives
+:class:`RealPymooOptimizer` (or a subclass), and the live objectives
 (MatrixDistance, TextEmbeddingDistance, TargetedBalance) into a
 multi-objective evolutionary search loop. Objectives are batched and
 run through a :class:`CriterionCollection`.
 
 Each seed triple ``(image, class_A, class_B)`` is tested independently:
 the manipulator prepares image + text contexts, the optimizer evolves
-integer genotypes, and every SUT interaction is logged to a Parquet
-trace for offline analysis.
+real-coded genotypes (RealPymooOptimizer and subclasses, bound per seed with
+set_space(manipulator)), and every SUT interaction is logged to a
+Parquet trace for offline analysis.
 """
 
 from __future__ import annotations
@@ -38,8 +39,7 @@ from mmb.common import (
 from mmb.common.artifacts import EVOLUTIONARY_SCHEMA_VERSION, ParquetBuffer
 from mmb.manipulator.vlm_manipulator import VLMManipulator
 from mmb.objectives import CriterionCollection
-from mmb.optimizer.discrete_pymoo_optimizer import DiscretePymooOptimizer
-from mmb.optimizer.early_stop import EarlyStopChecker, EarlyStopConfig, EarlyStopTrigger
+from mmb.optimizer.real_pymoo_optimizer import RealPymooOptimizer
 from mmb.optimizer.sparse_sampling import build_sampler_from_config
 
 from mmb.config import ExperimentConfig, SeedTriple
@@ -165,6 +165,31 @@ def build_trace_rows(
     ]
 
 
+def _genotype_meta(manipulator) -> dict[str, Any]:
+    """Genotype layout for stats.json: real-coded contract (xl/xu, block
+    slices, w_img/w_txt) when the manipulator exposes it, else gene_bounds."""
+    out: dict[str, Any] = {"genotype": "integer"}
+    try:
+        if getattr(manipulator, "is_continuous", True) is False:
+            raise ValueError("integer sub-manipulators")
+        from mmb.optimizer.genotype import GenotypeSpace
+        sp = GenotypeSpace.from_manipulator(manipulator)
+        if sp.n_var == 0 or len(sp.xu) != sp.n_var:
+            raise ValueError("no real-coded genotype")
+        out.update(genotype="real", xl=sp.xl.tolist(), xu=sp.xu.tolist(),
+                   image_slice=[sp.image_slice.start, sp.image_slice.stop],
+                   text_slice=[sp.text_slice.start, sp.text_slice.stop],
+                   w_img=sp.w_img, w_txt=sp.w_txt)
+    except Exception:  # noqa: BLE001 -- legacy integer manipulator
+        pass
+    gb = getattr(manipulator, "gene_bounds", None)
+    if gb is not None:
+        out["gene_bounds"] = np.asarray(gb).tolist()
+    out["image_dim"] = getattr(manipulator, "image_dim", None)
+    out["text_dim"] = getattr(manipulator, "text_dim", None)
+    return out
+
+
 def config_snapshot(config: ExperimentConfig) -> dict[str, Any]:
     """JSON-safe dump of the full experiment config (Paths/enums as str)."""
     import dataclasses
@@ -227,9 +252,7 @@ def build_stats(
         "runtime_seconds": runtime,
         "generations": config.generations,
         "pop_size": config.pop_size,
-        "gene_bounds": manipulator.gene_bounds.tolist(),
-        "image_dim": manipulator.image_dim,
-        "text_dim": manipulator.text_dim,
+        **_genotype_meta(manipulator),
         # Actually-scored category list. Length-2 when
         # score_full_categories is False (default), length-N when True.
         # Readers use this to map logprob-column indices back to class
@@ -252,10 +275,13 @@ def build_stats(
         "seed_selection_mode": config.seeds.mode,
         "n_categories_seed": config.n_categories,
         "image_preset": config.image.preset,
-        "image_patch_ratio": config.image.patch_ratio,
-        "image_patch_strategy": config.image.patch_strategy.name,
-        "image_candidate_strategy": config.image.candidate_strategy.name,
-        "image_n_candidates": config.image.n_candidates,
+        "search_scoring": ("canonical" if not getattr(config.sut, "batched_scoring", False)
+                           and int(config.image.decode_batch_size) == 1 else "batched"),
+        "image_decode_batch_size": int(config.image.decode_batch_size),
+        "image_backend": config.image.backend,
+        "image_latent_basis": config.image.latent.basis,
+        "image_latent_d": config.image.latent.d,
+        "image_latent_m_max": config.image.latent.m_max,
         "device": config.device,
     }
     # Mode-specific seed-config provenance.
@@ -302,20 +328,20 @@ class VLMBoundaryTester(SMOO):
 
     :param sut: The VLM system-under-test.
     :param manipulator: Multi-modal manipulator (image + text).
-    :param optimizer: Discrete evolutionary optimizer.
+    :param optimizer: Real-coded evolutionary optimizer (RealPymooOptimizer or a subclass).
     :param objectives: Criterion collection (3 batched objectives).
     :param config: Experiment-level settings.
     """
 
     _manipulator: VLMManipulator
-    _optimizer: DiscretePymooOptimizer
+    _optimizer: RealPymooOptimizer
 
     def __init__(
         self,
         *,
         sut,
         manipulator: VLMManipulator,
-        optimizer: DiscretePymooOptimizer,
+        optimizer: RealPymooOptimizer,
         objectives: CriterionCollection,
         config: ExperimentConfig,
     ) -> None:
@@ -328,6 +354,16 @@ class VLMBoundaryTester(SMOO):
             use_wandb=False,
         )
         self._config = config
+        # Canonical scoring (C2 decision 2026-11-28): one single-path SUT call per input and every image decoded
+        # alone, so g does not depend on the batch (docs/DETERMINISM_2026-11-28.md).
+        self._canonical_search = (not getattr(config.sut, "batched_scoring", False)
+                                  and int(getattr(config.image, "decode_batch_size", 1)) == 1)
+        if not self._canonical_search:
+            logger.warning(
+                "!!! NON-CANONICAL SEARCH SCORING (sut.batched_scoring=%s, image.decode_batch_size=%s): g depends "
+                "on the batch composition (up to ~0.55 nats on InternVL / Ministral). The study uses canonical "
+                "scoring: set sut.batched_scoring: false and image.decode_batch_size: 1. !!!",
+                getattr(config.sut, "batched_scoring", False), getattr(config.image, "decode_batch_size", None))
 
         # Modality-driven gates — skip per-modality work when the
         # corresponding criterion isn't in the live collection.
@@ -527,36 +563,11 @@ class VLMBoundaryTester(SMOO):
         else:
             self._anchor_text_embedding = None
 
-        # 2. Install per-seed init sampler. Only relevant when the
-        #    OptimizerConfig selected a non-uniform sampling mode; the
-        #    default "uniform" path leaves algo_params untouched and
-        #    inherits PyMoo's IntegerRandomSampling from the optimizer.
-        #
-        #    `sparse_multitier_fps` additionally requires the per-seed
-        #    VQGAN codebook + KNN-ordered candidate lists to do FPS
-        #    over codebook embeddings at active positions. These come
-        #    from the image manipulator's prepared selection.
-        sampling_cfg = self._config.optimizer.sampling
-        codebook = None
-        candidates_per_position = None
-        if sampling_cfg.mode == "sparse_multitier_fps":
-            img_ctx = self._manipulator.image_context
-            if img_ctx is not None:
-                codebook = self._manipulator.image_manipulator.codec.codebook
-                candidates_per_position = img_ctx.selection.candidates
-
-        sampler = build_sampler_from_config(
-            sampling_cfg,
-            text_dim=self._manipulator.text_dim,
-            codebook=codebook,
-            candidates_per_position=candidates_per_position,
-            seed=self._config.seed,
-        )
-        if sampler is not None:
-            self._optimizer.set_sampling(sampler)
-
-        # 3. Re-configure optimizer for this seed's genotype dimensions.
-        self._optimizer.update_gene_bounds(self._manipulator.gene_bounds)
+        # 2. Shared initial sampler (stratified magnitude) and 3. this seed's genotype space: the
+        #    real-coded optimizer reads bounds, block slices, scale and w_img/w_txt from the manipulator.
+        self._optimizer.set_sampling(build_sampler_from_config(self._config.optimizer.sampling,
+                                                               seed=self._config.seed))
+        self._optimizer.set_space(self._manipulator)
 
         # 4. VQGAN-reconstructed baseline for MatrixDistance.
         #    Skipped when MatrixDistance isn't in the objective set
@@ -577,7 +588,7 @@ class VLMBoundaryTester(SMOO):
         #     when the zero individual is not in the initial population.
         self._anchor_eval = None
         try:
-            zero = np.zeros((2, len(self._manipulator.gene_bounds)), dtype=np.int64)
+            zero = self._zero_genotypes(2)
             a_imgs, a_txts = self._manipulator.manipulate(candidates=None, weights=zero)
             with distlock.lock(self._sut.device_str):
                 a_lp = self._sut.process_input(
@@ -627,24 +638,6 @@ class VLMBoundaryTester(SMOO):
             b"pair": json.dumps(list(pair)).encode(),
             b"target_classes": json.dumps(list(target_classes)).encode(),
         }
-
-        # 6. Early-stop checker. OR-combines four triggers (flip /
-        #    plateau-HV / no-improvement-since-seed / hard-cap). Disabled
-        #    when ``optimizer.early_stop.enable`` is False — falls back
-        #    to the hard cap at ``config.generations``.
-        early_cfg = self._config.optimizer.early_stop
-        early_stop_checker: EarlyStopChecker | None = None
-        if early_cfg.enable:
-            early_stop_checker = EarlyStopChecker(
-                EarlyStopConfig(
-                    epsilon_margin=early_cfg.epsilon_margin,
-                    plateau_patience=early_cfg.plateau_patience,
-                    no_improvement_warmup=early_cfg.no_improvement_warmup,
-                    hypervolume_reference=early_cfg.hypervolume_reference,
-                    max_generations=self._config.generations,
-                )
-            )
-        early_stop_trigger: EarlyStopTrigger | None = None
 
         # 7. Generation loop with incremental flushing. Trace rows flush
         #    every 100 rows (bounded memory), convergence flushes every
@@ -741,28 +734,6 @@ class VLMBoundaryTester(SMOO):
                 postfix["t"] = f"{time() - gen_start:.0f}s"
                 pbar.set_postfix(postfix)
                 pbar.update(1)
-
-                # -- Early-stop check. Fires after the current gen is
-                #    fully written, so the trace / convergence parquet
-                #    always matches what the optimizer actually saw.
-                if early_stop_checker is not None:
-                    try:
-                        tgtbal_col_idx = obj_names.index("TgtBal")
-                    except ValueError:
-                        tgtbal_col_idx = None
-                    if tgtbal_col_idx is not None:
-                        trig = early_stop_checker.update(
-                            generation=gen,
-                            pareto_fitness=pareto_fitness,
-                            tgtbal_index=tgtbal_col_idx,
-                        )
-                        if trig is not None and trig.trigger != "hard_cap":
-                            logger.info(
-                                "[seed %d] early stop at gen %d: %s (%s)",
-                                seed_idx, gen, trig.trigger, trig.details,
-                            )
-                            early_stop_trigger = trig
-                            break
         finally:
             # Close writers even on exception so partial parquets are
             # still readable after a mid-run Ctrl-C or kill.
@@ -777,12 +748,209 @@ class VLMBoundaryTester(SMOO):
             seed_idx, seed, run_dir,
             scored_categories, pair, target_classes,
             answer_suffix, runtime,
-            early_stop=early_stop_trigger,
         )
 
     # ------------------------------------------------------------------
     # Single generation
     # ------------------------------------------------------------------
+
+    # ------------------------------------------------------------------
+    # Genotype helpers (real-coded vs legacy integer)
+    # ------------------------------------------------------------------
+
+    def _n_var(self) -> int:
+        if getattr(self._optimizer, "space", None) is not None:
+            return self._optimizer.space.n_var
+        return len(self._manipulator.xl)
+
+    def _zero_genotypes(self, n: int) -> NDArray:
+        """n copies of the unedited genotype (all-zero, float64)."""
+        return np.zeros((n, self._n_var()), dtype=np.float64)
+
+    def _geno_array(self, g) -> NDArray:
+        return np.asarray(g, dtype=np.float64)
+
+    def _geno_list(self, g) -> list:
+        return self._geno_array(g).tolist()
+
+    def _canonical_g(self, genos: NDArray, target_classes, answer_suffix) -> NDArray:
+        """Canonical (batch-independent) g for each genotype: rendered ALONE (decode batch of 1) and scored
+        ALONE on the single path (process_input). Batched rendering and batched bf16 scoring shift g by up
+        to ~0.5 nats with the batch composition (scripts/check_pair_determinism.py, 2026-11-28), so every
+        boundary decision outside the search is made on this path. Extra calls, outside the budget."""
+        ia, ib = target_classes
+        cats = tuple(self._current_categories)
+        out = []
+        for G in np.atleast_2d(genos):
+            ims, txs = self._manipulator.manipulate(candidates=None, weights=G[None])
+            with distlock.lock(self._sut.device_str):
+                lp = self._sut.process_input(ims[0], text=txs[0] + answer_suffix, categories=cats)
+            lp = lp.float().cpu().numpy().ravel()
+            out.append(float(lp[ia] - lp[ib]))
+        return np.asarray(out)
+
+    def _posthoc_line(self, G: NDArray, sign0: float, target_classes, answer_suffix,
+                      eps: float, k: int = 16, max_rounds: int = 4):
+        """Batched bisection on scale(G, lam) for arms without their own Phase 2
+        (balanced ON/OFF pairs for every arm). Returns (off, off_g, on, on_g, gap, n_calls)."""
+        sp = self._optimizer.space
+        lo, hi, lo_g, hi_g, calls = 0.0, 1.0, None, None, 0
+        for _ in range(max_rounds):
+            if hi - lo <= eps:
+                break
+            lams = np.linspace(lo, hi, k + 2)[1:-1]
+            gs = self._canonical_g(np.stack([sp.scale(G, l) for l in lams]),
+                                   target_classes, answer_suffix)
+            calls += len(lams)
+            cr = sign0 * gs < 0
+            if cr.any():
+                j = int(np.argmin(np.where(cr, lams, np.inf)))
+                hi, hi_g = float(lams[j]), float(gs[j])
+            below = (~cr) & (lams < hi)
+            if below.any():
+                j = int(np.argmax(np.where(below, lams, -np.inf)))
+                lo, lo_g = float(lams[j]), float(gs[j])
+        return sp.scale(G, lo), lo_g, sp.scale(G, hi), hi_g, hi - lo, calls, lo, hi
+
+    def _save_min_cross_real(self, run_dir, target_classes, answer_suffix, rows, sign0) -> None:
+        """Real-coded genotype artefacts (C2 decision 2026-11-28).
+
+        * min_cross.json / .png: the smallest crossing by weighted magnitude that was
+          evaluated WITHIN the budget (trace); budget-bound metrics use only this.
+          g_canonical / confirmed: the same input re-scored on the canonical path.
+        * boundary_pair.json, min_cross_neighbour.json / .png: the ON/OFF pair, decided
+          on the CANONICAL path (rendered alone, single SUT call; _canonical_g), same
+          procedure for every arm. pair_source = own_phase2 (MMBA's Phase-2 pair, kept
+          when both sides confirm canonically) | posthoc_bisection (canonical bisection on
+          scale(C, lam) to eps from the smallest canonically confirmed in-budget crossing,
+          at most 8 tried) | none (no crossing confirms). All extra calls are counted in
+          nb_extra_calls (outside the budget). boundary_on.png: ON when it differs from C.
+        """
+        ia, ib = target_classes
+        sp = self._optimizer.space
+        eps = self._config.optimizer.mmba.eps
+
+        def _row_g(r):
+            return r["logprobs"][ia] - r["logprobs"][ib]
+
+        def _find(G):
+            for k, r in enumerate(rows):
+                if np.allclose(np.asarray(r["genotype"], float), G, atol=1e-12, rtol=0):
+                    return k, r
+            return None, None
+
+        tau = float(self._config.optimizer.mmba.tau)
+
+        def crosses(g):
+            return sign0 * g < -tau
+
+        # in-budget crossings, smallest weighted magnitude first (budget-bound metrics use the first)
+        cands = []
+        for kk, rr in enumerate(rows):
+            gg = _row_g(rr)
+            if crosses(gg):
+                cands.append((float(sp.magnitude(np.asarray(rr["genotype"], float))), abs(gg), kk, rr, gg))
+        cands.sort(key=lambda t: t[:3])
+        if not cands:
+            return
+        _, _, k, r, g_c = cands[0]
+        C = np.asarray(r["genotype"], float)
+        calls = 0
+        g_c_canon = float(self._canonical_g(C[None], target_classes, answer_suffix)[0]); calls += 1
+        # Under canonical search the trace IS the canonical score: confirmation must reproduce it exactly.
+        canonical_consistent = abs(g_c_canon - float(g_c)) <= 1e-4 if self._canonical_search else None
+        if canonical_consistent is False:
+            logger.error("canonical search but the in-budget crossing re-scores differently: trace g=%.5f, "
+                         "canonical g=%.5f (%s)", g_c, g_c_canon, run_dir)
+
+        pair = getattr(self._optimizer, "boundary_pair", None)
+        info: dict[str, Any] = {}
+        on = off = None
+        if pair is not None:                      # MMBA: confirm its own pair on the canonical path
+            on_p, off_p = np.asarray(pair["on"], float), np.asarray(pair["off"], float)
+            g_on_c, g_off_c = self._canonical_g(np.stack([on_p, off_p]), target_classes, answer_suffix)
+            calls += 2
+            if crosses(g_on_c) and not crosses(g_off_c):
+                on, off, on_g, off_g = on_p, off_p, float(g_on_c), float(g_off_c)
+                info = {"pair_source": "own_phase2", "line": pair["line"], "gap": pair["gap"],
+                        "lam_on": pair["lam_on"], "lam_off": pair["lam_off"], "phase2_confirmed": True}
+        if on is None:                            # canonical bisection from the smallest confirmed crossing
+            base = None
+            for _, _, _, rr, _ in cands[:8]:
+                Gc = np.asarray(rr["genotype"], float)
+                gc = g_c_canon if Gc is C else float(self._canonical_g(Gc[None], target_classes, answer_suffix)[0])
+                if Gc is not C:
+                    calls += 1
+                if crosses(gc):
+                    base = Gc
+                    break
+            if base is None:
+                info = {"pair_source": "none", "phase2_confirmed": False if pair is not None else None,
+                        "nb_extra_calls": calls, "confirmed": False}
+                on = off = None
+            else:
+                off, off_g, on, on_g, gap, pc, lo, hi = self._posthoc_line(
+                    base, sign0, target_classes, answer_suffix, eps)
+                calls += pc
+                if on_g is None:
+                    on_g = float(self._canonical_g(on[None], target_classes, answer_suffix)[0]); calls += 1
+                info = {"pair_source": "posthoc_bisection", "line": "global", "gap": gap, "lam_on": hi,
+                        "lam_off": lo, "phase2_confirmed": False if pair is not None else None}
+        info["nb_extra_calls"] = calls
+        info["confirmed"] = on is not None
+        info["search_scoring"] = "canonical" if self._canonical_search else "batched"
+        info["canonical_consistent"] = canonical_consistent
+        if self._canonical_search and pair is not None and info.get("phase2_confirmed") is False:
+            info["canonical_consistent"] = False
+            logger.error("canonical search but MMBA's Phase-2 pair did not confirm canonically (%s)", run_dir)
+        if on is None:                            # no canonically confirmed crossing: record and stop
+            imgs, txts = self._manipulator.manipulate(candidates=None, weights=C[None])
+            imgs[0].save(run_dir / "min_cross.png")
+            with open(run_dir / "min_cross.json", "w") as f:
+                json.dump({"eval_idx": k + 1, "generation": r["generation"], "individual": r["individual"],
+                           "within_budget": True, "g": float(g_c), "g_canonical": g_c_canon,
+                           "confirmed": crosses(g_c_canon), "magnitude": float(sp.magnitude(C)),
+                           "text": txts[0], "full_prompt": txts[0] + answer_suffix, "genotype": C.tolist()},
+                          f, indent=2)
+            with open(run_dir / "boundary_pair.json", "w") as f:
+                json.dump({**info, "eps": eps, "tau": tau}, f, indent=2)
+            return
+        imgs, txts = self._manipulator.manipulate(candidates=None, weights=np.stack([C, off, on]))
+        texts_differ = txts[2] != txts[1]
+        if hasattr(self._optimizer, "annotate_pair") and pair is not None:
+            self._optimizer.annotate_pair(texts_differ)
+        kind = "text_step" if texts_differ else "continuous"
+
+        def _mags(x):
+            return {"magnitude": float(sp.magnitude(x)),
+                    "mag_image": float(sp.block_magnitude(x, "image")),
+                    "mag_text": float(sp.block_magnitude(x, "text")),
+                    "n_edits": int(np.count_nonzero(x[sp.magnitude_mask]))}
+
+        imgs[0].save(run_dir / "min_cross.png")
+        imgs[1].save(run_dir / "min_cross_neighbour.png")
+        if not np.array_equal(on, C):
+            imgs[2].save(run_dir / "boundary_on.png")
+        with open(run_dir / "min_cross.json", "w") as f:
+            json.dump({"eval_idx": None if k is None else k + 1,
+                       "generation": None if r is None else r["generation"],
+                       "individual": None if r is None else r["individual"],
+                       "within_budget": k is not None, "g": float(g_c), "g_canonical": g_c_canon,
+                       "confirmed": bool(crosses(g_c_canon)), **_mags(C),
+                       "text": txts[0], "full_prompt": txts[0] + answer_suffix,
+                       "genotype": C.tolist()}, f, indent=2)
+        bp = {**info, "kind": kind, "text_differs": bool(texts_differ), "eps": eps, "tau": tau,
+              "scoring": "canonical (rendered alone, single-path SUT call)",
+              "on": {"g": float(on_g), **_mags(on), "text": txts[2], "genotype": on.tolist()},
+              "off": {"g": None if off_g is None else float(off_g), **_mags(off), "text": txts[1],
+                      "genotype": off.tolist()}}
+        with open(run_dir / "boundary_pair.json", "w") as f:
+            json.dump(bp, f, indent=2)
+        with open(run_dir / "min_cross_neighbour.json", "w") as f:
+            json.dump({"g": bp["off"]["g"], **_mags(off), "text": txts[1],
+                       "full_prompt": txts[1] + answer_suffix, "genotype": off.tolist(),
+                       "from_trace": info["nb_extra_calls"] == 0, **info, "kind": kind,
+                       "text_differs": bool(texts_differ), "eps": eps}, f, indent=2)
 
     def _save_min_cross(self, run_dir, target_classes, answer_suffix) -> None:
         import pyarrow.parquet as pq
@@ -793,63 +961,7 @@ class VLMBoundaryTester(SMOO):
         ia, ib = target_classes
         sign0 = np.sign(anchor["anchor_g"]) or 1.0
         rows = pq.read_table(tp, columns=["generation", "individual", "genotype", "logprobs"]).to_pylist()
-        best = None
-        for k, r in enumerate(rows):
-            g = r["logprobs"][ia] - r["logprobs"][ib]
-            if sign0 * g < 0:
-                n = sum(1 for v in r["genotype"] if v)
-                key = (n, abs(g), k)
-                if best is None or key < best[0]:
-                    best = (key, r, g, k)
-        if best is None:
-            return
-        _, r, g, k = best
-        G = np.asarray(r["genotype"], dtype=np.int64)
-        # Boundary partner: a non-crossing input one edit away (C minus one edit),
-        # closest to the border. Taken from the trace if evaluated there (MMBA's
-        # Phase 2 evaluates such resets); otherwise the resets are scored now
-        # (extra calls outside the search budget, counted in nb_extra_calls).
-        act = np.nonzero(G)[0]
-        nb, nb_g, extra = None, None, 0
-        seen = {}
-        for rr in rows:
-            H = np.asarray(rr["genotype"], dtype=np.int64)
-            d = np.nonzero(H != G)[0]
-            if len(d) == 1 and H[d[0]] == 0 and G[d[0]] != 0:
-                gg = rr["logprobs"][ia] - rr["logprobs"][ib]
-                if sign0 * gg >= 0:
-                    seen[int(d[0])] = gg
-        if seen:
-            i = min(seen, key=lambda j: abs(seen[j]))
-            nb = G.copy(); nb[i] = 0; nb_g = float(seen[i])
-        elif 0 < len(act) <= 64:
-            cands = []
-            for i in act:
-                H = G.copy(); H[i] = 0; cands.append(H)
-            Hs = np.stack(cands if len(cands) > 1 else cands * 2)
-            ims, txs = self._manipulator.manipulate(candidates=None, weights=Hs)
-            cats = tuple(self._current_categories) if getattr(self, "_current_categories", None) else None
-            if cats is not None and hasattr(self._sut, "process_batch"):
-                lp = self._sut.process_batch(ims[:len(cands)], [t + answer_suffix for t in txs[:len(cands)]], cats)
-                gs = (lp[:, ia] - lp[:, ib]).float().cpu().numpy()
-                extra = len(cands)
-                ok = [j for j in range(len(cands)) if sign0 * gs[j] >= 0]
-                if ok:
-                    j = min(ok, key=lambda j: abs(gs[j]))
-                    nb = cands[j]; nb_g = float(gs[j])
-        stack = [G, G] if nb is None else [G, nb]
-        imgs, txts = self._manipulator.manipulate(candidates=None, weights=np.stack(stack))
-        imgs[0].save(run_dir / "min_cross.png")
-        if nb is not None:
-            imgs[1].save(run_dir / "min_cross_neighbour.png")
-            with open(run_dir / "min_cross_neighbour.json", "w") as f:
-                json.dump({"g": nb_g, "n_edits": int((nb != 0).sum()), "text": txts[1],
-                           "full_prompt": txts[1] + answer_suffix, "genotype": nb.tolist(),
-                           "from_trace": extra == 0, "nb_extra_calls": extra}, f, indent=2)
-        with open(run_dir / "min_cross.json", "w") as f:
-            json.dump({"eval_idx": k + 1, "generation": r["generation"], "individual": r["individual"],
-                       "g": float(g), "n_edits": int((G != 0).sum()), "text": txts[0],
-                       "full_prompt": txts[0] + answer_suffix, "genotype": G.tolist()}, f, indent=2)
+        self._save_min_cross_real(run_dir, target_classes, answer_suffix, rows, float(sign0))
 
     def _maybe_save_first_cross(self, gen, genotypes, images, texts, logits, target_classes):
         """Save the first evaluated individual whose pair contrast g has the
@@ -879,7 +991,7 @@ class VLMBoundaryTester(SMOO):
                 "g": float(g[i]),
                 "text": texts[i],
                 "full_prompt": texts[i] + self._answer_suffix,
-                "genotype": np.asarray(genotypes[i]).astype(np.int64).tolist(),
+                "genotype": self._geno_list(genotypes[i]),
             }, f, indent=2)
         self._first_cross_saved = True
 
@@ -1030,7 +1142,6 @@ class VLMBoundaryTester(SMOO):
         target_classes: tuple[int, int],
         answer_suffix: str,
         runtime: float,
-        early_stop: EarlyStopTrigger | None = None,
     ) -> None:
         """Write non-streaming seed artefacts.
 
@@ -1066,9 +1177,18 @@ class VLMBoundaryTester(SMOO):
         # at batch=1; we accept one wasted render in this rare path
         # rather than skipping the save).
         candidates_list = list(self._optimizer.best_candidates)
+        # One candidate per distinct fitness vector (2026-11-28): with a piecewise-constant text block many
+        # individuals tie on |g| and the single-objective "front" held hundreds of equal-fitness members.
+        _seen: set = set()
+        _uniq = []
+        for c in candidates_list:
+            key = tuple(np.round(np.asarray(c.fitness, dtype=float), 9).tolist())
+            if key not in _seen:
+                _seen.add(key); _uniq.append(c)
+        candidates_list = _uniq
         if candidates_list:
             genotypes = np.stack(
-                [c.solution.astype(np.int64) for c in candidates_list]
+                [self._geno_array(c.solution) for c in candidates_list]
             )
             n_keep = len(candidates_list)
             if n_keep == 1:
@@ -1083,7 +1203,7 @@ class VLMBoundaryTester(SMOO):
                 with open(run_dir / f"pareto_{i}.json", "w") as f:
                     json.dump(
                         {
-                            "genotype": cand.solution.astype(np.int64).tolist(),
+                            "genotype": self._geno_list(cand.solution),
                             "fitness": cand.fitness.tolist()
                             if isinstance(cand.fitness, np.ndarray)
                             else list(cand.fitness),
@@ -1117,12 +1237,6 @@ class VLMBoundaryTester(SMOO):
             runtime, scored_categories, pair, target_classes,
             cache_stats=self._sut.cache_stats,
         )
-        if early_stop is not None:
-            stats["early_stop"] = {
-                "trigger": early_stop.trigger,
-                "generation": early_stop.generation,
-                "details": early_stop.details,
-            }
         # PMI provenance (see PMIConfig / Exp-104). When enabled, the trace's
         # logprobs/probs/predicted_class are PMI-corrected; persisting the
         # baseline keeps the raw view recoverable (raw = corrected + baseline).

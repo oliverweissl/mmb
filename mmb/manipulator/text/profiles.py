@@ -140,104 +140,27 @@ def build_operators_from_specs(
     device: str | None = None,
     redis_url: str | None = None,
 ) -> list[Any]:
-    """Instantiate the concrete operators for a given spec list.
+    """Instantiate the run-time text operators for a spec list (question_pool only; severity 0 skips a spec).
 
-    Operators with ``severity == 0`` are skipped.
+    ``content_pos``, ``device`` and ``redis_url`` are accepted for interface compatibility and unused: the
+    question pool is precomputed (scripts/build_question_pool.py), so the run-time operator loads no model.
 
-    Universal optional ``extras["k_max"]`` overrides the
-    severity → K_max formula (useful for Synonym pool depth).
-
-    :param device: Default device for model-bearing operators (currently
-        Synonym). Per-operator ``extras["device"]`` overrides this.
-    :param redis_url: Optional Redis URL for the Synonym MLM candidate
-        cache. ``None`` disables caching.
-
-    :raises ValueError: on unknown operator names.
+    :raises ValueError: on unknown or removed operator names.
     """
-    from .operators.character_noise import CharacterNoiseOperator
-    from .operators.fragmentation import FragmentationOperator
-    from .operators.saliency import SaliencyOperator
-    from .operators.synonym import SynonymOperator
-    from .types import CONTENT_POS_TAGS
+    from .operators.question_pool import POOL, QuestionPoolOperator
 
-    cp = content_pos or CONTENT_POS_TAGS
     out: list[Any] = []
     for spec in specs:
         if spec.severity == 0.0:
             continue
-        k_max_override = spec.extras.get("k_max")
-        if k_max_override is not None:
-            k_max_override = int(k_max_override)
-        if spec.name == "synonym":
-            op_device = spec.extras.get("device", device if device is not None else "cpu")
-            out.append(
-                SynonymOperator(
-                    severity=spec.severity,
-                    model_name=spec.extras.get(
-                        "model_name", "answerdotai/ModernBERT-large",
-                    ),
-                    topk_pre_filter=int(spec.extras.get("topk_pre_filter", 50)),
-                    device=op_device,
-                    spacy_model=spec.extras.get("spacy_model", "en_core_web_sm"),
-                    content_pos=cp,
-                    k_max_override=k_max_override,
-                    redis_url=redis_url,
-                )
-            )
-        elif spec.name == "semantic_substitution":
-            from .operators.semantic import ENCODER, NLI, SemanticSubstitutionOperator
-            out.append(
-                SemanticSubstitutionOperator(
-                    ladder=tuple(spec.extras.get("ladder", (1, 2, 4, 8))),
-                    all_words=bool(spec.extras.get("all_words", True)),
-                    nli_min=float(spec.extras.get("nli_min", 0.8)),
-                    cola_min=float(spec.extras.get("cola_min", 0.5)),
-                    cola_rel=float(spec.extras.get("cola_rel", 0.9)),
-                    encoder_name=spec.extras.get("encoder_name", ENCODER),
-                    nli_name=spec.extras.get("nli_name", NLI),
-                    severity=spec.severity,
-                    model_name=spec.extras.get("model_name", "answerdotai/ModernBERT-large"),
-                    topk_pre_filter=int(spec.extras.get("topk_pre_filter", 50)),
-                    device=spec.extras.get("device", device if device is not None else "cpu"),
-                    spacy_model=spec.extras.get("spacy_model", "en_core_web_sm"),
-                    redis_url=redis_url,
-                )
-            )
-        elif spec.name == "paraphrase":
-            from .operators.paraphrase import BANK, ParaphraseOperator
-            out.append(ParaphraseOperator(severity=spec.severity, ladder=tuple(spec.extras.get("ladder", (1, 2, 4, 8, 16))),
-                                          bank=spec.extras.get("bank", BANK)))
-        elif spec.name == "fragmentation":
-            out.append(
-                FragmentationOperator(
-                    severity=spec.severity,
-                    k_max_override=k_max_override,
-                    **({"min_word_len": int(spec.extras["min_word_len"])} if "min_word_len" in spec.extras else {}),
-                )
-            )
-        elif spec.name == "character_noise":
-            modes_raw = spec.extras.get("modes", ("homoglyph",))
-            modes = tuple(modes_raw) if not isinstance(modes_raw, str) else (modes_raw,)
-            out.append(
-                CharacterNoiseOperator(
-                    severity=spec.severity,
-                    modes=modes,
-                    k_max_override=k_max_override,
-                )
-            )
-        elif spec.name == "saliency":
-            out.append(
-                SaliencyOperator(
-                    severity=spec.severity,
-                    k_max_override=k_max_override,
-                    # sites knob (2026-11-27): all_words also edits stop/function words (never protected words)
-                    **({"stop_words": frozenset(), "function_pos": frozenset()} if spec.extras.get("all_words") else {}),
-                    **({"min_word_len": int(spec.extras["min_word_len"])} if "min_word_len" in spec.extras else {}),
-                )
-            )
+        if spec.name == "question_pool":
+            out.append(QuestionPoolOperator(
+                severity=spec.severity, pool=spec.extras.get("pool", POOL), w_txt=float(spec.extras.get("w_txt", 1.0)),
+                d_max=None if spec.extras.get("d_max") is None else float(spec.extras["d_max"]),
+                n_bands=None if spec.extras.get("n_bands") is None else int(spec.extras["n_bands"])))
         else:
             raise ValueError(
-                f"unknown text operator {spec.name!r}; supported: "
-                f"synonym, semantic_substitution, fragmentation, character_noise, saliency"
+                f"unknown text operator {spec.name!r}; the run-time text manipulator supports question_pool only "
+                f"(word substitutions and paraphrases are built offline into configs/text/question_pool.json)"
             )
     return out

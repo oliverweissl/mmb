@@ -1,4 +1,4 @@
-"""Paired comparisons with cell-cluster bootstrap, per-stratum tests, a mixed model and a per-cell figure.
+"""Paired comparisons with cell-cluster bootstrap, per-stratum tests and a mixed model.
 
 Why: runs of different arms share cells (and, pooled over SUTs, the same cells again), so a run-level
 interval or test treats dependent pairs as independent. Here
@@ -11,15 +11,14 @@ interval or test treats dependent pairs as independent. Here
   the rest), Holm-adjusted across arms within a metric. Primary tests are per (task, SUT) stratum;
   pooled tests are secondary.
 
-Metrics (all columns of collect.py): crossed, first_cross_eval, floor (log10 nats), min_edits_cross,
-hv_edits_cross, hv_mag_cross, best_img_mag_cross, best_txt_mag_cross, min_txt_chardist_cross. Metrics that are
-NaN for runs that never crossed (the *_cross magnitudes and char distance) are compared on pairs in which
-both runs crossed.
+Metrics (columns of collect.py): crossed, first_cross_eval, floor (log10 nats), and the smallest crossing found within
+the budget (min_cross.json): magnitude (log10), mag_image, mag_text, min_text_d (MiniLM distance of the edited
+question), min_eval_idx (calls to it). The smallest-crossing metrics are NaN for runs without an in-budget smallest
+crossing and are compared on pairs in which both runs have one (smaller is better).
 """
 from __future__ import annotations
 
 import logging
-from pathlib import Path
 from typing import Sequence
 
 import numpy as np
@@ -35,24 +34,22 @@ METRICS = {
     "crossed": ("crossed", "binary", None, +1),
     "first_cross_eval": ("first_cross_eval", "num", None, -1),
     "floor": ("floor_nats", "num", "log10", -1),
-    "min_edits": ("min_edits_cross", "num", None, -1),
-    "min_edits_x": ("min_edits_cross", "num", None, -1),      # crossing runs only: pairs where both arms crossed
-    "edits_img_x": ("edits_img_at_min", "num", None, -1),
-    "edits_txt_x": ("edits_txt_at_min", "num", None, -1),
-    "hv_edits": ("hv_edits_cross", "num", None, +1),
-    "hv_mag": ("hv_mag_cross", "num", None, +1),
-    "img_mag": ("best_img_mag_cross", "num", None, -1),
-    "txt_mag": ("best_txt_mag_cross", "num", None, -1),
-    "chardist": ("min_txt_chardist_cross", "num", None, -1),
+    "magnitude": ("magnitude", "num", "log10", -1),          # smallest in-budget crossing (L2 of the block magnitudes)
+    "mag_image": ("mag_image", "num", None, -1),
+    "mag_text": ("mag_text", "num", None, -1),
+    "text_d": ("min_text_d", "num", None, -1),
+    "min_eval_idx": ("min_eval_idx", "num", None, -1),      # calls to the smallest crossing
     "wall": ("wall_s", "num", None, -1),
-    "min_cross_eval": ("min_cross_eval", "num", None, -1),   # evaluation at which the smallest crossing was found
 }
-MAG_METRICS = ("hv_mag", "img_mag", "txt_mag")
-#: edit counts exist only for runs that crossed; "min_edits" is the same count censored at all genes for the others
-CROSS_ONLY = ("min_edits_x", "edits_img_x", "edits_txt_x", "min_cross_eval")
+#: metrics of the smallest crossing: defined only for runs whose smallest crossing lies within the budget
+CROSS_ONLY = ("magnitude", "mag_image", "mag_text", "text_d", "min_eval_idx")
 MIN_PAIRS_CROSS_ONLY = 3
-DEFAULT_METRICS = ("crossed", "first_cross_eval", "floor", "min_edits_x", "edits_img_x", "edits_txt_x", "min_edits", "hv_edits")
+DEFAULT_METRICS = ("crossed", "first_cross_eval", "floor", "magnitude", "mag_image", "mag_text")
 CLUSTER = "cluster_id"
+
+
+def _truthy(s: pd.Series) -> pd.Series:
+    return s.astype(str).str.lower().isin(("true", "1", "1.0"))
 
 
 def _values(s: pd.Series, kind: str, transform: str | None) -> np.ndarray:
@@ -68,13 +65,12 @@ def pair_frame(df: pd.DataFrame, ref: str, arm: str, metric: str) -> pd.DataFram
     if col not in df:
         return pd.DataFrame(columns=["cell_id", "cluster", "ref", "arm"])
     keys = st.PAIR_KEYS
-    if metric in MAG_METRICS and "mag_source" in df and (df["mag_source"] == "diag").any():
-        df = df[df["mag_source"] == "diag"]          # never mix diagnostic and optimised-fitness magnitudes
     parts = []
     for name, a in (("ref", ref), ("arm", arm)):
         s = df.loc[df["arm"] == a]
         if metric in CROSS_ONLY:
-            s = s.assign(**{col: s[col].where(s["crossed"].astype(bool))})
+            ok = _truthy(s["min_within_budget"]) if "min_within_budget" in s else s["crossed"].astype(bool)
+            s = s.assign(**{col: pd.to_numeric(s[col], errors="coerce").where(ok)})
         if s.duplicated(keys).any():
             raise ValueError(f"arm {a!r} has several runs per (cell_id, rng_seed)")
         cl = s[CLUSTER] if CLUSTER in s else s["cell_id"]
@@ -145,9 +141,9 @@ def paired_table(df: pd.DataFrame, ref: str, metrics: Sequence[str] = DEFAULT_ME
     return out
 
 
-def primary_table(df: pd.DataFrame, ref: str = "a0_directed", arm: str = "a1_random_tiered",
+def primary_table(df: pd.DataFrame, ref: str = "a0_directed", arm: str = "a9_deepjanus",
                   n_boot: int = st.N_BOOT) -> pd.DataFrame:
-    """The pre-committed primary comparison: crossing share of arm vs ref, per (task, SUT) stratum,
+    """Crossing share of arm vs ref per (task, SUT) stratum (the secondary comparisons a7 and a9 vs a0),
     exact McNemar, Holm across strata."""
     rows = []
     for (task, sut), g in df.groupby(["task", "sut"], sort=True):
@@ -196,44 +192,3 @@ def mixed_model(df: pd.DataFrame, ref: str, arm: str, seed: int = st.BOOT_SEED) 
     m, s = float(res.fe_mean[i]), float(res.fe_sd[i])
     return dict(nan, log_or=m, sd=s, lo=m - 1.96 * s, hi=m + 1.96 * s, odds_ratio=float(np.exp(m)))
 
-
-# ---------------------------------------------------------------------------
-# per-cell figure
-# ---------------------------------------------------------------------------
-
-
-def plot_per_cell_diff(df: pd.DataFrame, out: Path | str, ref: str = "a0_directed",
-                       arm: str = "a1_random_tiered", width_in: float = 7.0) -> Path:
-    """Per (task, SUT) panel: for every cell the crossing share of *ref* minus that of *arm* (mean over seeds),
-    cells sorted by the difference, so the reader sees whether a few cells drive a pooled result."""
-    import matplotlib
-
-    matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
-
-    strata = [(t, s) for (t, s), g in df.groupby(["task", "sut"], sort=True) if {ref, arm} <= set(g["arm"])]
-    n = max(1, len(strata))
-    cols = min(3, n)
-    rows = -(-n // cols)
-    plt.rcParams.update({"pdf.fonttype": 42, "ps.fonttype": 42, "font.size": 6.5, "axes.linewidth": 0.6})
-    fig, axes = plt.subplots(rows, cols, figsize=(width_in, 1.7 * rows), squeeze=False, sharey=True)
-    for k, (task, sut) in enumerate(strata):
-        ax = axes[k // cols][k % cols]
-        pf = pair_frame(df[(df["task"] == task) & (df["sut"] == sut)], ref, arm, "crossed")
-        d = (pf["ref"] - pf["arm"]).groupby(pf["cluster"]).mean().sort_values()
-        ax.axhline(0, color="0.6", linewidth=0.5)
-        ax.bar(range(len(d)), d.to_numpy(), color=["#D55E00" if v < 0 else "#0072B2" for v in d], width=0.8)
-        ax.set_title(f"{task}, {sut}", fontsize=6.5, pad=2)
-        ax.set_ylim(-1.05, 1.05)
-        ax.set_xticks([])
-        if k % cols == 0:
-            ax.set_ylabel(f"crossing share, {ref.split('_')[0]} minus {arm.split('_')[0]}")
-        ax.set_xlabel("cells (sorted)", labelpad=1)
-    for k in range(len(strata), rows * cols):
-        axes[k // cols][k % cols].set_axis_off()
-    fig.tight_layout(pad=0.4)
-    out = Path(out)
-    out.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(out)
-    plt.close(fig)
-    return out

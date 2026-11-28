@@ -1,81 +1,11 @@
-# ═══════════════════════════════════════════════════════════════════════════
-# Text-mutation profile library — loaded by src/manipulator/text/profiles.py
-# ═══════════════════════════════════════════════════════════════════════════
-#
-# Each profile lists the active operators for the CompositeTextManipulator.
-#
-# Severity ∈ [0, 1] = single dial per operator.
-#   * Per-position fire probability: ≈ 0.8 · S
-#   * Per-position bucket count K_max: 1 + ⌊4·S⌋ (default formula)
-#     — override explicitly via `k_max:` (recommended for `synonym` since
-#     pool depth is decoupled from intensity)
-# Severity = 0 disables the operator entirely.
-#
-# ``synonym`` is MLM-based (default backend ``answerdotai/ModernBERT-large``)
-# with three filters: top-50 MLM logits → in-context Penn-Treebank PoS
-# match → lemma-reject + negation-prefix regex.
-#
-# Use via configs/Exp-NN/*.yaml:
-#
-#   text:
-#     composite:
-#       profile: full_stack
-#
-# or with overrides:
-#
-#   text:
-#     composite:
-#       profile: full_stack
-#       overrides:
-#         saliency: {severity: 0.30}
-#
-# or fully explicit (bypass library):
-#
-#   text:
-#     composite:
-#       operators:
-#         - {name: synonym, severity: 0.55, k_max: 25, device: mps}
-#         - {name: fragmentation, severity: 0.20}
-# ═══════════════════════════════════════════════════════════════════════════
-
+# Text profiles (2026-11-28 trim): the run-time text manipulator is the continuous question_pool operator.
+#   question_pool_only  two float genes (t, u) over the validated whole-question pool configs/text/question_pool.json
+#                       (scripts/build_question_pool.py). w_txt = text weight (calibration); d_max / n_bands default
+#                       to the pool's meta.
+#   noop                no text operator; set by mmb/config.py for modality image_only (text_dim = 0).
 profiles:
-
-  # Recommended default — full stack of all four operators (semantic
-  # substitution via MLM + three surface-corruption modes), realistic
-  # severities. Synonym moderate fire-rate but K_max=25 for ModernBERT
-  # pool depth on par with BAE-style attack budgets.
-  full_stack:
+  question_pool_only:
     operators:
-      - {name: synonym, severity: 0.55, k_max: 25}
-      - {name: fragmentation, severity: 0.20}
-      - {name: character_noise, severity: 0.20, modes: [homoglyph]}
-      - {name: saliency, severity: 0.40}
-
-  # Semantic-only ablation — pure MLM-synonym substitution, no surface
-  # corruption. Use to isolate the contribution of semantic perturbation.
-  domain_expert:
-    operators:
-      - {name: synonym, severity: 0.55, k_max: 25}
-
-  # Surface-only stress test — Boucher-style imperceptible homoglyph +
-  # zero-width injection plus aggressive typo budget. No semantic
-  # substitution; tests robustness under pure character-level noise.
-  red_team_imperceptible:
-    operators:
-      - {name: character_noise, severity: 0.85, modes: [homoglyph, zero_width]}
-      - {name: saliency, severity: 0.40}
-
-  # No-op profile — empty operator stack, text_dim=0 at composite.prepare.
-  # Selected automatically by `modality: image_only` so the optimizer
-  # searches only the image-gene block. Do not use directly unless you
-  # know what you are doing; the modality flag is the user-facing API.
-  # Minimal, meaning-preserving text edits (MAIN v2, 2026-11-22): near synonyms only
-  # (top-3 masked-LM candidates), imperceptible character edits, single-letter typos;
-  # no word fragmentation.
-  minimal:
-    operators:
-      - {name: synonym, severity: 0.25, k_max: 3}
-      - {name: character_noise, severity: 0.25, modes: [homoglyph, zero_width]}
-      - {name: saliency, severity: 0.25}
+      - {name: question_pool, severity: 1.0, w_txt: 1.0}
   noop:
     operators: []

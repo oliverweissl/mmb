@@ -2,15 +2,12 @@
 
 The runner (``run_boundary_test.py``) needs to:
 
-1. Load text manipulator, image manipulator, and SUT in parallel
-   (with the StyleGAN-XL deferred branch that waits on SUT).
-2. Generate the seed pool (``gap_filter`` or ``roster`` + combinatorial
-   abstraction expansion).
-3. Pre-populate backend-specific caches (cone modal grids for
-   VQGAN+cone, modal-w + accepted-origin for StyleGAN).
+1. Load text manipulator, image manipulator (vqgan_latent), and SUT in parallel.
+2. Generate the seed pool (``gap_filter``, ``roster`` + combinatorial
+   abstraction expansion, ``refcocoplus``, ``slot_items``).
 
-Centralising the three concerns here keeps the per-pipeline runners
-focused on stage logic + worker dispatch.
+(The backend precompute step for the cone filter and StyleGAN-XL was removed with
+those backends, 2026-11-28.)
 
 All helpers take the canonical :class:`~mmb.config.ExperimentConfig`.
 Pipelines that use their own config dataclass (PDQ, boundary-pair)
@@ -24,9 +21,7 @@ from concurrent.futures import Future, ThreadPoolExecutor
 from dataclasses import dataclass
 from typing import Sequence
 
-from .redis_cache import BytesRedisCache
 from .roster_seed_generator import roster_seeds
-from .seed_context import apply_seed_filter, collect_target_classes
 from .seed_generator import generate_seeds
 from .combinatorial_pair_generator import combinatorial_pairs
 from .refcocoplus_seed_generator import refcocoplus_seeds
@@ -83,7 +78,6 @@ def init_shared_components(
     # Local imports to avoid circular deps at module-import time:
     # mmb.manipulator.* and mmb.sut import from mmb.common in some
     # paths; deferring these breaks the cycle.
-    from mmb.manipulator.image.manipulator import ImageManipulator
     from mmb.manipulator.image_backend import ImageBackend
     from mmb.manipulator.image_factory import build_image_backend
     from mmb.manipulator.text.composite import CompositeTextManipulator
@@ -102,33 +96,16 @@ def init_shared_components(
         redis_url=exp_cfg.sut.redis_url,
     )
 
-    # VQGAN can load in parallel with the SUT.  StyleGAN needs the SUT
-    # for origin-precheck, so we defer the image-backend build.
-    image_fut: Future[ImageBackend] | None
-    if exp_cfg.image.backend == "vqgan_codebook":
-        logger.info(
-            "Image manipulator starting (vqgan_codebook)...  preset=%s",
-            exp_cfg.image.preset,
-        )
-        image_fut = pool.submit(
-            ImageManipulator.from_preset,
-            device=exp_cfg.device,
-            config=exp_cfg.image,
-        )
-    elif exp_cfg.image.backend == "vqgan_latent":
-        logger.info(
-            "Image manipulator starting (vqgan_latent)...  preset=%s basis=%s d=%d m_max=%g",
-            exp_cfg.image.preset, exp_cfg.image.latent.basis, exp_cfg.image.latent.d,
-            exp_cfg.image.latent.m_max,
-        )
-        image_fut = pool.submit(
-            build_image_backend, image_config=exp_cfg.image, device=exp_cfg.device,
-        )
-    else:
-        logger.info(
-            "Image manipulator deferred (stylegan_xl): builds after SUT."
-        )
-        image_fut = None
+    # The VQGAN loads in parallel with the SUT (load_vqgan builds it in fp32 before loading the
+    # weights, so a concurrent change of torch's default dtype cannot round them).
+    logger.info(
+        "Image manipulator starting (%s)...  preset=%s basis=%s d=%d m_max=%g",
+        exp_cfg.image.backend, exp_cfg.image.preset, exp_cfg.image.latent.basis,
+        exp_cfg.image.latent.d, exp_cfg.image.latent.m_max,
+    )
+    image_fut: Future[ImageBackend] = pool.submit(
+        build_image_backend, image_config=exp_cfg.image, device=exp_cfg.device,
+    )
 
     sut_device = (
         exp_cfg.sut.ov_device
@@ -146,28 +123,7 @@ def init_shared_components(
     text_manip: CompositeTextManipulator = text_fut.result()
     logger.info("Text manipulator loaded")
 
-    if image_fut is not None:
-        image_manip: ImageBackend = image_fut.result()
-    else:
-        full_prompt = exp_cfg.prompt_template + exp_cfg.answer_format.format(
-            categories=", ".join(exp_cfg.categories),
-        )
-        redis_for_stylegan = BytesRedisCache.from_url(exp_cfg.sut.redis_url)
-        logger.info(
-            "Image manipulator starting (stylegan_xl): "
-            "checkpoint=%s, kappa_levels=%d, target_m=%d",
-            exp_cfg.image.stylegan.checkpoint_path,
-            exp_cfg.image.stylegan.kappa_quant_levels,
-            exp_cfg.image.stylegan.target_m,
-        )
-        image_manip = build_image_backend(
-            image_config=exp_cfg.image,
-            device=exp_cfg.device,
-            categories=exp_cfg.categories,
-            sut=sut,
-            redis_cache=redis_for_stylegan,
-            prompt=full_prompt,
-        )
+    image_manip: ImageBackend = image_fut.result()
     logger.info("Image manipulator loaded")
 
     pool.shutdown(wait=False)
@@ -255,91 +211,8 @@ def _generate_seeds_for_mode(
     )
 
 
-# ---------------------------------------------------------------------------
-# Backend-specific precompute
-# ---------------------------------------------------------------------------
-
-
-def precompute_image_backend(
-    components: SharedComponents,
-    seeds: Sequence,
-    exp_cfg: "ExperimentConfig",  # noqa: F821
-) -> None:
-    """Pre-populate backend-specific caches for the actually-evaluated seeds.
-
-    * VQGAN + cone_filter.enabled → modal-grid for every target class
-      that will be tested.  Built via
-      :class:`~mmb.manipulator.image.class_target.ModalTargetBuilder`,
-      attached to the image manipulator, then ``precompute_targets()``.
-    * StyleGAN-XL → modal-w + accepted-origin precheck for every class
-      that appears as either origin (``seed.class_a``) or target.
-
-    Seeds are first scoped via :func:`apply_seed_filter` so unused
-    classes (those filtered out by ``filter_indices``) are not
-    precomputed.
-
-    No-op for VQGAN without cone or when *seeds* is empty.
-
-    :param components: Shared components (uses ``image_manip`` + ``data_source``).
-    :param seeds: Full seed pool from :func:`prepare_pipeline_seeds`.
-    :param exp_cfg: Canonical experiment config.
-    """
-    from mmb.manipulator.image.class_target import ModalTargetBuilder
-
-    precompute_seeds = [
-        s for _, s in apply_seed_filter(list(seeds), exp_cfg.seeds.filter_indices)
-    ]
-    if not precompute_seeds:
-        return
-
-    if (
-        exp_cfg.image.backend == "vqgan_codebook"
-        and exp_cfg.image.cone_filter.enabled
-    ):
-        target_classes = collect_target_classes(precompute_seeds)
-        redis_cache = BytesRedisCache.from_url(exp_cfg.sut.redis_url)
-        builder = ModalTargetBuilder(
-            codec=components.image_manip.codec,  # type: ignore[attr-defined]
-            data_source=components.data_source,
-            preset=exp_cfg.image.preset,
-            target_m=exp_cfg.image.cone_filter.target_m,
-            redis_cache=redis_cache,
-        )
-        components.image_manip.attach_modal_builder(builder)
-        logger.info(
-            "Cone filter enabled (alpha=%.1f°, m=%d) — "
-            "pre-populating modal targets for %d class(es)",
-            exp_cfg.image.cone_filter.alpha_deg,
-            exp_cfg.image.cone_filter.target_m,
-            len(target_classes),
-        )
-        components.image_manip.precompute_targets(target_classes)
-        return
-
-    if exp_cfg.image.backend == "stylegan_xl":
-        from mmb.common.seed_context import seed_target_class
-        from mmb.manipulator.image_stylegan import StyleGANImageManipulator
-
-        target_classes = collect_target_classes(precompute_seeds)
-        # Pairwise origin precheck: SUT-accept depends on
-        # P(origin) > P(target) under the actual (origin, target)
-        # contrast, not a global top-K — so we precompute one accepted
-        # origin per pair, not one per class.
-        origin_pairs = tuple(sorted({
-            (s.class_a, seed_target_class(s)) for s in precompute_seeds
-        }))
-        logger.info(
-            "StyleGAN backend: pre-populating modal-w for %d target "
-            "class(es), pairwise origin precheck for %d pair(s)",
-            len(target_classes), len(origin_pairs),
-        )
-        assert isinstance(components.image_manip, StyleGANImageManipulator)
-        components.image_manip.precompute_targets(target_classes, origin_pairs)
-
-
 __all__ = [
     "SharedComponents",
     "init_shared_components",
     "prepare_pipeline_seeds",
-    "precompute_image_backend",
 ]

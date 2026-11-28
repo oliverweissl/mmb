@@ -24,11 +24,13 @@ DIRECTION: dict[str, str] = {
     # the same sampler, so they are not in this map and stay neutral)
     "crossed": UP, "band": UP, "label_flip": UP, "budget_share": UP,
     # efficiency
-    "first_cross_eval": DOWN, "evals": DOWN, "floor": DOWN, "min_edits": DOWN, "min_edits_x": DOWN, "edits_img_x": DOWN, "edits_txt_x": DOWN, "hv_edits": UP,
-    "img_mag": DOWN, "txt_mag": DOWN, "wall": DOWN, "min_cross_eval": DOWN, "sut_calls": DOWN, "hv_mag": UP, "chardist": DOWN,
+    "word_edit": DOWN, "text_d": DOWN, "min_eval_idx": DOWN, "obj_txt_dist": DOWN,
+    "magnitude": DOWN, "mag_image": DOWN, "mag_text": DOWN, "bp_gap": DOWN, "extra_calls": DOWN,
+    "first_cross_eval": DOWN, "evals": DOWN, "floor": DOWN,
+    "img_mag": DOWN, "txt_mag": DOWN, "wall": DOWN, "min_cross_eval": DOWN, "sut_calls": DOWN, "hv_mag": UP,
     # validity proxies
     "lpips": DOWN, "lpips_bp": DOWN, "stealth": UP, "scr": UP, "d_edit": DOWN, "d_sem": DOWN, "txt_dist": DOWN, "text_change": DOWN, "lpips_share": UP, "txt_share": UP, "both_share": UP, "cons_share": UP,
-    "vis_cos": UP, "vis_identical": UP, "vis_within_one": UP, "obj_txt_dist": DOWN, "obj_share": UP,
+    "obj_share": UP,
     "clip": UP, "dino": UP, "ssim": UP, "minilm": UP, "word_edit": DOWN,
 }
 

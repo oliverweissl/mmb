@@ -3,7 +3,6 @@ import numpy as np
 import pytest
 
 from mmb.manipulator.text.operators import semantic as S
-from mmb.manipulator.text.profiles import OperatorSpec, build_operators_from_specs
 
 
 def test_article_agreement():
@@ -24,10 +23,10 @@ def test_ladder_validated(bad):
         S.SemanticSubstitutionOperator(ladder=bad)
 
 
-def test_builder_and_no_aux_sites():
-    ops = build_operators_from_specs((OperatorSpec(name="semantic_substitution", severity=1.0,
-                                                   extras={"ladder": [1, 2, 4], "nli_min": 0.9}),))
-    assert len(ops) == 1 and ops[0].name == "semantic_substitution" and ops[0].ladder == (1, 2, 4) and ops[0].k_max == 3
+def test_constructor_and_no_aux_sites():
+    # offline use only (scripts/build_question_pool.py); not a run-time operator any more
+    op = S.SemanticSubstitutionOperator(ladder=(1, 2, 4), nli_min=0.9)
+    assert op.name == "semantic_substitution" and op.ladder == (1, 2, 4) and op.k_max == 3
     assert "AUX" not in S.ALL_UPOS and "PROPN" not in S.ALL_UPOS
 
 

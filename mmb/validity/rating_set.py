@@ -3,7 +3,7 @@
 Usage::
 
     python -m mmb.validity.rating_set results/MAIN.csv --out study/rq3 \
-        [--n 120] [--controls 24] [--arms a0_directed,a1_random_tiered,a5_mimicry_objective,a9_deepjanus] \
+        [--n 120] [--controls 24] [--arms a0_directed,a5_mimicry_objective,a9_deepjanus] \
         [--proxies results/validity_MAIN.csv] [--agree results/agree_MAIN_qwen.csv ...] [--seed 42]
 
 Stimuli are the MINIMAL crossings of the runs (min_cross.png/.json, else the minimiser's minimal_cross.*), i.e.
@@ -18,7 +18,7 @@ writes into --out:
   items/*.png      the stimuli under their blind ids (for the analyst)
   manifest.csv     PRIVATE key: item_id, stratum, run_id, run_dir, method (arm), task, sut, seed input (cell_id,
                    rng_seed), candidate answers, ground truth, original and shown question, proxies (img_lpips,
-                   vis_char_dist of the minimal crossing; 0 for controls). Keep it with the analyst.
+                   txt_word_edit of the minimal crossing; 0 for controls). Keep it with the analyst.
 
 Per item the page shows the image, the original question and the question shown to the model side by side, and asks
   (a) imagenet: "Does the image still show a <seed class>?"   pope: "Is there a <object> in the image?"
@@ -45,7 +45,7 @@ from PIL import Image
 
 from mmb.analysis.crossing_files import minimal_crossing
 
-DEFAULT_ARMS = ("a0_directed", "a1_random_tiered", "a5_mimicry_objective", "a9_deepjanus")   # hill climber dropped 2026-11-25
+DEFAULT_ARMS = ("a0_directed", "a5_mimicry_objective", "a9_deepjanus")        # MMBA and the two baselines
 DEFAULT_CONSENT = (
     "CONSENT TEXT PLACEHOLDER - replace with the verbatim consent text before use (--consent-file).\n"
     "This study asks how well people understand images and short questions that are shown to an AI system. "
@@ -53,7 +53,7 @@ DEFAULT_CONSENT = (
     "and you may stop at any time by closing the page. Your answers are saved as a file on your own computer "
     "that you send back yourself. By ticking the box you confirm that you are at least 18 years old and agree to take part."
 )
-PROXY_COLS = ("img_lpips", "vis_char_dist")
+PROXY_COLS = ("img_lpips", "txt_word_edit")
 
 
 def _stimulus_size(df: pd.DataFrame) -> tuple[int, int]:
@@ -76,7 +76,7 @@ def sample_edited(df: pd.DataFrame, n: int, arms, seed: int, verified: set[str] 
     for a in arms:
         if a not in set(d["arm"]):
             warnings.warn(f"method {a}: no runs with a minimal crossing; skipped (re-sample once its runs exist)")
-    d = d.sort_values(["min_cross_eval" if "min_cross_eval" in d else "first_cross_eval", "run_dir"])
+    d = d.sort_values(["min_eval_idx" if "min_eval_idx" in d else "first_cross_eval", "run_dir"])
     d = d.drop_duplicates(["task", "sut", "arm", "cell_id"])
     strata = sorted({(a, t, s) for a, t, s in zip(d["arm"], d["task"], d["sut"])})
     if not strata:
@@ -296,7 +296,7 @@ def main(argv=None) -> int:
     ap.add_argument("--controls", type=int, default=24)
     ap.add_argument("--arms", default=",".join(DEFAULT_ARMS))
     ap.add_argument("--proxies", type=Path, default=Path("results/validity_MAIN.csv"),
-                    help="mmb.validity.score CSV; img_lpips and vis_char_dist of the minimal crossing go into manifest.csv")
+                    help="mmb.validity.score CSV; img_lpips and txt_word_edit of the minimal crossing go into manifest.csv")
     ap.add_argument("--agree", type=Path, nargs="*", default=[], help="keep only single-item verified crossings")
     ap.add_argument("--runs-root", type=Path, default=None)
     ap.add_argument("--consent-file", type=Path, default=None)

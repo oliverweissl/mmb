@@ -1,5 +1,10 @@
 """Search algorithms selectable via ``optimizer.algorithm`` (E1 baselines).
 
+Real-coded genotype (2026-11-28): both custom baselines work on float genes.
+``random`` redraws from the shared initial sampler; ``hillclimb`` draws its
+mutants with the shared mutation operator (block-wise PM), so it differs
+from the GA arms only in selection, not in the variation operators.
+
 ``agemoea2`` is the thesis default; ``nsga2`` and ``ga`` (single objective)
 are standard pymoo baselines; ``random`` redraws every generation from the
 initial sampler with no selection pressure -- the equal-budget control that
@@ -18,7 +23,7 @@ from pymoo.algorithms.soo.nonconvex.ga import GA
 from pymoo.core.population import Population
 from pymoo.core.sampling import Sampling
 from pymoo.core.survival import Survival
-from pymoo.operators.sampling.rnd import IntegerRandomSampling
+from pymoo.operators.sampling.rnd import FloatRandomSampling
 
 
 class _KeepAll(Survival):
@@ -33,15 +38,15 @@ class RandomSearch(GeneticAlgorithm):
 
     The sampler passed as ``sampling`` is reused each generation when it is a
     pymoo ``Sampling``; a pre-built matrix (used for generation 0 only) falls
-    back to uniform integer sampling afterwards.
+    back to uniform float sampling afterwards.
     """
 
     def __init__(self, pop_size: int = 50, sampling=None, **kwargs) -> None:
-        sampling = sampling if sampling is not None else IntegerRandomSampling()
+        sampling = sampling if sampling is not None else FloatRandomSampling()
         super().__init__(pop_size=pop_size, sampling=sampling, survival=_KeepAll(),
                          eliminate_duplicates=False, **{k: v for k, v in kwargs.items()
                                                         if k not in ("crossover", "mutation")})
-        self._sampler = sampling if isinstance(sampling, Sampling) else IntegerRandomSampling()
+        self._sampler = sampling if isinstance(sampling, Sampling) else FloatRandomSampling()
 
     def _infill(self):
         x = self._sampler(self.problem, self.n_offsprings).get("X")
@@ -51,19 +56,22 @@ class RandomSearch(GeneticAlgorithm):
 class HillClimb(GeneticAlgorithm):
     """(1+lambda) hill climber on the scalar proximity |g| (use with
     optimizer.proximity_only=true): every generation draws lambda = pop_size
-    mutants of the incumbent (each mutant re-samples k ~ Geom(0.5) >= 1 genes
-    uniformly within bounds) and keeps the best of incumbent + mutants.
-    Classic SBST local-search baseline; generation 0 uses the same sampler
-    as the other arms, so the comparison isolates the search operator."""
+    mutants of the incumbent with the shared mutation operator (the one the
+    GA arms use) and keeps the best of incumbent + mutants. Classic SBST
+    local-search baseline; generation 0 uses the same sampler as the other
+    arms, so the comparison isolates the selection scheme."""
 
-    def __init__(self, pop_size: int = 50, sampling=None, seed=None, **kwargs) -> None:
-        sampling = sampling if sampling is not None else IntegerRandomSampling()
+    def __init__(self, pop_size: int = 50, sampling=None, mutation=None, seed=None, **kwargs) -> None:
+        sampling = sampling if sampling is not None else FloatRandomSampling()
         super().__init__(pop_size=pop_size, sampling=sampling, survival=_KeepAll(),
                          eliminate_duplicates=False, **{k: v for k, v in kwargs.items()
-                                                        if k not in ("crossover", "mutation")})
+                                                        if k not in ("crossover",)})
+        if mutation is None:
+            from pymoo.operators.mutation.pm import PM
+            mutation = PM(eta=20)
+        self._mut = mutation
         self._best_x = None
         self._best_f = np.inf
-        self._rng = np.random.default_rng(seed)
 
     def _update_incumbent(self, pop) -> None:
         F = pop.get("F")
@@ -78,17 +86,12 @@ class HillClimb(GeneticAlgorithm):
 
     def _infill(self):
         self._update_incumbent(self.pop)
-        xl = np.asarray(self.problem.xl, dtype=int)
-        xu = np.asarray(self.problem.xu, dtype=int)
         n = self.n_offsprings
         base = self._best_x if self._best_x is not None else self.pop.get("X")[0]
-        out = np.repeat(np.asarray(base)[None, :], n, axis=0).astype(int)
-        d = out.shape[1]
-        for r in range(n):
-            k = int(min(d, self._rng.geometric(0.5)))
-            idx = self._rng.choice(d, size=k, replace=False)
-            out[r, idx] = self._rng.integers(xl[idx], xu[idx] + 1)
-        return Population.new(X=out)
+        pop = Population.new(X=np.repeat(np.asarray(base, dtype=float)[None, :], n, axis=0))
+        # every mutant must differ from the incumbent: apply with probability 1
+        X = self._mut._do(self.problem, pop.get("X"), random_state=self.random_state)
+        return Population.new(X=np.asarray(X, dtype=float))
 
 
 ALGORITHMS: dict[str, Type[GeneticAlgorithm]] = {

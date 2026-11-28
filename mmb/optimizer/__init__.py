@@ -1,5 +1,6 @@
-"""Optimizer components for VLM boundary testing."""
+"""Optimizer components for VLM boundary testing (real-coded genotype)."""
 
-from .discrete_pymoo_optimizer import DiscretePymooOptimizer
+from .genotype import GenotypeSpace
+from .real_pymoo_optimizer import RealPymooOptimizer
 
-__all__ = ["DiscretePymooOptimizer"]
+__all__ = ["GenotypeSpace", "RealPymooOptimizer"]

@@ -100,7 +100,10 @@ def load_vqgan(name: str) -> nn.Module:
         raise ValueError(f"Unknown preset {name!r}. Choose from: {available}")
 
     preset = PRESETS[name]
-    model = _vqmodel_from_hf_config(preset.config)
+    # float() BEFORE loading the weights (fix 2026-11-28): transformers switches torch's default dtype
+    # (process-global) while a SUT loads in another thread; parameters created then are bf16 and would
+    # round the fp32 checkpoint on load, so renders depended on thread timing (up to 52 grey levels).
+    model = _vqmodel_from_hf_config(preset.config).float()
 
     if _is_url(preset.location):
         path = _download_checkpoint(preset.location)

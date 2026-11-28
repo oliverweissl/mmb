@@ -1,31 +1,13 @@
 """Shared protocol for image-manipulation backends.
 
-Two backends live in this repo:
+Since 2026-11-28 the only backend is :class:`mmb.manipulator.image.latent.LatentImageManipulator` (continuous
+low-rank edits of the VQGAN latent). The protocol stays so tests and future backends plug into
+:class:`VLMManipulator` without branching:
 
-* :class:`mmb.manipulator.image.ImageManipulator` — discrete VQGAN codebook
-  swaps. Genome = per-patch codebook indices.
-* :class:`mmb.manipulator.image_stylegan.StyleGANImageManipulator` — continuous
-  StyleGAN-XL style-mixing, quantised to integer genes. Genome = per-layer
-  κ-quant levels.
-
-Both classes are unrelated by inheritance — they each grew independently —
-but the :class:`VLMManipulator` bridge and the runners only need a small,
-stable surface. This module captures that surface as a :class:`typing.Protocol`
-so both classes satisfy it structurally without a parent-class refactor.
-
-A backend supplies a two-phase API:
-
-    prepare(image, target_class) → ManipulationContext
-    apply(ctx, genotype)         → PIL.Image
-    apply_batch(ctx, genotypes)  → list[PIL.Image]
-
-…plus three helpers used by the runners:
-
-    attach_modal_builder(builder) — late-bind a class-target builder
-    precompute_targets(target_classes) — pre-populate the modal-target cache
-
-The protocol is intentionally minimal. Backend-specific knobs (codec for
-VQGAN, generator for StyleGAN) stay on the concrete class.
+    prepare(image, target_class, origin_class) → context
+    apply(ctx, genotype) / apply_batch(ctx, genotypes) → PIL images
+    baseline_image(ctx) → the image at the all-zero genotype
+    attach_modal_builder / precompute_targets → no-ops for the latent backend
 """
 
 from __future__ import annotations
@@ -41,11 +23,8 @@ from PIL import Image
 class ImageManipulationContextLike(Protocol):
     """Subset of context surface that callers depend on.
 
-    Both :class:`mmb.manipulator.image.types.ManipulationContext` (VQGAN) and
-    :class:`mmb.manipulator.image_stylegan.types.StyleGANManipulationContext`
-    expose this surface. The runner / VLMManipulator never reach for grid /
-    codeword internals, so the protocol only enumerates what they actually
-    use.
+    :class:`mmb.manipulator.image.latent.LatentManipulationContext` exposes this
+    surface; the protocol only enumerates what the runner / VLMManipulator use.
     """
 
     @property

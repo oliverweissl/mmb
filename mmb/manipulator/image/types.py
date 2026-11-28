@@ -1,46 +1,16 @@
-"""Immutable data types for discrete image manipulation.
+"""Image data types kept after the 2026-11-28 trim: the VQGAN code grid used by the codec.
 
-All types are frozen dataclasses — once created, they cannot be modified.
-This guarantees referential transparency: the optimizer can hold references
-to CodeGrids and PatchSelections without defensive copying.
-
-Genotypes are plain numpy arrays (not wrapped) because pymoo operates on
-raw arrays. Validation happens at the apply boundary, not at construction.
+(The discrete patch-swap types PatchStrategy / CandidateStrategy / PatchSelection / ManipulationContext were
+removed with the integer image operator; the continuous backend lives in latent.py.)
 """
 
 from __future__ import annotations
 
 import hashlib
 from dataclasses import dataclass
-from enum import Enum, auto
 
 import numpy as np
 from numpy.typing import NDArray
-
-
-# ---------------------------------------------------------------------------
-# Enums
-# ---------------------------------------------------------------------------
-
-
-class PatchStrategy(Enum):
-    """How to select which patches are eligible for manipulation."""
-
-    FREQUENCY = auto()  # Patches with most-common codewords first
-    ALL = auto()  # Every patch is eligible
-
-
-class CandidateStrategy(Enum):
-    """How to select replacement codewords from the codebook KNN list."""
-
-    KNN = auto()  # K nearest neighbors → minimal visual change
-    UNIFORM = auto()  # Evenly spaced across neighbor list → full spectrum
-    KFN = auto()  # K farthest neighbors → maximal visual change
-
-
-# ---------------------------------------------------------------------------
-# Code grid
-# ---------------------------------------------------------------------------
 
 
 @dataclass(frozen=True)
@@ -85,93 +55,3 @@ class CodeGrid:
         out.flags.writeable = True
         out[rows, cols] = codes
         return CodeGrid(out)
-
-
-# ---------------------------------------------------------------------------
-# Patch selection (the search space for one seed image)
-# ---------------------------------------------------------------------------
-
-
-@dataclass(frozen=True)
-class PatchSelection:
-    """Which patches are mutable and what replacements are valid.
-
-    Built once per seed image. The optimizer genotype has one integer
-    gene per selected patch:
-
-        gene = 0          →  keep original codeword
-        gene = k ∈ [1, K] →  use candidates[patch_idx][k - 1]
-
-    This encoding guarantees that the zero vector is always a valid
-    genotype producing the unmodified image.
-    """
-
-    positions: NDArray[np.intp]  # (n_patches, 2) — (row, col) pairs
-    candidates: tuple[NDArray[np.int64], ...]  # per-patch replacement codes
-    original_codes: NDArray[np.int64]  # (n_patches,) — original code at each pos
-
-    def __post_init__(self) -> None:
-        n = len(self.positions)
-        if len(self.candidates) != n:
-            raise ValueError(
-                f"positions has {n} entries but candidates has {len(self.candidates)}"
-            )
-        if len(self.original_codes) != n:
-            raise ValueError(
-                f"positions has {n} entries but original_codes has {len(self.original_codes)}"
-            )
-
-    @property
-    def n_patches(self) -> int:
-        return len(self.positions)
-
-    @property
-    def gene_bounds(self) -> NDArray[np.int64]:
-        """Upper bound (exclusive) per gene. Gene value ∈ [0, bound)."""
-        return np.array([len(c) + 1 for c in self.candidates], dtype=np.int64)
-
-
-# ---------------------------------------------------------------------------
-# Manipulation context (prepared seed, ready for repeated application)
-# ---------------------------------------------------------------------------
-
-
-@dataclass(frozen=True)
-class ManipulationContext:
-    """Everything needed to manipulate one seed image many times.
-
-    Created once via ``ImageManipulator.prepare()``, then reused
-    across all genotype evaluations for that seed.
-
-    ``target_class`` carries the seed's target identity for trace metadata
-    and the cone-filter candidate path. It is ``None`` on the legacy
-    KNN-from-origin path. ``candidate_strategy`` records which path built
-    the candidate lists (``"knn"`` or ``"cone_filter"``) so downstream
-    artefacts can faithfully describe the genome semantics they observed.
-    """
-
-    original_grid: CodeGrid
-    selection: PatchSelection
-    target_class: str | None = None
-    candidate_strategy: str = "knn"
-
-    @property
-    def genotype_dim(self) -> int:
-        """Number of genes the optimizer must provide."""
-        return self.selection.n_patches
-
-    @property
-    def gene_bounds(self) -> NDArray[np.int64]:
-        """Upper bound (exclusive) per gene dimension."""
-        return self.selection.gene_bounds
-
-    def zero_genotype(self) -> NDArray[np.int64]:
-        """All-zero genotype: no patches changed, original image."""
-        return np.zeros(self.genotype_dim, dtype=np.int64)
-
-    def random_genotype(self, rng: np.random.Generator) -> NDArray[np.int64]:
-        """Uniformly random genotype within bounds."""
-        return np.array(
-            [rng.integers(0, bound) for bound in self.gene_bounds],
-            dtype=np.int64,
-        )

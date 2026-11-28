@@ -42,6 +42,9 @@ logger = logging.getLogger(__name__)
 # in which the Pareto member appeared, nullable), and ``anchor_source``
 # (``"zero"`` for legacy PDQ, ``"evolutionary"`` for combined-pipeline
 # rows). Default values keep the canonical PDQ path schema-stable.
+# 2026-11-28: the cone-filter, codebook-swap and StyleGAN-XL backends were removed; context.json now
+# records image_backend = "vqgan_latent" (basis, d, z0_norm, m_max), stats.json the real-coded genotype.
+#
 # Evolutionary v5 (2026-07-23): PMI calibration (see PMIConfig / Exp-104).
 # When ``pmi.enabled``, the ``logprobs``/``probs``/``predicted_class``/
 # ``p_class_{a,b}`` columns hold the PMI-corrected quantity, and ``stats.json``

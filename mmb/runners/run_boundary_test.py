@@ -31,14 +31,12 @@ from mmb.common import (
     compute_resume_filter,
     default_seed_probe,
     init_shared_components,
-    precompute_image_backend,
     prepare_pipeline_seeds,
 )
 from mmb.config import ExperimentConfig, apply_modality, resolve_categories
 from mmb.data import ImageNetCache
 from mmb.evolutionary import VLMBoundaryTester
 from mmb.evolutionary.vlm_boundary_tester import effective_candidates
-from mmb.manipulator.image.types import CandidateStrategy, PatchStrategy
 from mmb.manipulator.image_backend import ImageBackend
 from mmb.manipulator.text.composite import CompositeTextManipulator
 from mmb.manipulator.vlm_manipulator import VLMManipulator
@@ -46,7 +44,7 @@ from mmb.objectives import (
     CriterionCollection,
     build_criteria,
 )
-from mmb.optimizer.discrete_pymoo_optimizer import DiscretePymooOptimizer
+from mmb.optimizer.real_pymoo_optimizer import RealPymooOptimizer
 from mmb.sut import VLMSUT, preflight_cost_check
 
 logging.basicConfig(
@@ -62,8 +60,6 @@ _DACITE_CONFIG = dacite.Config(
     cast=[tuple, frozenset],
     type_hooks={
         Path: lambda v: Path(v).expanduser() if isinstance(v, str) else v,
-        PatchStrategy: lambda v: PatchStrategy[v] if isinstance(v, str) else v,
-        CandidateStrategy: lambda v: CandidateStrategy[v] if isinstance(v, str) else v,
     },
 )
 
@@ -114,12 +110,12 @@ def _warm_up_numba() -> None:
     on a toy problem with the same array types, means no compilation happens
     later in the run.
     """
-    from mmb.optimizer import DiscretePymooOptimizer
+    from mmb.optimizer import GenotypeSpace, RealPymooOptimizer
 
     rng = np.random.default_rng(0)
     for n_obj in (3, 2):
-        opt = DiscretePymooOptimizer(np.full(40, 8), n_obj, pop_size=30,
-                                     algorithm="agemoea2", seed=0)
+        opt = RealPymooOptimizer(GenotypeSpace.contract(16), n_obj, pop_size=30,
+                                 algorithm="agemoea2", seed=0)
         for _ in range(4):
             x = opt.get_x_current()
             opt.assign_fitness([rng.random(len(x)) for _ in range(n_obj)])
@@ -203,8 +199,6 @@ def run_experiment(
         )
         return
 
-    precompute_image_backend(components, seeds, exp)
-
     # -- Objectives spec (per-worker collection built below) ---------------
     crit_types = build_criteria(
         exp.modality, exp.optimizer.boundary_objective, exp.optimizer.proximity_only
@@ -273,18 +267,22 @@ def _build_tester(
     objectives: CriterionCollection,
 ) -> VLMBoundaryTester:
     """Wire one tester bundle. Caller owns the shared models."""
+    # Real-coded genotype (2026-11-28): every arm shares the sampler, SBX and
+    # block-wise PM of RealPymooOptimizer; the genotype space is bound per seed
+    # by the tester (optimizer.set_space(manipulator)).
     if exp.optimizer.algorithm == "deepjanus":
         from mmb.optimizer.deepjanus import DeepJanusOptimizer
         opt_cls, alg = DeepJanusOptimizer, "nsga2"
     elif exp.optimizer.algorithm in ("mmba", "mmba_unguided"):
         from functools import partial
         from mmb.optimizer.mmba import MMBAOptimizer
-        opt_cls = partial(MMBAOptimizer, guided=exp.optimizer.algorithm == "mmba")
+        opt_cls = partial(MMBAOptimizer, guided=exp.optimizer.algorithm == "mmba",
+                          eps=exp.optimizer.mmba.eps, tau=exp.optimizer.mmba.tau)
         alg = "random"
     else:
-        opt_cls, alg = DiscretePymooOptimizer, exp.optimizer.algorithm
+        opt_cls, alg = RealPymooOptimizer, exp.optimizer.algorithm
     optimizer = opt_cls(
-        gene_bounds=np.zeros(1, dtype=np.int64),  # updated per-seed
+        space=None,  # bound per seed
         num_objectives=objectives.num_objectives,
         pop_size=exp.pop_size,
         algorithm=alg,

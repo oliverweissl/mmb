@@ -18,11 +18,9 @@ class TestTextProxies:
         assert px.word_edit_distance("a b c", "") == 1.0
         assert px.word_edit_distance("", "") == 0.0
 
-    def test_homoglyphs_and_zero_width_are_normalised(self):
-        cyr = "Wh" + chr(0x0430) + "t is the m" + chr(0x0430) + "in subject"        # Cyrillic a
-        zw = "What is the ma" + chr(0x200B) + "in subject"
-        assert px.word_edit_distance("What is the main subject", cyr) == 0.0
-        assert px.word_edit_distance("What is the main subject", zw) == 0.0
+    def test_case_and_nfkc_are_normalised(self):
+        assert px.word_edit_distance("What is the main subject", "what IS the main subject") == 0.0
+        assert px.normalise_visible("Is  there a dog?") == "Is there a dog?"
 
     def test_keyword_similarity(self):
         assert px.keyword_similarity("iguana", "is there a green iguana here") == 1.0
@@ -33,7 +31,7 @@ class TestTextProxies:
 
     def test_question_preserved_with_object_word(self):
         orig = "Is there a dog in the image?"
-        flag, ks, _ = px.question_preserved(orig, "Is there a d" + chr(0x043E) + "g in the image?", "dog")  # Cyrillic o
+        flag, ks, _ = px.question_preserved(orig, "Does the image show a dog?", "dog")              # pool paraphrase
         assert flag is True and ks == 1.0
         flag, ks, _ = px.question_preserved(orig, "Is there a cat in the image?", "dog")
         assert flag is False and ks < 0.8

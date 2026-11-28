@@ -5,10 +5,8 @@ from .combinatorial_pair_generator import combinatorial_pairs
 from .pipeline_bootstrap import (
     SharedComponents,
     init_shared_components,
-    precompute_image_backend,
     prepare_pipeline_seeds,
 )
-from .redis_cache import BytesRedisCache, connect_bytes_redis
 from .resume import (
     DEFAULT_SANITY_FIELDS,
     SeedDirProbe,
@@ -31,7 +29,6 @@ from .slot_items_seed_generator import (
 
 __all__ = [
     "DEFAULT_SANITY_FIELDS",
-    "BytesRedisCache",
     "SeedDirProbe",
     "SeedImage",
     "SharedComponents",
@@ -40,13 +37,11 @@ __all__ = [
     "collect_target_classes",
     "combinatorial_pairs",
     "compute_resume_filter",
-    "connect_bytes_redis",
     "default_seed_probe",
     "generate_seeds",
     "init_shared_components",
     "item_candidates",
     "item_pair",
-    "precompute_image_backend",
     "prepare_pipeline_seeds",
     "resolve_label",
     "roster_seeds",

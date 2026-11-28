@@ -24,7 +24,7 @@ from typing import TYPE_CHECKING, Any
 
 # Component sub-configs: defined in their modules (no circular import),
 # re-exported here as the canonical import path.
-from mmb.manipulator.image.manipulator import ImageConfig
+from mmb.manipulator.image.config import ImageConfig
 from mmb.manipulator.text.config import TextConfig
 
 if TYPE_CHECKING:
@@ -74,7 +74,10 @@ class SUTConfig:
     max_pixels: int | None = None
     load_in_8bit: bool = False        # torch-only (bitsandbytes)
     load_in_4bit: bool = False        # torch-only (bitsandbytes)
-    batched_scoring: bool = False     # one forward per candidate x chunk (see scorer.score_batch_tensor)
+    # Canonical scoring (C2 decision 2026-11-28, docs/DETERMINISM_2026-11-28.md): one single-path SUT call per
+    # input. batched_scoring=true makes g depend on the batch composition (up to ~0.55 nats on InternVL /
+    # Ministral); the tester warns loudly when it is on.
+    batched_scoring: bool = False
     batch_chunk: int = 16
     redis_url: str = "redis://localhost:6379"
 
@@ -438,113 +441,29 @@ class SeedConfig:
                 )
 
 
-@dataclass(frozen=True)
-class EarlyStopCfg:
-    """Early-stopping knobs for the screening runner.
-
-    Maps 1:1 to ``mmb.optimizer.early_stop.EarlyStopConfig``; kept here
-    so the whole experiment is YAML-addressable.
-
-    :param enable: Master switch. ``False`` disables all early-stop
-        triggers — the runner falls back to a fixed ``evolution_generations``
-        hard cap.
-    :param epsilon_margin: Added to ``np.finfo(dtype).tiny`` to form the
-        flip-detection threshold. Do NOT set to a literal 1e-3-style
-        magic number — tying to dtype keeps the threshold numerically
-        meaningful across FP16/FP32/FP64 runs.
-    :param plateau_patience: Generations of no Pareto-hypervolume
-        improvement before the plateau trigger fires. ``30`` is the
-        EXP-08 default.
-    :param no_improvement_warmup: Warmup generations before the
-        "no-improvement-since-seed" trigger activates. Prevents stops
-        during the first few generations when the evolution has not
-        yet had time to beat the seed matrix.
-    """
-
-    enable: bool = True
-    epsilon_margin: float = 1e-30
-    plateau_patience: int = 30
-    no_improvement_warmup: int = 20
-    hypervolume_reference: tuple[float, ...] | None = None
-
-
-@dataclass(frozen=True)
-class SamplingTier:
-    """One tier in :class:`SamplingConfig` ``mode="sparse_multitier"``.
-
-    Each tier defines a Bernoulli ``p_active`` over the image-gene block
-    and a population ``fraction`` allocated to it. Active genes draw
-    codeword uniformly in ``[1, bound]``.
-
-    :param p_active: Bernoulli activation probability per image gene.
-    :param fraction: Share of the (non-zero-anchor) population allocated
-        to this tier.
-    """
-
-    p_active: float
-    fraction: float
-
-
-# Documented Exp-22b 5-tier setup (spike / sparse / medium / heavy / very heavy).
-# Population allocation: 5 % zero-anchor (handled by SamplingConfig) +
-# 20 / 20 / 25 / 20 / 10 % across these tiers. Used when SamplingConfig is
-# loaded with mode="sparse_multitier" (the default) and no explicit
-# ``tiers`` field — also serves as the documented baseline that
-# configs/templates/evolutionary_template.yaml exposes.
-DEFAULT_MULTITIER_TIERS: tuple[SamplingTier, ...] = (
-    SamplingTier(p_active=0.005, fraction=0.20),
-    SamplingTier(p_active=0.030, fraction=0.20),
-    SamplingTier(p_active=0.100, fraction=0.25),
-    SamplingTier(p_active=0.300, fraction=0.20),
-    SamplingTier(p_active=0.500, fraction=0.10),
-)
+SAMPLING_MODES = ("stratified_magnitude",)
 
 
 @dataclass(frozen=True)
 class SamplingConfig:
-    """Init-population sampling distribution.
+    """Initial-population sampler, shared by every method (real-coded genotype, 2026-11-28).
 
-    ``mode="uniform"`` preserves the historical ``IntegerRandomSampling``
-    behaviour (every gene drawn uniform in ``[0, bound]``). ``mode="sparse"``
-    swaps in :class:`SparseSampling` — a three-way mixture of zero anchors,
-    uniform-sparse (Bernoulli mask × uniform depth), and geometric-sparse
-    (Bernoulli mask × truncated geometric depth), designed to seed the
-    image-gene block near identity while retaining full-codebook reach.
-    ``mode="sparse_multitier"`` swaps in :class:`MultiTierSparseSampling`
-    — explicit multi-tier coverage of the image-activation regime via
-    user-specified ``(p_active, fraction)`` tuples; addresses the
-    Exp-22-diagnosed sparse-init lock-in by guaranteeing spike +
-    medium + heavy individuals coexist from gen 0.
-
-    :param mode: One of ``"uniform"``, ``"sparse"``, ``"sparse_multitier"``.
-    :param p_active: For sparse mode, Bernoulli probability each image
-        gene is active in an individual. ``E[n_active] ≈ image_dim × p_active``.
-    :param geometric_rate: Rate parameter of the truncated geometric depth
-        distribution for active genes. Higher → shallower.
-    :param zero_anchor_fraction: Fraction of the initial population that
-        is exact zero in the image block (text block stays uniform).
-    :param uniform_fallback_fraction: Fraction of the initial population
-        that uses uniform (not geometric) depth for active genes. Insurance
-        against over-aggressive geometric bias.
-    :param tiers: For ``sparse_multitier`` mode, the per-tier
-        ``(p_active, fraction)`` allocation. Fractions + zero_anchor
-        must sum to ≤ 1.0; the last tier absorbs any rounding residual.
-    :param score_path: For ``sparse_score_guided`` mode, path to a
-        ``.npy`` file containing the per-image-position importance
-        score (1-D float64, length = image-block dim, lower = more
-        important). Produced by
-        ``experiments/runners/compute_position_score.py``.
+    :param mode: ``"stratified_magnitude"`` (the only mode):
+        :class:`~mmb.optimizer.sparse_sampling.MagnitudeStratifiedSampling`.
+    :param r_min, r_max, power: strata
+        ``r_k = r_min + (r_max - r_min) * ((k + U) / n) ** power`` (power > 1: denser at small
+        magnitudes).
     """
 
-    mode: str = "sparse_multitier"
-    p_active: float = 0.03
-    geometric_rate: float = 0.5
-    zero_anchor_fraction: float = 0.05
-    uniform_fallback_fraction: float = 0.10
-    tiers: tuple[SamplingTier, ...] = DEFAULT_MULTITIER_TIERS
-    score_path: str | None = None
-    fps_subset_size: int | None = 512
-    fps_metric: str = "cosine"
+    mode: str = "stratified_magnitude"
+    r_min: float = 0.02
+    r_max: float = 1.0
+    power: float = 2.0
+
+    def __post_init__(self) -> None:
+        if self.mode not in SAMPLING_MODES:
+            raise ValueError(f"optimizer.sampling.mode must be one of {SAMPLING_MODES}; got {self.mode!r} "
+                             "(the integer samplers were removed 2026-11-28)")
 
 
 @dataclass(frozen=True)
@@ -552,14 +471,13 @@ class MutationConfig:
     """Polynomial-mutation (PM) operator parameters.
 
     Maps onto PyMoo's :class:`~pymoo.operators.mutation.pm.PM` operator
-    inside :class:`~mmb.optimizer.discrete_pymoo_optimizer.DiscretePymooOptimizer`.
-    The defaults reproduce the historical hardcoded operator
-    (``PM(eta=3.0)``) exactly — configs without a ``mutation`` block
-    behave identically to runs predating this knob.
+    inside :class:`~mmb.optimizer.real_pymoo_optimizer.RealPymooOptimizer`.
+    Defaults (2026-11-28, real-coded genotype): eta = 20, pymoo's real-coded
+    default; applied block-wise (see mmb/optimizer/variation.py). The
+    legacy integer runs used eta = 3.
 
-    :param prob: Per-gene mutation probability (PyMoo's ``prob_var``).
-        ``None`` (default) keeps PyMoo's adaptive default
-        ``min(0.5, 1/n_var)`` — roughly one mutated gene per offspring.
+    :param prob: Per-gene mutation probability inside the coin-flipped
+        block. ``None`` (default) = 1/len(block), at least one gene.
         Raise (e.g. ``0.1``) for "heavy mutation" runs. The per-offspring
         application probability stays at PyMoo's ``0.9`` regardless.
     :param eta: PM distribution index. Smaller → larger jumps away from
@@ -567,7 +485,7 @@ class MutationConfig:
     """
 
     prob: float | None = None
-    eta: float = 3.0
+    eta: float = 20.0
 
     def __post_init__(self) -> None:
         if self.prob is not None and not 0.0 <= self.prob <= 1.0:
@@ -586,9 +504,9 @@ class CrossoverConfig:
 
     Maps onto PyMoo's :class:`~pymoo.operators.crossover.sbx.SBX`
     operator inside
-    :class:`~mmb.optimizer.discrete_pymoo_optimizer.DiscretePymooOptimizer`.
-    The defaults reproduce the historical hardcoded operator
-    (``SBX(prob=0.9, eta=3.0)``) exactly.
+    :class:`~mmb.optimizer.real_pymoo_optimizer.RealPymooOptimizer`.
+    Defaults (2026-11-28, real-coded genotype): prob = 0.9, eta = 15, pymoo's
+    real-coded default. The legacy integer runs used eta = 3.
 
     :param prob: Probability that crossover is applied to a mating pair
         at all (PyMoo's ``prob``; unmated pairs are copied unchanged).
@@ -597,7 +515,7 @@ class CrossoverConfig:
     """
 
     prob: float = 0.9
-    eta: float = 3.0
+    eta: float = 15.0
 
     def __post_init__(self) -> None:
         if not 0.0 <= self.prob <= 1.0:
@@ -611,15 +529,31 @@ class CrossoverConfig:
 
 
 @dataclass(frozen=True)
+class MMBAConfig:
+    """MMBA Phase-2 settings (real-coded genotype).
+
+    :param eps: a line search stops when its ON/OFF pair differs by <= eps
+        in the scale parameter (lam or mu).
+    :param tau: crossing threshold on the signed margin (m < -tau).
+    """
+
+    eps: float = 1e-3
+    tau: float = 0.0
+
+    def __post_init__(self) -> None:
+        if not 0.0 < self.eps < 1.0:
+            raise ValueError(f"optimizer.mmba.eps must be in (0, 1); got {self.eps!r}")
+        if self.tau < 0.0:
+            raise ValueError(f"optimizer.mmba.tau must be >= 0; got {self.tau!r}")
+
+
+@dataclass(frozen=True)
 class OptimizerConfig:
-    """Optimizer sampling strategy, variation operators, and early stop.
+    """Optimizer: shared sampler and variation operators, algorithm, MMBA settings.
 
-    Consumed by :class:`~mmb.evolutionary.VLMBoundaryTester`. Controls
-    the initial-population sampler (uniform random vs sparse init), the
-    PM/SBX variation-operator parameters, and the early-stop triggers
-    that may terminate a seed before the generation budget is exhausted.
+    Consumed by :class:`~mmb.evolutionary.VLMBoundaryTester`. Every run spends the full
+    budget (generations x pop_size); there is no early stop (removed 2026-11-28).
 
-    :param early_stop: Early-stop configuration.
     :param sampling: Initial population sampling strategy.
     :param mutation: Polynomial-mutation operator parameters.
     :param crossover: SBX crossover operator parameters.
@@ -632,10 +566,10 @@ class OptimizerConfig:
     algorithm: str = "agemoea2"
     boundary_objective: str = "logprob_gap"  # or "softmax_balance" (MIMICRY-style ablation)
     proximity_only: bool = False  # single-objective run for algorithm "ga"
-    early_stop: EarlyStopCfg = field(default_factory=EarlyStopCfg)
     sampling: SamplingConfig = field(default_factory=SamplingConfig)
     mutation: MutationConfig = field(default_factory=MutationConfig)
     crossover: CrossoverConfig = field(default_factory=CrossoverConfig)
+    mmba: MMBAConfig = field(default_factory=MMBAConfig)
 
 
 # ---------------------------------------------------------------------------
@@ -808,7 +742,7 @@ class ExperimentConfig:
     #   3-objective Pareto (MatrixDistance + TextEmbeddingDistance + TargetedBalance).
     # * ``"image_only"``: text profile forced to ``noop`` (text_dim=0),
     #   2-objective Pareto (MatrixDistance + TargetedBalance).
-    # * ``"text_only"``: ``image.patch_ratio`` forced to 0 (image_dim=0),
+    # * ``"text_only"``: ``image.latent.d`` forced to 0 (image_dim=0),
     #   2-objective Pareto (TextEmbeddingDistance + TargetedBalance).
     #
     # The runner postprocesses the config so user-facing YAML only needs
@@ -868,7 +802,7 @@ def apply_modality(exp: ExperimentConfig) -> ExperimentConfig:
     """Force genome-block sizes consistent with the modality flag.
 
     * ``image_only`` → text profile becomes ``noop`` (text_dim=0).
-    * ``text_only``  → ``image.patch_ratio`` becomes 0 (image_dim=0).
+    * ``text_only``  → ``image.latent.d`` becomes 0 (image_dim=0).
     * ``joint``      → unchanged.
 
     User-facing YAML only needs ``modality:`` — this avoids inconsistent
@@ -889,10 +823,10 @@ def apply_modality(exp: ExperimentConfig) -> ExperimentConfig:
             text=dataclasses.replace(exp.text, composite=new_composite),
         )
     if exp.modality == "text_only":
-        logger.info("modality=text_only → forcing image.patch_ratio to 0.0")
+        logger.info("modality=text_only → forcing image.latent.d to 0 (no image genes)")
         return dataclasses.replace(
             exp,
-            image=dataclasses.replace(exp.image, patch_ratio=0.0),
+            image=dataclasses.replace(exp.image, latent=dataclasses.replace(exp.image.latent, d=0)),
         )
     if exp.modality == "grounding":
         logger.info("modality=grounding → joint genome; grounding answer_format; boundary over box-string candidates")
@@ -904,13 +838,12 @@ __all__ = [
     "AbstractionConfig",
     "CrossoverConfig",
     "DEFAULT_ANSWER_FORMAT",
-    "DEFAULT_MULTITIER_TIERS",
     "DEFAULT_PROMPT_TEMPLATE",
-    "EarlyStopCfg",
     "ExperimentConfig",
     "GapFilterConfig",
     "GroundingConfig",
     "ImageConfig",
+    "MMBAConfig",
     "MutationConfig",
     "OptimizerConfig",
     "ParallelConfig",
@@ -918,7 +851,6 @@ __all__ = [
     "RosterConfig",
     "SLOT_PLACEHOLDER",
     "SamplingConfig",
-    "SamplingTier",
     "SeedConfig",
     "SeedTriple",
     "SlotItem",

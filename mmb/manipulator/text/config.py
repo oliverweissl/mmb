@@ -48,9 +48,8 @@ class TextConfig:
     """Text manipulator settings (composite-only).
 
     The composite stack is the single supported text-manipulation path.
-    The default ``composite.profile = "full_stack"`` activates all
-    four operators (Synonym + Fragmentation + Character Noise + Saliency)
-    at realistic-input severities.
+    The default ``composite.profile = "question_pool_only"`` uses the continuous
+    question-pool operator (genes t, u) alone.
 
     :param spacy_model: spaCy model name used for tokenisation. The
         Synonym operator loads its own spaCy instance with the lemmatiser
@@ -58,11 +57,11 @@ class TextConfig:
     :param content_pos_tags: Universal Dependencies PoS tags considered
         "content-bearing" for operator-eligibility filtering.
     :param composite: Operator-stack config. Defaults to the
-        ``full_stack`` profile.
+        ``question_pool_only`` profile.
     """
 
     spacy_model: str = "en_core_web_sm"
     content_pos_tags: frozenset[str] = CONTENT_POS_TAGS
     composite: TextCompositeConfig = field(
-        default_factory=lambda: TextCompositeConfig(profile="full_stack")
+        default_factory=lambda: TextCompositeConfig(profile="question_pool_only")
     )

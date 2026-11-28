@@ -1,0 +1,36 @@
+generations: 30
+pop_size: 50
+sut:
+  batched_scoring: false
+image:
+  backend: vqgan_latent
+  preset: f8-16384
+  resolution: 256
+  decode_batch_size: 1
+  latent:
+    basis: dct
+    d: 16
+    m_max: 0.2
+    w_img: 1.0
+text:
+  spacy_model: en_core_web_sm
+  composite:
+    profile: question_pool_only
+optimizer:
+  algorithm: mmba_unguided
+  sampling:
+    mode: stratified_magnitude
+    r_min: 0.02
+    r_max: 1.0
+    power: 2.0
+  crossover:
+    prob: 0.9
+    eta: 15.0
+  mutation:
+    prob: null
+    eta: 20.0
+  mmba:
+    eps: 0.001
+    tau: 0.0
+  proximity_only: true
+name: exp_x1_mmba_unguided

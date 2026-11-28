@@ -5,13 +5,13 @@ save_dir: runs/E1
 cache_dirs:
   - ~/.cache/imagenet
 categories: [junco, ostrich, green iguana, boa constrictor, cello, marimba]
-generations: 50          # 50 x 30 = 1,500 SUT evaluations per run (equal budget for every arm)
-pop_size: 30
+generations: 30          # 30 x 50 = 1,500 SUT evaluations per run (equal budget for every arm)
+pop_size: 50
 seed: 0                  # overridden per run (paired across arms)
 sut:
-  model_id: llava-hf/llava-v1.6-mistral-7b-hf
+  model_id: Qwen/Qwen3.5-4B   # placeholder; make_matrix.py replaces the sut block per SUT
   backend: torch
-  load_in_8bit: true     # closest to the thesis' OpenVINO INT8 LLaVA-NeXT
+  batched_scoring: false # canonical scoring (C2 decision 2026-11-28)
 seeds:
   mode: roster
   roster:
@@ -23,28 +23,21 @@ seeds:
       levels_target: [0, 1, 2]
       apply_disjointness: true
       directions: both
-image:
-  backend: vqgan_codebook
-  region_block: 4
-  n_candidates: 16383
-  cone_filter:
-    enabled: true
-    alpha_deg: 20.0
-    target_m: 10
+image:                   # continuous design (2026-11-28), see configs/templates/continuous_template.yaml
+  backend: vqgan_latent
+  preset: f8-16384
+  decode_batch_size: 1     # canonical: every image decoded alone (docs/DETERMINISM_2026-11-28.md)
+  latent: {basis: dct, d: 16, m_max: 0.2, w_img: 1.0}
 text:
   spacy_model: en_core_web_sm
   composite:
-    profile: minimal
+    profile: question_pool_only
+    overrides:
+      question_pool: {w_txt: 1.0}   # text weight (calibration knob, applied by the manipulator)
 optimizer:
-  algorithm: agemoea2
+  algorithm: mmba          # overridden per arm (scripts/make_arm_configs.py)
   sampling:
-    mode: sparse_multitier
-    zero_anchor_fraction: 0.05
-    tiers:
-      - {p_active: 0.005, fraction: 0.20}
-      - {p_active: 0.030, fraction: 0.20}
-      - {p_active: 0.100, fraction: 0.25}
-      - {p_active: 0.300, fraction: 0.20}
-      - {p_active: 0.500, fraction: 0.10}
-  early_stop:
-    enable: false        # full budget for every arm, so budget curves are not truncated
+    mode: stratified_magnitude
+  crossover: {prob: 0.9, eta: 15.0}
+  mutation: {prob: null, eta: 20.0}
+  mmba: {eps: 0.001, tau: 0.0}

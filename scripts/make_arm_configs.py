@@ -1,7 +1,9 @@
 """Expand a base YAML config into the E1/E2 comparison arms (one YAML per arm).
 
-    python scripts/make_arm_configs.py configs/templates/evolutionary_template.yaml configs/paper/arms
-Arms differ only in ``optimizer.*`` / ``modality``; seeds and budget stay identical.
+    python scripts/make_arm_configs.py configs/templates/continuous_template.yaml configs/paper/arms
+Arms differ only in ``optimizer.*`` / ``modality``; seeds, budget, sampler and variation operators stay identical.
+Paper arm set (C2, 2026-11-28): MMBA a0, MIMICRY-style a5, DeepJanus-style a9, ablations text-only a6,
+image-only a7, unguided MMBA x1 (x2 patch-edit ablation dropped 2026-11-28; random/GA/NSGA-II/hill-climber arms removed).
 """
 import copy
 import sys
@@ -11,18 +13,14 @@ import yaml
 
 ARMS = {
     "a0_directed": {"optimizer": {"algorithm": "mmba", "proximity_only": True}},
-    "a1_random_tiered": {"optimizer": {"algorithm": "random"}},
-    "a2_random_uniform": {"optimizer": {"algorithm": "random", "sampling": {"mode": "uniform"}}},
-    "a3_ga_single": {"optimizer": {"algorithm": "ga", "proximity_only": True}},
-    "a4_nsga2": {"optimizer": {"algorithm": "nsga2"}},
-    "a5_mimicry_objective": {"optimizer": {"boundary_objective": "softmax_balance"}},
-    "a7_image_only": {"modality": "image_only", "optimizer": {"algorithm": "mmba", "proximity_only": True}},
-    "a8_hillclimb": {"optimizer": {"algorithm": "hillclimb", "proximity_only": True}},
-    # MMBA component ablations (2026-11-23)
-    "a6_text_only": {"modality": "text_only", "image": {"region_block": 0}, "optimizer": {"algorithm": "mmba", "proximity_only": True}},
-    "x1_mmba_unguided": {"optimizer": {"algorithm": "mmba_unguided", "proximity_only": True}},
-    "x2_mmba_patch": {"optimizer": {"algorithm": "mmba", "proximity_only": True}, "image": {"region_block": 0}},
+    # MIMICRY-style: AGE-MOEA-II with the softmax-balance objective (+ magnitude objectives)
+    "a5_mimicry_objective": {"optimizer": {"algorithm": "agemoea2", "boundary_objective": "softmax_balance",
+                                           "proximity_only": False}},
     "a9_deepjanus": {"optimizer": {"algorithm": "deepjanus", "proximity_only": True}},
+    # MMBA component ablations
+    "a6_text_only": {"modality": "text_only", "optimizer": {"algorithm": "mmba", "proximity_only": True}},
+    "a7_image_only": {"modality": "image_only", "optimizer": {"algorithm": "mmba", "proximity_only": True}},
+    "x1_mmba_unguided": {"optimizer": {"algorithm": "mmba_unguided", "proximity_only": True}},
 }
 
 
