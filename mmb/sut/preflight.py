@@ -3,8 +3,7 @@
 Measures per-SUT-call wall time on a handful of representative calls
 before the main optimization loop starts, and prints a projection of
 total runtime for the configured budget. Intended to be called from
-experiment entry-point scripts (``run_boundary_test.py``,
-``run_pdq_test.py``) behind a ``--preflight`` CLI flag so that any
+the experiment entry point (``run_boundary_test.py``) behind a ``--preflight`` CLI flag so that any
 run on new hardware surfaces its cost up front, not after several
 hours of wall time.
 
@@ -39,24 +38,6 @@ From ``run_boundary_test.py``::
             answer_suffix=answer_suffix,
             categories=scored_categories,
             total_calls_projected=exp.generations * exp.pop_size * n_seeds,
-            n_samples=20,
-        )
-
-From ``run_pdq_test.py``::
-
-    if args.preflight:
-        total_pdq = (
-            cfg.stage1.budget_sut_calls
-            + cfg.stage1.max_flips_per_seed * cfg.stage2.budget_sut_calls_per_flip
-        ) * n_seeds
-        preflight_cost_check(
-            sut=sut,
-            manipulator=manipulator,
-            seed=seeds[0],
-            prompt_template=cfg.prompt_template,
-            answer_suffix=answer_suffix,
-            categories=cfg.categories,
-            total_calls_projected=total_pdq,
             n_samples=20,
         )
 

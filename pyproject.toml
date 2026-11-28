@@ -21,8 +21,6 @@ analysis = ["nbconvert", "ipykernel", "statsmodels", "matplotlib", "scikit-learn
 
 [project.scripts]
 mmb-evolve = "mmb.runners.run_boundary_test:main"
-mmb-pdq = "mmb.runners.run_pdq_test:main"
-mmb-pair = "mmb.runners.run_boundary_pair_test:main"
 
 [tool.setuptools.packages.find]
 include = ["mmb*"]

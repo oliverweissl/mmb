@@ -1,10 +1,8 @@
 """Shared resume support for the boundary-test runners.
 
-An interrupted run leaves finished seed dirs on disk. Both the evolutionary
-runner (``run_boundary_test.py``) and the boundary-pair runner
-(``run_boundary_pair_test.py``) can skip those and re-run only the unfinished
-complement. The two pipelines write different layouts and completion markers,
-so *discovering* the seed dirs is injected by the caller via
+An interrupted run leaves finished seed dirs on disk. The evolutionary
+runner (``run_boundary_test.py``) can skip those and re-run only the unfinished
+complement. *Discovering* the seed dirs is injected by the caller via
 :class:`SeedDirProbe`; everything downstream — partial cleanup, index-drift
 sanity-checking against the regenerated seed pool, and narrowing
 ``filter_indices`` to the unfinished complement — is shared here.

@@ -1,7 +1,6 @@
 """Shared component-init + seed-gen + backend-precompute helpers.
 
-Three pipelines (``run_boundary_test.py``, ``run_pdq_test.py``,
-``run_boundary_pair_test.py``) all need to:
+The runner (``run_boundary_test.py``) needs to:
 
 1. Load text manipulator, image manipulator, and SUT in parallel
    (with the StyleGAN-XL deferred branch that waits on SUT).
@@ -115,6 +114,15 @@ def init_shared_components(
             ImageManipulator.from_preset,
             device=exp_cfg.device,
             config=exp_cfg.image,
+        )
+    elif exp_cfg.image.backend == "vqgan_latent":
+        logger.info(
+            "Image manipulator starting (vqgan_latent)...  preset=%s basis=%s d=%d m_max=%g",
+            exp_cfg.image.preset, exp_cfg.image.latent.basis, exp_cfg.image.latent.d,
+            exp_cfg.image.latent.m_max,
+        )
+        image_fut = pool.submit(
+            build_image_backend, image_config=exp_cfg.image, device=exp_cfg.device,
         )
     else:
         logger.info(

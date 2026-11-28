@@ -1,7 +1,7 @@
 """Shared on-disk artifact helpers for both pipelines.
 
 Hosts the Parquet schema-version constants and the incremental writer
-used by ``mmb.evolutionary`` and ``mmb.pdq`` alike.
+used by ``mmb.evolutionary``.
 """
 
 from __future__ import annotations

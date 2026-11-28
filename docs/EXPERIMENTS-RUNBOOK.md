@@ -15,8 +15,7 @@ so it isolates the log-likelihood-margin contribution.
 
 Before running: set the same `seeds:` block, `generations`, `pop_size` in the base config (arms share
 them), **disable early stop** (`optimizer.early_stop`) so "crossing share vs budget" curves are not truncated,
-and use identical `seed` integers across arms (paired tests). Mapping-only arm: `mmb-pdq`.
-Proximity band for "reached boundary": |g| <= 1e-2 nats (the paper's criterion).
+and use identical `seed` integers across arms (paired tests).Proximity band for "reached boundary": |g| <= 1e-2 nats (the paper's criterion).
 
 ## Still to implement (see PROGRESS.md)
 Diffusion image backend, LLM-paraphrase text backend, task protocol, validity scorer, API SUT.
