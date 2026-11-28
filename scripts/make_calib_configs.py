@@ -9,7 +9,9 @@ settings file:
     round: r1
     image: {knn_metric: l2_live, region_block: 4, region_levels: [1, 2, 4, 8, 16, 32, 64, 128]}
     text:  {operators: [{name: synonym, severity: 0.5, k_max: 8}, ...]}
-    arms: [a7, a6]          # optional
+    arms: [a7, a6]          # optional; a0 MMBA, a5 MIMICRY-style, a9 DeepJanus-style also possible
+    cells: calib            # optional; cells/<task>_<cells>.yaml
+No image/text key = the original MAIN operators (round 0: cosine KNN over all codewords, MAIN levels, text 'minimal').
 """
 import copy, sys
 from pathlib import Path
@@ -18,7 +20,11 @@ import yaml
 
 SUTS = ("qwen", "internvl", "ministral")
 TASKS = ("imagenet", "pope")
-ARMS = {"a7": ("a7_image_only", "image_only"), "a6": ("a6_text_only", "text_only"), "a0": ("a0_directed", None)}
+ARMS = {"a7": ("a7_image_only", "image_only"), "a6": ("a6_text_only", "text_only"), "a0": ("a0_directed", None),
+        "a5": ("a5_mimicry_objective", None), "a9": ("a9_deepjanus", None)}
+# base config per arm in configs/generated/MAIN (the baselines differ from a0 only in the optimizer block)
+BASE = {"a5": "B0_a5__s0__{task}__{sut}__a5_mimicry_objective", "a9": "B0_a9__s0__{task}__{sut}__a9_deepjanus"}
+A0_BASE = "A0__s0__{task}__{sut}__a0_directed"
 
 
 def main() -> int:
@@ -30,10 +36,9 @@ def main() -> int:
     for task in TASKS:
         cells = yaml.safe_load(Path(f"cells/{task}_{s.get('cells', 'calib')}.yaml").read_text())["seeds"]["slot_items"]["items"]
         for sut in SUTS:
-            base = yaml.safe_load(Path(f"configs/generated/MAIN/A0__s0__{task}__{sut}__a0_directed.yaml").read_text())
             for key in s.get("arms", ["a7", "a6", "a0"]):
                 arm, modality = ARMS[key]
-                c = copy.deepcopy(base)
+                c = yaml.safe_load(Path(f"configs/generated/MAIN/{BASE.get(key, A0_BASE).format(task=task, sut=sut)}.yaml").read_text())
                 c["name"] = f"CALIB_{rnd}_{task}_{sut}_{arm}_s0"
                 c["save_dir"] = f"runs/CALIB/{rnd}/{task}/{sut}/{arm}/s0"
                 c["seeds"]["slot_items"]["items"] = copy.deepcopy(cells)

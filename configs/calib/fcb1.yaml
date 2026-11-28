@@ -1,0 +1,11 @@
+round: fcb1
+# baselines at the candidate setting C* (I3 + T3): MIMICRY-style (a5) and DeepJanus-style (a9) on held-out set 1
+# (same inputs, budget and rng seed as the full-MMBA final check fc_old)
+cells: calib
+image: {knn_metric: l2_live, region_block: 4, region_levels: [1, 2, 4, 8]}
+text:
+  operators:
+    - {name: synonym, severity: 0.5, k_max: 3}
+    - {name: character_noise, severity: 0.75, modes: [homoglyph, zero_width]}
+    - {name: saliency, severity: 0.25, k_max: 1, all_words: true, min_word_len: 4}
+arms: [a5, a9]

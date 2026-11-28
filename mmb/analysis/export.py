@@ -824,14 +824,14 @@ class UnbalancedExport(SystemExit):
 
 
 def add_calib_numbers(num: "Numbers", calib_dir: Path, ladder_jsons: list[Path] | None = None,
-                      codebook_json: Path | None = None) -> None:
+                      codebook_json: Path | None = None, figs: Path | None = None) -> None:
     """ECalib*: operator calibration (docs/CALIBRATION_2026-11-27.md) from scripts/analysis/calib_final.py output
     (summary.csv, tests.csv), the single-region ladder LPIPS (ladder_demo.py --regions 1 JSONs) and the codebook
     live/dead counts (results/diag_edits/codebook_dead.json)."""
     import json as _json
     s = pd.read_csv(calib_dir / "summary.csv")
     t = pd.read_csv(calib_dir / "tests.csv")
-    mods = {"text": "Text", "image": "Image", "both": "Both"}
+    mods = {"text": "Text", "image": "Image", "both": "Both", "mimicry": "Mimicry", "deepjanus": "DeepJanus"}
     for _, r in s[s["level"].isin(["pooled", "task"])].iterrows():
         scope = "All" if r["level"] == "pooled" else camel(str(r["task"]))
         m = mods[r["mod"]]
@@ -857,6 +857,26 @@ def add_calib_numbers(num: "Numbers", calib_dir: Path, ladder_jsons: list[Path] 
         num.add(["ECalib", "P", pair, scope], f_p(float(r["p_mcnemar"])), f"calibration: exact McNemar p, {r['a']} vs {r['b']}, {scope}")
         num.add(["ECalib", "Pairs", pair, scope], str(int(r["pairs"])), f"calibration: matched pairs, {r['a']} vs {r['b']}, {scope}")
         num.add(["ECalib", "Disc", pair, scope], f"{int(r['a_only'])}:{int(r['b_only'])}", f"calibration: discordant pairs ({r['a']} only : {r['b']} only), {scope}")
+    traj = calib_dir / "trajectory.csv"
+    if traj.exists():         # ECalibTraj*: uncalibrated -> calibrated (scripts/analysis/calib_trajectory.py)
+        tj = pd.read_csv(traj)
+        for _, r in tj.iterrows():
+            st = str(r["step"])
+            for mod, nm in (("text", "Text"), ("image", "Image")):
+                for col, suf in (("cr", "Cr"), ("lo", "Lo"), ("hi", "Hi")):
+                    num.add(["ECalibTraj", st, nm, suf], f"{float(r[f'{mod}_{col}']):.1f}",
+                            f"calibration trajectory {r['label']}: {mod}-only crossing share (%) {'' if col == 'cr' else 'Wilson 95% CI ' + col}")
+            num.add(["ECalibTraj", st, "P"], f_p(float(r["p_mcnemar"])), f"calibration trajectory {r['label']}: exact McNemar p, text vs image")
+            num.add(["ECalibTraj", st, "Pairs"], str(int(r["pairs"])), f"calibration trajectory {r['label']}: matched pairs")
+            num.add(["ECalibTraj", st, "Disc"], f"{int(r['text_only'])}:{int(r['image_only'])}",
+                    f"calibration trajectory {r['label']}: discordant pairs (text only : image only)")
+            if not pd.isna(r["image_lpips_med"]):
+                num.add(["ECalibTraj", st, "Lpips"], f"{float(r['image_lpips_med']):.3f}", f"calibration trajectory {r['label']}: median LPIPS of image-only crossings")
+            if not pd.isna(r["text_vis_char_med"]):
+                num.add(["ECalibTraj", st, "VisChar"], f"{100 * float(r['text_vis_char_med']):.1f}", f"calibration trajectory {r['label']}: median visible text change of text-only crossings (%)")
+        if figs is not None:
+            from mmb.analysis.plots import plot_calib_trajectory
+            plot_calib_trajectory(tj, figs / "calib-trajectory.pdf", s[s["level"] == "pooled"])
     fc = Path("configs/calib/fc_new.yaml")
     if fc.exists():           # the calibrated setting (same file the final check ran)
         cfg = yaml.safe_load(fc.read_text())
@@ -1189,7 +1209,7 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
                           task_names=TASK_NAMES)
     if calib is not None and (Path(calib) / "summary.csv").exists():
         add_calib_numbers(num, Path(calib), sorted(Path("docs/figs/calib").glob("ladder_single_region_*.json")),
-                          Path("results/diag_edits/codebook_dead.json"))
+                          Path("results/diag_edits/codebook_dead.json"), figs if figures else None)
     if legacy:        # macros of omitted arms from the full export, kept until the text no longer cites them
         kept = []
         for name, (value, desc) in legacy.items():

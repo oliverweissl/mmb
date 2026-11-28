@@ -87,6 +87,87 @@ def plot_crossing_curve(
     return out
 
 
+def _wilson(k: float, n: float, z: float = 1.959964) -> tuple[float, float]:
+    if not n:
+        return float("nan"), float("nan")
+    p = k / n; d = 1 + z * z / n; c = (p + z * z / (2 * n)) / d
+    h = z * np.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / d
+    return max(0.0, c - h), min(1.0, c + h)
+
+
+LABEL_OFFSETS = {"Zero": ((5, 3), "left"), "One": ((5, 3), "left"), "TwoA": ((5, 3), "left"),
+                 "TwoB": ((-4, -10), "right"), "Three": ((4, 5), "left"), "Final": ((5, -11), "left")}
+CALIB_MODS = (("text", "text-only"), ("image", "image-only"), ("both", "MMBA"), ("mimicry", "MIMICRY-style"),
+              ("deepjanus", "DeepJanus-style"))
+
+
+def plot_calib_trajectory(traj: pd.DataFrame, out: Path | str, final: pd.DataFrame | None = None, *,
+                          width_in: float = 5.4, height_in: float = 2.6) -> Path:
+    """Operator calibration, main-paper figure. Left: text-only vs image-only crossing share (%) per calibration step
+    (scripts/analysis/calib_trajectory.py), Wilson 95% CIs, the diagonal = balance; steps on held-out set 1 joined by
+    arrows from the uncalibrated MAIN operators to C*; the C* final check (sets 1+2) as a hollow diamond. Labels carry
+    the median LPIPS of image-only crossings. Right (if *final*, the pooled rows of calib_final.py summary.csv):
+    crossing share of every method at C* on the final-check inputs, with a reference line at full MMBA."""
+    plt.rcParams.update({"pdf.fonttype": 42, "ps.fonttype": 42, "font.size": 7, "axes.linewidth": 0.6})
+    two = final is not None and len(final)
+    fig, axs = plt.subplots(1, 2 if two else 1, figsize=(width_in if two else width_in * 0.55, height_in),
+                            gridspec_kw={"width_ratios": [1.1, 1]} if two else None)
+    ax = axs[0] if two else axs
+    ax.plot([0, 100], [0, 100], color="0.55", linestyle="--", linewidth=0.7, zorder=0)
+    ax.text(80, 77, "balance: text = image", rotation=45, rotation_mode="anchor", ha="center", va="top", fontsize=5.5, color="0.4")
+    fin_mask = traj["final"].astype(bool).to_numpy()
+    chain = traj[~fin_mask].reset_index(drop=True)
+    fin = traj[fin_mask]
+    for _, r in traj.iterrows():
+        ax.errorbar(r["text_cr"], r["image_cr"], xerr=[[r["text_cr"] - r["text_lo"]], [r["text_hi"] - r["text_cr"]]],
+                    yerr=[[r["image_cr"] - r["image_lo"]], [r["image_hi"] - r["image_cr"]]], fmt="none",
+                    ecolor="0.72", elinewidth=0.5, capsize=1.2, zorder=1)
+    for a_, b_ in zip(chain.index[:-1], chain.index[1:]):
+        ax.annotate("", xy=(chain.at[b_, "text_cr"], chain.at[b_, "image_cr"]), xytext=(chain.at[a_, "text_cr"], chain.at[a_, "image_cr"]),
+                    arrowprops=dict(arrowstyle="-|>", color="0.15", linewidth=0.9, shrinkA=4, shrinkB=4, mutation_scale=7), zorder=2)
+    ax.scatter(chain["text_cr"], chain["image_cr"], s=18, color="0.0", zorder=3)
+    if len(chain) and chain.at[0, "step"] == "Zero":
+        ax.scatter(chain.at[0, "text_cr"], chain.at[0, "image_cr"], s=48, facecolors="none", edgecolors="0.0", linewidths=0.8, zorder=3)
+    if len(fin):
+        ax.scatter(fin["text_cr"], fin["image_cr"], s=30, facecolors="white", edgecolors="0.0", linewidths=1.0, marker="D", zorder=4)
+    for _, r in traj.iterrows():
+        lp = "" if pd.isna(r.get("image_lpips_med")) else f" ({r['image_lpips_med']:.3f})"
+        off, ha = LABEL_OFFSETS.get(str(r["step"]), ((5, 3), "left"))
+        ax.annotate(f"{r['label']}{lp}", (r["text_cr"], r["image_cr"]), xytext=off, textcoords="offset points", fontsize=5.8, ha=ha)
+    ax.set_xlim(0, 100); ax.set_ylim(0, 100); ax.set_aspect("equal", adjustable="box")
+    ax.set_xlabel("text-only crossing share (%)"); ax.set_ylabel("image-only crossing share (%)")
+    ax.set_title("calibration steps (median image LPIPS)", fontsize=6.5)
+    ax.grid(True, color="0.9", linewidth=0.4)
+    if two:
+        bx = axs[1]
+        f = final.set_index("mod")
+        rows = [(lab, f.loc[m] if m in f.index else None) for m, lab in CALIB_MODS]
+        y = np.arange(len(rows))[::-1]
+        for yi, (lab, r) in zip(y, rows):
+            if r is None:
+                bx.text(3, yi, "(running)", va="center", fontsize=6, color="0.4")
+                continue
+            n = float(r["n"]); cr = float(r["CR"]); lo, hi = _wilson(round(cr * n / 100), n)
+            mm = lab == "MMBA"
+            bx.barh(yi, cr, color="0.15" if mm else ("0.6" if lab in ("MIMICRY-style", "DeepJanus-style") else "0.85"),
+                    edgecolor="0.0", linewidth=0.5, height=0.62)
+            bx.errorbar(cr, yi, xerr=[[cr - 100 * lo], [100 * hi - cr]], fmt="none", ecolor="0.0", elinewidth=0.5, capsize=1.5)
+            bx.text(100 * hi + 2, yi, f"{cr:.0f}%", va="center", fontsize=6)
+        if "both" in f.index:
+            bx.axvline(float(f.loc["both", "CR"]), color="0.15", linestyle=":", linewidth=0.8)
+        bx.set_yticks(y); bx.set_yticklabels([lab for lab, _ in rows]); bx.set_ylim(-0.6, len(rows) - 0.4)
+        bx.set_axisbelow(True)
+        bx.set_xlim(0, 100); bx.set_xlabel("crossing share at C* (%)")
+        bx.set_title(f"C* final check, {int(float(f['n'].iloc[0]))} matched runs per method", fontsize=6.5)
+        bx.grid(True, axis="x", color="0.9", linewidth=0.4)
+    fig.tight_layout(pad=0.3)
+    out = Path(out)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(out)
+    plt.close(fig)
+    return out
+
+
 def plot_predictor_scatter(df: pd.DataFrame, out: Path | str, *, arm: str | None = "a0_directed",
                            height_in: float = 2.3) -> Path:
     """Generation-0 probe (median |g| of the initial population) against the run floor, log-log.

@@ -3,10 +3,11 @@
 and set 2, then report per modality (text-only a6, image-only a7, both = full MMBA a0): crossing share, calls to first
 crossing, minimal edits, image LPIPS, visible text change, question_preserved, output margin; and exact paired McNemar
 tests text vs image (equilibrium: not distinguishable at p = 0.05, the user's criterion) and both vs each single
-modality. Validity proxies are (re)scored per round if missing.
+modality, and both vs the baselines MIMICRY-style (a5) and DeepJanus-style (a9) at the same operator setting (rule:
+MMBA's crossing share must be >= each baseline). Validity proxies are (re)scored per round if missing.
 
     python scripts/analysis/calib_final.py --part r2b:a7_image_only --part r3t:a6_text_only --part fc_old:a0_directed \
-        --part fc_new:all --out results/calib_final
+        --part fc_new:all --part fcb1:all --part fcb2:all --out results/calib_final
 """
 import argparse, subprocess, sys
 from pathlib import Path
@@ -28,7 +29,7 @@ for part in a.part:
     d = pd.read_csv(res)
     if arm != "all":
         d = d[d["arm"] == arm]
-    d["set"] = "set2" if rnd.startswith("fc_new") else "set1"
+    d["set"] = "set2" if rnd in ("fc_new", "fcb2") else "set1"
     frames.append(d); vals.append(pd.read_csv(val))
 d = pd.concat(frames, ignore_index=True)
 v = pd.concat(vals, ignore_index=True)
@@ -36,7 +37,8 @@ vm = v[v["view"] == "min"].drop_duplicates("run_dir").set_index("run_dir")
 for c in ("img_lpips", "vis_char_dist", "question_preserved", "g_at_cross"):
     d[c] = d["run_dir"].map(vm[c])
 d["crossed"] = d["crossed"].astype(str).str.lower().isin(("true", "1"))
-d["mod"] = d["arm"].map({"a7_image_only": "image", "a6_text_only": "text", "a0_directed": "both"})
+d["mod"] = d["arm"].map({"a7_image_only": "image", "a6_text_only": "text", "a0_directed": "both",
+                         "a5_mimicry_objective": "mimicry", "a9_deepjanus": "deepjanus"})
 qp = d["question_preserved"].astype(str).str.lower()
 d["qp"] = qp.isin(("true", "1", "1.0")).where(d["question_preserved"].notna())
 
@@ -60,7 +62,7 @@ key = ["set", "task", "sut", "seed_idx"]
 tests = []
 for scope, sub in [("pooled", d)] + [(t, d[d["task"] == t]) for t in sorted(set(d["task"]))]:
     w = sub.pivot_table(index=key, columns="mod", values="crossed", aggfunc="first")
-    for x, y in (("text", "image"), ("both", "text"), ("both", "image")):
+    for x, y in (("text", "image"), ("both", "text"), ("both", "image"), ("both", "mimicry"), ("both", "deepjanus")):
         if x not in w or y not in w:
             continue
         m = w[[x, y]].dropna().astype(bool)
