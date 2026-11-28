@@ -278,7 +278,25 @@ def wrapped(tabular: str) -> str:
     return WRAP % tabular.strip()
 
 
+# Tables the paper no longer uses (removed by the authors, paper 49bb955/d7d7e8c): never written again, so an export
+# cannot bring them back. Their \res macros (EMinType*, ETransfer*, EValid*, ...) are still emitted.
+REMOVED_TABLES = frozenset({"arm_failure", "e1_budgets", "validity", "validity_cost", "validity_cost_min", "validity_main",
+                            "validity_sensitivity", "validity_sensitivity_min", "transfer", "transfer_imagenet",
+                            "transfer_pope", "e2b"})
+
+
+def is_removed_table(path: Path) -> bool:
+    """generated/tables/<REMOVED_TABLES>.tex and everything under generated/tables/per/."""
+    p = Path(path)
+    if p.parent.name == "tables":
+        return p.stem in REMOVED_TABLES
+    return "per" in p.parts and p.parts[p.parts.index("per") - 1:p.parts.index("per")] == ("tables",)
+
+
 def write_tex(path: Path, tabular: str) -> None:
+    if is_removed_table(path):
+        logger.debug("table %s removed from the paper: not written", path)
+        return
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(wrapped(tabular))
 

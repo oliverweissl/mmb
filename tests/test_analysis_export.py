@@ -93,12 +93,13 @@ class TestExport:
         paper.mkdir()
         num = export.export([csv], paper, runs_root=root, n_boot=200)
         gen = paper / "generated"
-        for f in ("tables/e1.tex", "tables/e1_budgets.tex", "tables/e1_paired.tex",
-                  "tables/e4.tex", "tables/e2b.tex", "tables/per/imagenet_qwen_summary.tex",
-                  "tables/per/pope_internvl_paired.tex", "figures/crossing-curve.pdf",
+        for f in ("tables/e1.tex", "tables/e1_paired.tex",
+                  "tables/e4.tex", "figures/crossing-curve.pdf",
                   "figures/predictor-main.pdf", "numbers.tex", "numbers_map.csv",
                   "tables/primary.tex", "tables/e1_cluster.tex", "tables/cost.tex", "figures/per-cell-diff.pdf"):
             assert (gen / f).exists() and (gen / f).stat().st_size > 0, f
+        for f in ("tables/e1_budgets.tex", "tables/e2b.tex", "tables/arm_failure.tex", "tables/per"):
+            assert not (gen / f).exists(), f        # removed from the paper: never written again
         assert not (gen / ".work").exists()
         text = (gen / "numbers.tex").read_text()
         names = re.findall(r"\\newcommand\{\\([A-Za-z0-9]+)\}", text)
@@ -168,7 +169,7 @@ class TestExport:
         m = pd.read_csv(paper / "generated" / "numbers_map.csv", dtype=str).set_index("macro")["value"]
         assert m["ESevenMedianImgClipCosAZero"] == "0.800" and m["ESevenCrossingsAOne"] == "2"
         assert m["ESevenQuestionPreservedAZero"] == "66.7"
-        assert (paper / "generated" / "tables" / "validity.tex").exists()
+        assert not (paper / "generated" / "tables" / "validity.tex").exists()     # removed table, macros only
 
 
 class TestAgree:
@@ -230,9 +231,8 @@ class TestTransfer:
         assert int(m["ETransferNQwenInternvlAll"]) == len(sub)
         assert int(m["ETransferCountQwenInternvlAll"]) == int(sub.flipped_on_dst.sum())
         assert "ETransferMeanOffDiagonalAll" in m.index and "ETransferShareQwenQwenImagenet" in m.index
-        t = (paper / "generated" / "tables" / "transfer.tex").read_text()
-        assert "Found on" in t and "Qwen3.5-4B" in t
-        assert (paper / "generated" / "tables" / "transfer_pope.tex").exists()
+        for f in ("transfer.tex", "transfer_imagenet.tex", "transfer_pope.tex"):     # removed tables, macros only
+            assert not (paper / "generated" / "tables" / f).exists()
 
     def test_missing_columns_rejected(self, tmp_path):
         from mmb.analysis import transfer
