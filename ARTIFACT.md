@@ -7,17 +7,17 @@ Goal: a double-blind-safe copy of this repository that a reviewer can read, run 
 | included | notes |
 |---|---|
 | `mmb/`, `scripts/`, `tests/`, `pyproject.toml` | source code and its tests |
-| `configs/` | one configuration per arm and experiment; `scripts/make_matrix.py` regenerates the matrix |
+| `configs/` | one configuration per arm and experiment (`scripts/make_arm_configs.py`), the text profiles and the validated question pool (`configs/text/question_pool.json`; rejected candidates in `question_pool_rejected.json.gz`) |
 | `cells/` | fixed cell lists as identifiers (dataset, item id, class pair, anchor), never images |
 | `METHODOLOGY.md`, `EXP_SETUP.md`, `README.md`, `ARTIFACT.md`, `docs/` | decisions, recipe, entry points |
 | `LICENSE`, `LICENSE-DATA`, `THIRD-PARTY-NOTICES.md` | with the copyright holder and contact rewritten to "Anonymous" |
 | `results/` (with `--results`) | per-run CSVs of every experiment, the LaTeX tables and the figure PDFs; every number in the paper is traceable to one of these files |
-| `runs/` (with `--runs`) | run stores: `trace.parquet`, `convergence.parquet`, `stats.json`, `first_cross.json`. Included only if the total fits the host's limits; otherwise the per-run CSVs stand in, and the stores follow with the archival copy |
+| `runs/` (with `--runs`) | run stores: `trace.parquet`, `convergence.parquet`, `stats.json`, `first_cross.json`, `min_cross.json`, `min_cross_neighbour.json`, `boundary_pair.json`. Included only if the total fits the host's limits; otherwise the per-run CSVs stand in, and the stores follow with the archival copy |
 | `MANIFEST.txt` | sha256 of every file, plus the files left out for size |
 
 ## Excluded
 
-- **Images of any kind**: ImageNet and COCO photographs and everything derived from them (`origin.png`, `first_cross.png`, `pareto_*.png`) are not redistributable; genotypes in the traces regenerate the edited images from the seeds. The scripts that fetch the data need the item identifiers only.
+- **Images of any kind**: ImageNet and COCO photographs and everything derived from them (`origin.png`, `anchor_recon.png`, `first_cross.png`, `min_cross*.png`, `boundary_on.png`, `pareto_*.png`) are not redistributable; the real-valued genotypes in the traces and in `min_cross.json` / `boundary_pair.json` regenerate the edited inputs from the seeds (image: VQGAN latent displacement; question: the pool entry selected by (t, u) and the run's w_txt). The scripts that fetch the data need the item identifiers only. (`scripts/make_artifact.sh` drops every image file, so the generated figures under `docs/figs/` are not in the bundle either.)
 - **Model weights and caches** (`*.pt`, `*.pth`, `*.safetensors`, `*.ckpt`, Hugging Face and Redis caches). Weights are listed in EXP_SETUP.md with their identifiers; versions and licences go into the paper's artifact statement.
 - **Internal logs** (`PLAN.md`, `PROGRESS.md`): development notes, not part of the reviewed artifact.
 - **Git history**, `.git`, virtual environments, egg-info, `__pycache__`, agent and editor tooling directories, build output.
@@ -32,7 +32,7 @@ Goal: a double-blind-safe copy of this repository that a reviewer can read, run 
 
 ```bash
 git status                      # commit or stash: untracked but non-ignored files ARE included
-scripts/make_artifact.sh --results results --runs runs/E1 --max-file-mb 8
+scripts/make_artifact.sh --results results --runs runs/MAIN --max-file-mb 8
 # -> build-artifact/mmb-artifact/ and build-artifact/mmb-artifact.zip
 ```
 
@@ -42,6 +42,6 @@ Upload the zip contents to the anonymising host and put its URL into the paper's
 
 - [ ] `scripts/make_artifact.sh` ends with "scan OK".
 - [ ] `pytest -q` passes inside the unpacked bundle (the model-backed validity tests skip themselves without cached models).
-- [ ] `scripts/analysis/run_analysis.sh` regenerates the paper's tables from `results/` or `runs/`.
+- [ ] `scripts/analysis/run_analysis.sh runs/MAIN MAIN` and `scripts/analysis/export_to_paper.sh` regenerate the paper's tables from `runs/` (or the per-run CSVs in `results/`).
 - [ ] `THIRD-PARTY-NOTICES.md` matches what the bundle contains (the inherited text still describes material of an earlier layout and needs a refresh before submission).
 - [ ] The paper's artifact statement names exact checkpoints, hashes and licences, and the data-availability statement carries the anonymous URL.
