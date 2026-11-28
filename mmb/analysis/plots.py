@@ -100,7 +100,7 @@ CALIB_MODS = (("text", "text-only"), ("image", "image-only"), ("both", "MMBA"), 
 # label placement (offset in points, ha, va) per step: panel (a) full view, panel (b) zoom on the lower cluster
 CALIB_LABEL = {"Zero": ((3.0, 84.0), "left", "top"), "One": ((57.0, 81.0), "left", "bottom")}     # data coordinates
 CALIB_ZOOM_LABEL = {"TwoA": ((6, 0), "left", "center"), "TwoB": ((0, -8), "center", "top"),
-                    "Three": ((4, -6), "left", "top"), "Final": ((-3, 7), "left", "bottom")}
+                    "Three": ((7, 5), "left", "bottom"), "Final": ((-3, 7), "left", "bottom")}
 CALIB_ZOOM = (0.0, 45.0, 20.0, 55.0)        # x0, x1, y0, y1 (%) of panel (b)
 
 
@@ -127,6 +127,16 @@ def _calib_text(r, stacked: bool = False) -> str:
     if not pd.isna(r.get("image_lpips_med")):
         t += f"\nLPIPS {float(r['image_lpips_med']):.3f}"
     return t
+
+
+def _calib_final_link(a, traj, box=None):
+    """thin dashed link (no arrowhead) from the adopted step to its final check"""
+    fin = traj[traj["final"].astype(bool)]
+    ad = traj[(~traj["final"].astype(bool)) & (traj.get("status", pd.Series("", index=traj.index)).astype(str) == "adopted")]
+    if len(fin) and len(ad):
+        p, q = ad.iloc[-1], fin.iloc[0]
+        a.plot([p["text_cr"], q["text_cr"]], [p["image_cr"], q["image_cr"]], color="0.35", linestyle=(0, (2, 1.5)),
+               linewidth=0.6, zorder=2)
 
 
 def _calib_arrows(a, sub, box=None):
@@ -163,6 +173,7 @@ def plot_calib_trajectory(traj: pd.DataFrame, out: Path | str, final: pd.DataFra
     ax.add_patch(plt.Rectangle((x0, y0), x1 - x0, y1 - y0, fill=False, edgecolor="0.45", linewidth=0.5, linestyle=":", zorder=1))
     ax.text(x1 - 1, y0 + 1, "(b)", ha="right", va="bottom", fontsize=5.5, color="0.35")
     _calib_arrows(ax, chain)
+    _calib_final_link(ax, traj)
     for _, r in traj.iterrows():
         _calib_marker(ax, r)
         if not in_box(r):
@@ -181,6 +192,7 @@ def plot_calib_trajectory(traj: pd.DataFrame, out: Path | str, final: pd.DataFra
     # (b) zoom
     zx.plot([0, 100], [0, 100], color="0.55", linestyle="--", linewidth=0.6, zorder=0)
     _calib_arrows(zx, chain, CALIB_ZOOM)
+    _calib_final_link(zx, traj)
     for _, r in traj.iterrows():
         if not in_box(r):
             continue

@@ -45,6 +45,7 @@ CANONICAL_ORDER: tuple[str, ...] = (
     "fragmentation",
     "character_noise",
     "saliency",
+    "paraphrase",          # last: an active paraphrase replaces the whole question
 )
 
 

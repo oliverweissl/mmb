@@ -1,0 +1,1516 @@
+{
+ "What is the main subject in this image?": {
+  "protect": [
+   "image",
+   "subject"
+  ],
+  "generated": 142,
+  "rejected": {
+   "protected word lost": 132,
+   "NLI < 0.8": 3
+  },
+  "paraphrases": [
+   {
+    "text": "What is the subject of this image?",
+    "dist": 0.1125,
+    "nli": 0.924,
+    "cola": 0.975
+   },
+   {
+    "text": "What's the subject of this image?",
+    "dist": 0.1317,
+    "nli": 0.964,
+    "cola": 0.977
+   },
+   {
+    "text": "What is the subject matter of this image?",
+    "dist": 0.1722,
+    "nli": 0.993,
+    "cola": 0.977
+   },
+   {
+    "text": "What's the subject matter of this image?",
+    "dist": 0.1908,
+    "nli": 0.995,
+    "cola": 0.978
+   },
+   {
+    "text": "Can you identify the subject of this image?",
+    "dist": 0.2209,
+    "nli": 0.982,
+    "cola": 0.969
+   },
+   {
+    "text": "Can you identify the subject matter of this image?",
+    "dist": 0.2234,
+    "nli": 0.994,
+    "cola": 0.969
+   },
+   {
+    "text": "Could you provide some information about the subject matter of this image?",
+    "dist": 0.3329,
+    "nli": 0.983,
+    "cola": 0.981
+   }
+  ]
+ },
+ "Is there a person in the image?": {
+  "protect": [
+   "image",
+   "person"
+  ],
+  "generated": 187,
+  "rejected": {
+   "protected word lost": 169,
+   "not a question": 1,
+   "NLI < 0.8": 5
+  },
+  "paraphrases": [
+   {
+    "text": "Is there a person depicted in the image?",
+    "dist": 0.0924,
+    "nli": 0.993,
+    "cola": 0.915
+   },
+   {
+    "text": "Does this person appear in the image?",
+    "dist": 0.1288,
+    "nli": 0.953,
+    "cola": 0.967
+   },
+   {
+    "text": "Can you confirm if there is a person depicted in the image?",
+    "dist": 0.1609,
+    "nli": 0.993,
+    "cola": 0.953
+   },
+   {
+    "text": "Is the person in the image a human?",
+    "dist": 0.2195,
+    "nli": 0.957,
+    "cola": 0.941
+   },
+   {
+    "text": "Does this image depict a person?",
+    "dist": 0.2301,
+    "nli": 0.995,
+    "cola": 0.97
+   },
+   {
+    "text": "Does this image display a person?",
+    "dist": 0.2604,
+    "nli": 0.996,
+    "cola": 0.918
+   },
+   {
+    "text": "Does the image depict a person?",
+    "dist": 0.266,
+    "nli": 0.995,
+    "cola": 0.97
+   },
+   {
+    "text": "Does the image display a person?",
+    "dist": 0.2748,
+    "nli": 0.997,
+    "cola": 0.878
+   },
+   {
+    "text": "Is the image of a person present?",
+    "dist": 0.2888,
+    "nli": 0.988,
+    "cola": 0.872
+   },
+   {
+    "text": "Does this image feature a person?",
+    "dist": 0.3044,
+    "nli": 0.997,
+    "cola": 0.975
+   },
+   {
+    "text": "Does the image feature a person?",
+    "dist": 0.3415,
+    "nli": 0.997,
+    "cola": 0.974
+   },
+   {
+    "text": "Is the image of a person captured in a photograph?",
+    "dist": 0.3448,
+    "nli": 0.964,
+    "cola": 0.923
+   }
+  ]
+ },
+ "Is there a dining table in the image?": {
+  "protect": [
+   "dining table",
+   "image"
+  ],
+  "generated": 114,
+  "rejected": {
+   "protected word lost": 81,
+   "not a question": 3,
+   "NLI < 0.8": 11,
+   "CoLA below threshold": 1
+  },
+  "paraphrases": [
+   {
+    "text": "Is there a dining table depicted in the image?",
+    "dist": 0.0243,
+    "nli": 0.992,
+    "cola": 0.913
+   },
+   {
+    "text": "Is the dining table in the image?",
+    "dist": 0.0577,
+    "nli": 0.993,
+    "cola": 0.932
+   },
+   {
+    "text": "Is the dining table shown in the image?",
+    "dist": 0.0606,
+    "nli": 0.978,
+    "cola": 0.921
+   },
+   {
+    "text": "Does the image contain a dining table?",
+    "dist": 0.0733,
+    "nli": 0.998,
+    "cola": 0.966
+   },
+   {
+    "text": "Does this image contain a dining table?",
+    "dist": 0.0766,
+    "nli": 0.997,
+    "cola": 0.969
+   },
+   {
+    "text": "Does the dining table appear in the image?",
+    "dist": 0.0773,
+    "nli": 0.995,
+    "cola": 0.961
+   },
+   {
+    "text": "Is the dining table depicted in the image?",
+    "dist": 0.0813,
+    "nli": 0.983,
+    "cola": 0.92
+   },
+   {
+    "text": "Does this image feature a dining table?",
+    "dist": 0.1036,
+    "nli": 0.998,
+    "cola": 0.972
+   },
+   {
+    "text": "Is the dining table visible in the image?",
+    "dist": 0.1111,
+    "nli": 0.946,
+    "cola": 0.976
+   },
+   {
+    "text": "Can you confirm whether the dining table is shown in the image?",
+    "dist": 0.1129,
+    "nli": 0.989,
+    "cola": 0.97
+   },
+   {
+    "text": "Does the image display a dining table?",
+    "dist": 0.114,
+    "nli": 0.997,
+    "cola": 0.97
+   },
+   {
+    "text": "Does this image include the dining table?",
+    "dist": 0.1144,
+    "nli": 0.986,
+    "cola": 0.972
+   },
+   {
+    "text": "Is the dining table showcased in the image?",
+    "dist": 0.1197,
+    "nli": 0.924,
+    "cola": 0.944
+   },
+   {
+    "text": "Does this image display a dining table?",
+    "dist": 0.1243,
+    "nli": 0.997,
+    "cola": 0.973
+   },
+   {
+    "text": "Does the image depict a dining table?",
+    "dist": 0.1246,
+    "nli": 0.996,
+    "cola": 0.971
+   },
+   {
+    "text": "Does this image depict a dining table?",
+    "dist": 0.1371,
+    "nli": 0.996,
+    "cola": 0.973
+   },
+   {
+    "text": "Does the image showcase a dining table?",
+    "dist": 0.1475,
+    "nli": 0.997,
+    "cola": 0.967
+   },
+   {
+    "text": "The image displays a dining table, can you help me with that?",
+    "dist": 0.2091,
+    "nli": 0.904,
+    "cola": 0.97
+   }
+  ]
+ },
+ "Is there a broccoli in the image?": {
+  "protect": [
+   "broccoli",
+   "image"
+  ],
+  "generated": 175,
+  "rejected": {
+   "protected word lost": 90,
+   "non-dictionary word": 2,
+   "NLI < 0.8": 45,
+   "CoLA below threshold": 1
+  },
+  "paraphrases": [
+   {
+    "text": "Does the image contain a broccoli?",
+    "dist": 0.0764,
+    "nli": 0.997,
+    "cola": 0.833
+   },
+   {
+    "text": "Is the broccoli depicted in the image?",
+    "dist": 0.0838,
+    "nli": 0.979,
+    "cola": 0.89
+   },
+   {
+    "text": "Does this image contain a type of broccoli?",
+    "dist": 0.0842,
+    "nli": 0.955,
+    "cola": 0.971
+   },
+   {
+    "text": "Is this image of a broccoli?",
+    "dist": 0.0869,
+    "nli": 0.983,
+    "cola": 0.896
+   },
+   {
+    "text": "Does this image contain a piece of broccoli?",
+    "dist": 0.0878,
+    "nli": 0.913,
+    "cola": 0.973
+   },
+   {
+    "text": "Is the broccoli depicted in the image shown in the picture?",
+    "dist": 0.0878,
+    "nli": 0.977,
+    "cola": 0.689
+   },
+   {
+    "text": "Does this image feature a broccoli?",
+    "dist": 0.096,
+    "nli": 0.997,
+    "cola": 0.973
+   },
+   {
+    "text": "Does this image contain any broccoli?",
+    "dist": 0.0987,
+    "nli": 0.994,
+    "cola": 0.874
+   },
+   {
+    "text": "Does the image display a broccoli?",
+    "dist": 0.1025,
+    "nli": 0.996,
+    "cola": 0.767
+   },
+   {
+    "text": "Does the image feature a broccoli?",
+    "dist": 0.1032,
+    "nli": 0.997,
+    "cola": 0.969
+   },
+   {
+    "text": "Does this image contain a depiction of a broccoli?",
+    "dist": 0.1038,
+    "nli": 0.987,
+    "cola": 0.945
+   },
+   {
+    "text": "Is the image of a broccoli depicted in the picture?",
+    "dist": 0.1041,
+    "nli": 0.995,
+    "cola": 0.771
+   },
+   {
+    "text": "Does the image depict a broccoli?",
+    "dist": 0.1066,
+    "nli": 0.995,
+    "cola": 0.933
+   },
+   {
+    "text": "Does this image include broccoli?",
+    "dist": 0.1089,
+    "nli": 0.989,
+    "cola": 0.973
+   },
+   {
+    "text": "Does this image feature a type of broccoli?",
+    "dist": 0.1099,
+    "nli": 0.963,
+    "cola": 0.972
+   },
+   {
+    "text": "Does this image feature a piece of broccoli?",
+    "dist": 0.1101,
+    "nli": 0.923,
+    "cola": 0.973
+   },
+   {
+    "text": "Does the image contain a depiction of a broccoli?",
+    "dist": 0.1108,
+    "nli": 0.981,
+    "cola": 0.933
+   },
+   {
+    "text": "Does the image depict a type of broccoli?",
+    "dist": 0.1113,
+    "nli": 0.934,
+    "cola": 0.973
+   },
+   {
+    "text": "Does this image depict a broccoli?",
+    "dist": 0.1123,
+    "nli": 0.995,
+    "cola": 0.96
+   },
+   {
+    "text": "Does the image display a type of broccoli?",
+    "dist": 0.1129,
+    "nli": 0.917,
+    "cola": 0.968
+   },
+   {
+    "text": "Does the image display a piece of broccoli?",
+    "dist": 0.1158,
+    "nli": 0.963,
+    "cola": 0.968
+   },
+   {
+    "text": "Does this image display a type of broccoli?",
+    "dist": 0.1162,
+    "nli": 0.947,
+    "cola": 0.971
+   },
+   {
+    "text": "Does this image display a piece of broccoli?",
+    "dist": 0.1179,
+    "nli": 0.968,
+    "cola": 0.971
+   },
+   {
+    "text": "Does the image depict a piece of broccoli?",
+    "dist": 0.1217,
+    "nli": 0.907,
+    "cola": 0.973
+   },
+   {
+    "text": "Can you spot the broccoli in the image?",
+    "dist": 0.1265,
+    "nli": 0.958,
+    "cola": 0.976
+   },
+   {
+    "text": "Is the image of the broccoli depicted?",
+    "dist": 0.135,
+    "nli": 0.988,
+    "cola": 0.862
+   },
+   {
+    "text": "Could the broccoli be depicted in the image?",
+    "dist": 0.136,
+    "nli": 0.973,
+    "cola": 0.945
+   },
+   {
+    "text": "Does the image portray a type of broccoli?",
+    "dist": 0.1375,
+    "nli": 0.939,
+    "cola": 0.969
+   },
+   {
+    "text": "Could the image contain a piece of broccoli?",
+    "dist": 0.1375,
+    "nli": 0.943,
+    "cola": 0.977
+   },
+   {
+    "text": "Does this image feature a broccoli plant?",
+    "dist": 0.1457,
+    "nli": 0.995,
+    "cola": 0.975
+   },
+   {
+    "text": "Does the image portray a piece of broccoli?",
+    "dist": 0.1523,
+    "nli": 0.967,
+    "cola": 0.967
+   },
+   {
+    "text": "Does this image depict a broccoli plant?",
+    "dist": 0.1554,
+    "nli": 0.992,
+    "cola": 0.974
+   },
+   {
+    "text": "Does the image depict a broccoli-like structure?",
+    "dist": 0.1556,
+    "nli": 0.94,
+    "cola": 0.969
+   },
+   {
+    "text": "Does the image portray a broccoli-like item?",
+    "dist": 0.1678,
+    "nli": 0.97,
+    "cola": 0.97
+   },
+   {
+    "text": "Does the image depict a broccoli stalk?",
+    "dist": 0.1683,
+    "nli": 0.984,
+    "cola": 0.973
+   },
+   {
+    "text": "Can the image depict a piece of broccoli?",
+    "dist": 0.1753,
+    "nli": 0.925,
+    "cola": 0.963
+   },
+   {
+    "text": "Does this image depict a broccoli crop?",
+    "dist": 0.2081,
+    "nli": 0.971,
+    "cola": 0.971
+   }
+  ]
+ },
+ "Is there a fire hydrant in the image?": {
+  "protect": [
+   "fire hydrant",
+   "image"
+  ],
+  "generated": 118,
+  "rejected": {
+   "protected word lost": 90,
+   "not a question": 2,
+   "NLI < 0.8": 6,
+   "CoLA below threshold": 1
+  },
+  "paraphrases": [
+   {
+    "text": "Is there a fire hydrant in this image?",
+    "dist": 0.0054,
+    "nli": 0.994,
+    "cola": 0.962
+   },
+   {
+    "text": "Is there a fire hydrant present in the image?",
+    "dist": 0.0101,
+    "nli": 0.994,
+    "cola": 0.958
+   },
+   {
+    "text": "Is there a fire hydrant in this particular image?",
+    "dist": 0.015,
+    "nli": 0.959,
+    "cola": 0.952
+   },
+   {
+    "text": "Is there a fire hydrant present in this image?",
+    "dist": 0.0198,
+    "nli": 0.995,
+    "cola": 0.962
+   },
+   {
+    "text": "Is there a fire hydrant (as seen in the image)?",
+    "dist": 0.0248,
+    "nli": 0.986,
+    "cola": 0.967
+   },
+   {
+    "text": "Can you confirm if there is a fire hydrant present in the image?",
+    "dist": 0.0464,
+    "nli": 0.997,
+    "cola": 0.971
+   },
+   {
+    "text": "Is there any presence of a fire hydrant in the image?",
+    "dist": 0.0468,
+    "nli": 0.98,
+    "cola": 0.881
+   },
+   {
+    "text": "Is there really a fire hydrant (as shown in the image)?",
+    "dist": 0.0491,
+    "nli": 0.977,
+    "cola": 0.951
+   },
+   {
+    "text": "Does the fire hydrant in the image exist?",
+    "dist": 0.0541,
+    "nli": 0.943,
+    "cola": 0.965
+   },
+   {
+    "text": "Is there such a thing as a fire hydrant visible in the image?",
+    "dist": 0.0824,
+    "nli": 0.996,
+    "cola": 0.939
+   },
+   {
+    "text": "Is there an image of a fire hydrant?",
+    "dist": 0.102,
+    "nli": 0.994,
+    "cola": 0.964
+   },
+   {
+    "text": "Does this image contain a fire hydrant?",
+    "dist": 0.1022,
+    "nli": 0.997,
+    "cola": 0.971
+   },
+   {
+    "text": "Does the image contain a fire hydrant?",
+    "dist": 0.1024,
+    "nli": 0.998,
+    "cola": 0.969
+   },
+   {
+    "text": "Is the fire hydrant visible in the image?",
+    "dist": 0.1296,
+    "nli": 0.974,
+    "cola": 0.977
+   },
+   {
+    "text": "Does the image display a fire hydrant?",
+    "dist": 0.1349,
+    "nli": 0.997,
+    "cola": 0.97
+   },
+   {
+    "text": "Does this image display a fire hydrant?",
+    "dist": 0.1529,
+    "nli": 0.997,
+    "cola": 0.972
+   },
+   {
+    "text": "Does the image depict a fire hydrant?",
+    "dist": 0.1686,
+    "nli": 0.996,
+    "cola": 0.972
+   },
+   {
+    "text": "Does this image depict a fire hydrant?",
+    "dist": 0.1792,
+    "nli": 0.996,
+    "cola": 0.972
+   },
+   {
+    "text": "Can you identify whether the fire hydrant is visible in the image?",
+    "dist": 0.228,
+    "nli": 0.976,
+    "cola": 0.976
+   }
+  ]
+ },
+ "Is there a car in the image?": {
+  "protect": [
+   "car",
+   "image"
+  ],
+  "generated": 149,
+  "rejected": {
+   "protected word lost": 110,
+   "NLI < 0.8": 11,
+   "CoLA below threshold": 2
+  },
+  "paraphrases": [
+   {
+    "text": "Is there a car present in the image?",
+    "dist": 0.0281,
+    "nli": 0.993,
+    "cola": 0.944
+   },
+   {
+    "text": "Is there a car depicted in the image?",
+    "dist": 0.0628,
+    "nli": 0.993,
+    "cola": 0.923
+   },
+   {
+    "text": "Is there a car depicted in the above image?",
+    "dist": 0.0904,
+    "nli": 0.985,
+    "cola": 0.942
+   },
+   {
+    "text": "Is there a car visible in the image?",
+    "dist": 0.0914,
+    "nli": 0.991,
+    "cola": 0.973
+   },
+   {
+    "text": "Does a car exist in the image?",
+    "dist": 0.0923,
+    "nli": 0.989,
+    "cola": 0.97
+   },
+   {
+    "text": "Is there a car visible in the pictured image?",
+    "dist": 0.1153,
+    "nli": 0.993,
+    "cola": 0.975
+   },
+   {
+    "text": "Is the car shown in the image?",
+    "dist": 0.1254,
+    "nli": 0.982,
+    "cola": 0.904
+   },
+   {
+    "text": "Does this image contain a car?",
+    "dist": 0.1266,
+    "nli": 0.997,
+    "cola": 0.972
+   },
+   {
+    "text": "Does the image contain a car?",
+    "dist": 0.1389,
+    "nli": 0.997,
+    "cola": 0.97
+   },
+   {
+    "text": "Does a car exist, as shown in the image?",
+    "dist": 0.143,
+    "nli": 0.971,
+    "cola": 0.974
+   },
+   {
+    "text": "Is the car depicted in the image?",
+    "dist": 0.1465,
+    "nli": 0.987,
+    "cola": 0.893
+   },
+   {
+    "text": "Does this image show a car?",
+    "dist": 0.1587,
+    "nli": 0.995,
+    "cola": 0.974
+   },
+   {
+    "text": "Does the image show a car?",
+    "dist": 0.1603,
+    "nli": 0.996,
+    "cola": 0.974
+   },
+   {
+    "text": "Does the image include a car?",
+    "dist": 0.1655,
+    "nli": 0.995,
+    "cola": 0.971
+   },
+   {
+    "text": "Does this image include a car?",
+    "dist": 0.1699,
+    "nli": 0.996,
+    "cola": 0.973
+   },
+   {
+    "text": "Does the image depict a car?",
+    "dist": 0.197,
+    "nli": 0.995,
+    "cola": 0.973
+   },
+   {
+    "text": "Does this image depict a car?",
+    "dist": 0.199,
+    "nli": 0.995,
+    "cola": 0.975
+   },
+   {
+    "text": "Does this image contain a depiction of a car?",
+    "dist": 0.2007,
+    "nli": 0.993,
+    "cola": 0.968
+   },
+   {
+    "text": "Does this image feature a car?",
+    "dist": 0.2104,
+    "nli": 0.997,
+    "cola": 0.975
+   },
+   {
+    "text": "Does the image display a car?",
+    "dist": 0.2137,
+    "nli": 0.995,
+    "cola": 0.966
+   },
+   {
+    "text": "Does this image display a car?",
+    "dist": 0.22,
+    "nli": 0.995,
+    "cola": 0.971
+   },
+   {
+    "text": "Does this image contain a representation of a car?",
+    "dist": 0.2314,
+    "nli": 0.983,
+    "cola": 0.969
+   },
+   {
+    "text": "Does this image display a type of car?",
+    "dist": 0.2419,
+    "nli": 0.977,
+    "cola": 0.967
+   },
+   {
+    "text": "Does the image showcase a car?",
+    "dist": 0.2651,
+    "nli": 0.996,
+    "cola": 0.966
+   },
+   {
+    "text": "Could this be an image of a car?",
+    "dist": 0.2677,
+    "nli": 0.994,
+    "cola": 0.964
+   },
+   {
+    "text": "Does this image of a car depict a specific type of vehicle?",
+    "dist": 0.2938,
+    "nli": 0.912,
+    "cola": 0.971
+   }
+  ]
+ },
+ "Is there a dog in the image?": {
+  "protect": [
+   "dog",
+   "image"
+  ],
+  "generated": 145,
+  "rejected": {
+   "protected word lost": 119,
+   "NLI < 0.8": 13
+  },
+  "paraphrases": [
+   {
+    "text": "Is there a dog represented in this image?",
+    "dist": 0.0604,
+    "nli": 0.987,
+    "cola": 0.905
+   },
+   {
+    "text": "Is there a dog visible in the image?",
+    "dist": 0.0659,
+    "nli": 0.992,
+    "cola": 0.972
+   },
+   {
+    "text": "Is the dog depicted in the image?",
+    "dist": 0.1059,
+    "nli": 0.984,
+    "cola": 0.913
+   },
+   {
+    "text": "Does this image show a dog?",
+    "dist": 0.1351,
+    "nli": 0.995,
+    "cola": 0.973
+   },
+   {
+    "text": "Does this image include a dog?",
+    "dist": 0.1417,
+    "nli": 0.996,
+    "cola": 0.972
+   },
+   {
+    "text": "Does this image depict a dog?",
+    "dist": 0.1559,
+    "nli": 0.995,
+    "cola": 0.973
+   },
+   {
+    "text": "Does the image depict a dog?",
+    "dist": 0.1625,
+    "nli": 0.995,
+    "cola": 0.972
+   },
+   {
+    "text": "Does the image display a dog?",
+    "dist": 0.1768,
+    "nli": 0.996,
+    "cola": 0.957
+   },
+   {
+    "text": "Does this image feature a dog?",
+    "dist": 0.1931,
+    "nli": 0.997,
+    "cola": 0.975
+   },
+   {
+    "text": "Could this be an image of a dog?",
+    "dist": 0.2001,
+    "nli": 0.993,
+    "cola": 0.959
+   },
+   {
+    "text": "Does the image feature a dog?",
+    "dist": 0.204,
+    "nli": 0.997,
+    "cola": 0.974
+   },
+   {
+    "text": "Does the image showcase a dog?",
+    "dist": 0.2269,
+    "nli": 0.997,
+    "cola": 0.964
+   },
+   {
+    "text": "Does the image portray a dog?",
+    "dist": 0.2359,
+    "nli": 0.994,
+    "cola": 0.967
+   }
+  ]
+ },
+ "Is there a toilet in the image?": {
+  "protect": [
+   "image",
+   "toilet"
+  ],
+  "generated": 216,
+  "rejected": {
+   "protected word lost": 158,
+   "not a question": 1,
+   "NLI < 0.8": 20,
+   "CoLA below threshold": 3
+  },
+  "paraphrases": [
+   {
+    "text": "Is there a toilet present in the image?",
+    "dist": 0.0266,
+    "nli": 0.991,
+    "cola": 0.927
+   },
+   {
+    "text": "Does this image have a toilet in it?",
+    "dist": 0.0609,
+    "nli": 0.996,
+    "cola": 0.962
+   },
+   {
+    "text": "Does this image have a toilet?",
+    "dist": 0.064,
+    "nli": 0.993,
+    "cola": 0.952
+   },
+   {
+    "text": "Does this image have a toilet on it?",
+    "dist": 0.0708,
+    "nli": 0.946,
+    "cola": 0.961
+   },
+   {
+    "text": "Is there a toilet visible in the image?",
+    "dist": 0.0735,
+    "nli": 0.984,
+    "cola": 0.972
+   },
+   {
+    "text": "Is there a toilet visible in this image?",
+    "dist": 0.0772,
+    "nli": 0.989,
+    "cola": 0.975
+   },
+   {
+    "text": "Is there a toilet visible in the provided image?",
+    "dist": 0.0811,
+    "nli": 0.994,
+    "cola": 0.964
+   },
+   {
+    "text": "Can you confirm if the image has a toilet?",
+    "dist": 0.0852,
+    "nli": 0.995,
+    "cola": 0.959
+   },
+   {
+    "text": "Does this image contain a toilet?",
+    "dist": 0.0924,
+    "nli": 0.996,
+    "cola": 0.973
+   },
+   {
+    "text": "Does the image contain a toilet?",
+    "dist": 0.0989,
+    "nli": 0.997,
+    "cola": 0.971
+   },
+   {
+    "text": "Does the image contain an toilet?",
+    "dist": 0.1004,
+    "nli": 0.997,
+    "cola": 0.963
+   },
+   {
+    "text": "Can we find a toilet in the image?",
+    "dist": 0.1008,
+    "nli": 0.974,
+    "cola": 0.927
+   },
+   {
+    "text": "Does this image include a toilet?",
+    "dist": 0.1133,
+    "nli": 0.996,
+    "cola": 0.973
+   },
+   {
+    "text": "Is the image showcasing a toilet?",
+    "dist": 0.1196,
+    "nli": 0.996,
+    "cola": 0.931
+   },
+   {
+    "text": "Does the image contain a toilet that you can spot?",
+    "dist": 0.1247,
+    "nli": 0.983,
+    "cola": 0.977
+   },
+   {
+    "text": "Can you confirm if there is a toilet visible in this image?",
+    "dist": 0.1267,
+    "nli": 0.995,
+    "cola": 0.976
+   },
+   {
+    "text": "Does this image feature a toilet?",
+    "dist": 0.128,
+    "nli": 0.997,
+    "cola": 0.974
+   },
+   {
+    "text": "Can you confirm if there is a toilet visible in the image?",
+    "dist": 0.128,
+    "nli": 0.994,
+    "cola": 0.976
+   },
+   {
+    "text": "Can you confirm the presence of a toilet in the image?",
+    "dist": 0.133,
+    "nli": 0.996,
+    "cola": 0.97
+   },
+   {
+    "text": "Does the image contain a toilet facility?",
+    "dist": 0.1365,
+    "nli": 0.996,
+    "cola": 0.964
+   },
+   {
+    "text": "Does the image display a toilet?",
+    "dist": 0.1384,
+    "nli": 0.996,
+    "cola": 0.972
+   },
+   {
+    "text": "Does this image depict a toilet?",
+    "dist": 0.1409,
+    "nli": 0.995,
+    "cola": 0.974
+   },
+   {
+    "text": "Can you confirm if the image features a toilet?",
+    "dist": 0.1471,
+    "nli": 0.995,
+    "cola": 0.977
+   },
+   {
+    "text": "Can you spot the toilet shown in this image?",
+    "dist": 0.1572,
+    "nli": 0.957,
+    "cola": 0.976
+   },
+   {
+    "text": "Does the image contain a toilet installation?",
+    "dist": 0.1606,
+    "nli": 0.947,
+    "cola": 0.965
+   },
+   {
+    "text": "Does the image display a toilet facility?",
+    "dist": 0.1733,
+    "nli": 0.996,
+    "cola": 0.967
+   },
+   {
+    "text": "Can you identify a toilet that is visible in the image?",
+    "dist": 0.178,
+    "nli": 0.968,
+    "cola": 0.97
+   },
+   {
+    "text": "Can you provide the toilet image?",
+    "dist": 0.1841,
+    "nli": 0.979,
+    "cola": 0.956
+   },
+   {
+    "text": "Does this image display a toilet facility?",
+    "dist": 0.1883,
+    "nli": 0.996,
+    "cola": 0.973
+   },
+   {
+    "text": "Does the image display a toilet as an object?",
+    "dist": 0.1956,
+    "nli": 0.99,
+    "cola": 0.957
+   },
+   {
+    "text": "Does this image display a toilet as an object?",
+    "dist": 0.1967,
+    "nli": 0.994,
+    "cola": 0.964
+   },
+   {
+    "text": "Does the image display a toilet as a feature?",
+    "dist": 0.1974,
+    "nli": 0.981,
+    "cola": 0.953
+   },
+   {
+    "text": "Does the image display a toilet compartment?",
+    "dist": 0.2023,
+    "nli": 0.987,
+    "cola": 0.97
+   },
+   {
+    "text": "Does the image display a toilet's dimensions?",
+    "dist": 0.2771,
+    "nli": 0.971,
+    "cola": 0.955
+   }
+  ]
+ },
+ "Is there a remote in the image?": {
+  "protect": [
+   "image",
+   "remote"
+  ],
+  "generated": 209,
+  "rejected": {
+   "protected word lost": 152,
+   "not a question": 1,
+   "NLI < 0.8": 20,
+   "CoLA below threshold": 2
+  },
+  "paraphrases": [
+   {
+    "text": "Does the image contain a remote?",
+    "dist": 0.0863,
+    "nli": 0.997,
+    "cola": 0.972
+   },
+   {
+    "text": "Does this image contain a remote?",
+    "dist": 0.0924,
+    "nli": 0.997,
+    "cola": 0.973
+   },
+   {
+    "text": "Does this image show a remote?",
+    "dist": 0.1118,
+    "nli": 0.997,
+    "cola": 0.973
+   },
+   {
+    "text": "Does the image contain a remote for remote control?",
+    "dist": 0.1233,
+    "nli": 0.988,
+    "cola": 0.924
+   },
+   {
+    "text": "Does this image include a remote?",
+    "dist": 0.13,
+    "nli": 0.997,
+    "cola": 0.975
+   },
+   {
+    "text": "Is the image showing a remote control?",
+    "dist": 0.1479,
+    "nli": 0.994,
+    "cola": 0.946
+   },
+   {
+    "text": "Does the image display a remote?",
+    "dist": 0.1517,
+    "nli": 0.997,
+    "cola": 0.971
+   },
+   {
+    "text": "Does the image contain a remote control?",
+    "dist": 0.1589,
+    "nli": 0.996,
+    "cola": 0.969
+   },
+   {
+    "text": "Does this image display a remote?",
+    "dist": 0.1643,
+    "nli": 0.996,
+    "cola": 0.974
+   },
+   {
+    "text": "Does the image show a remote control?",
+    "dist": 0.1647,
+    "nli": 0.996,
+    "cola": 0.973
+   },
+   {
+    "text": "Does the image contain a remote that can be used for remote control?",
+    "dist": 0.1651,
+    "nli": 0.991,
+    "cola": 0.976
+   },
+   {
+    "text": "Does this image contain a remote control?",
+    "dist": 0.1713,
+    "nli": 0.996,
+    "cola": 0.971
+   },
+   {
+    "text": "Does the image contain a remote that can be controlled?",
+    "dist": 0.1726,
+    "nli": 0.991,
+    "cola": 0.973
+   },
+   {
+    "text": "Does the image contain a remote that can be operated by remote controls?",
+    "dist": 0.1754,
+    "nli": 0.968,
+    "cola": 0.967
+   },
+   {
+    "text": "Does the image show a remote that I can control?",
+    "dist": 0.1771,
+    "nli": 0.964,
+    "cola": 0.974
+   },
+   {
+    "text": "Does the image include a remote that can be used for remote control?",
+    "dist": 0.1776,
+    "nli": 0.992,
+    "cola": 0.974
+   },
+   {
+    "text": "Does this image show a remote control?",
+    "dist": 0.1815,
+    "nli": 0.996,
+    "cola": 0.974
+   },
+   {
+    "text": "Is the image showing a way to access a remote?",
+    "dist": 0.1846,
+    "nli": 0.942,
+    "cola": 0.906
+   },
+   {
+    "text": "Is the remote visible on this image?",
+    "dist": 0.1889,
+    "nli": 0.967,
+    "cola": 0.968
+   },
+   {
+    "text": "Does the image show remote control?",
+    "dist": 0.1966,
+    "nli": 0.994,
+    "cola": 0.951
+   },
+   {
+    "text": "Can you tell me if the remote is present in the given image?",
+    "dist": 0.1985,
+    "nli": 0.99,
+    "cola": 0.975
+   },
+   {
+    "text": "Is the image showing a remote that can be used for remote control?",
+    "dist": 0.2005,
+    "nli": 0.958,
+    "cola": 0.955
+   },
+   {
+    "text": "Does the image display a remote control?",
+    "dist": 0.2098,
+    "nli": 0.995,
+    "cola": 0.962
+   },
+   {
+    "text": "Does the image display a remote that can be used for remote control?",
+    "dist": 0.21,
+    "nli": 0.991,
+    "cola": 0.974
+   },
+   {
+    "text": "Does this image display a remote control?",
+    "dist": 0.2189,
+    "nli": 0.995,
+    "cola": 0.973
+   },
+   {
+    "text": "Does the image display a remote device?",
+    "dist": 0.227,
+    "nli": 0.995,
+    "cola": 0.969
+   },
+   {
+    "text": "Is the image showing a remote control mechanism?",
+    "dist": 0.2393,
+    "nli": 0.978,
+    "cola": 0.956
+   },
+   {
+    "text": "Does the image display a remote control panel?",
+    "dist": 0.2447,
+    "nli": 0.969,
+    "cola": 0.972
+   },
+   {
+    "text": "Does this image display a remote control panel?",
+    "dist": 0.2621,
+    "nli": 0.964,
+    "cola": 0.976
+   },
+   {
+    "text": "Does this image demonstrate the use of a remote?",
+    "dist": 0.2656,
+    "nli": 0.962,
+    "cola": 0.972
+   },
+   {
+    "text": "Does the image display a remote control for remote users?",
+    "dist": 0.2703,
+    "nli": 0.962,
+    "cola": 0.923
+   },
+   {
+    "text": "Does the image display a remote that can be used to control a device?",
+    "dist": 0.278,
+    "nli": 0.988,
+    "cola": 0.974
+   },
+   {
+    "text": "Would it be possible to find a remote control in the image?",
+    "dist": 0.2867,
+    "nli": 0.993,
+    "cola": 0.961
+   },
+   {
+    "text": "Does the image display a remote control for remote operators?",
+    "dist": 0.3029,
+    "nli": 0.981,
+    "cola": 0.934
+   }
+  ]
+ },
+ "Is there a tv in the image?": {
+  "protect": [
+   "image",
+   "tv"
+  ],
+  "generated": 131,
+  "rejected": {
+   "protected word lost": 118,
+   "NLI < 0.8": 3,
+   "CoLA below threshold": 1
+  },
+  "paraphrases": [
+   {
+    "text": "Does the image contain a TV?",
+    "dist": 0.1082,
+    "nli": 0.997,
+    "cola": 0.969
+   },
+   {
+    "text": "Is the TV visible in the image?",
+    "dist": 0.1475,
+    "nli": 0.978,
+    "cola": 0.963
+   },
+   {
+    "text": "Can you see the TV in the image?",
+    "dist": 0.1566,
+    "nli": 0.992,
+    "cola": 0.969
+   },
+   {
+    "text": "Does the image display a TV?",
+    "dist": 0.1648,
+    "nli": 0.997,
+    "cola": 0.949
+   },
+   {
+    "text": "Does this image feature a TV?",
+    "dist": 0.1714,
+    "nli": 0.997,
+    "cola": 0.976
+   },
+   {
+    "text": "Does this image display a TV?",
+    "dist": 0.173,
+    "nli": 0.996,
+    "cola": 0.969
+   },
+   {
+    "text": "Can you spot the TV shown in this image?",
+    "dist": 0.2067,
+    "nli": 0.977,
+    "cola": 0.978
+   },
+   {
+    "text": "Does the image contain any indications of a TV?",
+    "dist": 0.2205,
+    "nli": 0.978,
+    "cola": 0.923
+   },
+   {
+    "text": "Does the image showcase a TV?",
+    "dist": 0.2407,
+    "nli": 0.997,
+    "cola": 0.961
+   }
+  ]
+ },
+ "Is there a handbag in the image?": {
+  "protect": [
+   "handbag",
+   "image"
+  ],
+  "generated": 114,
+  "rejected": {
+   "protected word lost": 87,
+   "not a question": 1,
+   "NLI < 0.8": 8,
+   "CoLA below threshold": 1
+  },
+  "paraphrases": [
+   {
+    "text": "Is there a handbag visible in the image?",
+    "dist": 0.062,
+    "nli": 0.987,
+    "cola": 0.966
+   },
+   {
+    "text": "Is the handbag in the image?",
+    "dist": 0.0737,
+    "nli": 0.992,
+    "cola": 0.924
+   },
+   {
+    "text": "Does this image contain a handbag?",
+    "dist": 0.0802,
+    "nli": 0.996,
+    "cola": 0.969
+   },
+   {
+    "text": "Does the image contain a handbag?",
+    "dist": 0.0868,
+    "nli": 0.997,
+    "cola": 0.965
+   },
+   {
+    "text": "Does the image include a handbag?",
+    "dist": 0.0986,
+    "nli": 0.997,
+    "cola": 0.963
+   },
+   {
+    "text": "Does this image include a handbag?",
+    "dist": 0.1053,
+    "nli": 0.997,
+    "cola": 0.967
+   },
+   {
+    "text": "Is the handbag depicted in the image?",
+    "dist": 0.1056,
+    "nli": 0.987,
+    "cola": 0.906
+   },
+   {
+    "text": "Is the handbag featured in the image?",
+    "dist": 0.1106,
+    "nli": 0.917,
+    "cola": 0.924
+   },
+   {
+    "text": "Does this image feature a handbag?",
+    "dist": 0.1133,
+    "nli": 0.998,
+    "cola": 0.973
+   },
+   {
+    "text": "Does the image display a handbag?",
+    "dist": 0.122,
+    "nli": 0.996,
+    "cola": 0.959
+   },
+   {
+    "text": "Does this image display a handbag?",
+    "dist": 0.1255,
+    "nli": 0.996,
+    "cola": 0.97
+   },
+   {
+    "text": "Does the image feature a handbag?",
+    "dist": 0.1282,
+    "nli": 0.998,
+    "cola": 0.97
+   },
+   {
+    "text": "Does the image depict a handbag?",
+    "dist": 0.1314,
+    "nli": 0.996,
+    "cola": 0.971
+   },
+   {
+    "text": "Does this image depict a handbag?",
+    "dist": 0.1353,
+    "nli": 0.996,
+    "cola": 0.972
+   },
+   {
+    "text": "Is the handbag visible in the image?",
+    "dist": 0.1443,
+    "nli": 0.95,
+    "cola": 0.975
+   },
+   {
+    "text": "Does the image showcase a handbag?",
+    "dist": 0.1549,
+    "nli": 0.997,
+    "cola": 0.965
+   },
+   {
+    "text": "Does the image reveal a handbag?",
+    "dist": 0.1632,
+    "nli": 0.996,
+    "cola": 0.973
+   }
+  ]
+ }
+}

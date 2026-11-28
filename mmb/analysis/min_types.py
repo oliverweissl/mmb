@@ -38,7 +38,7 @@ def classify_genotype(genotype, ctx: dict, text: str) -> dict:
     n_img_slots = len(ctx.get("image_patch_positions", []))
     img, txt = g[:n_img_slots], g[n_img_slots:]
     out = dict(img_genes=_nonzero(img), txt_genes=_nonzero(txt), txt_synonym_words=0, txt_typo_words=0,
-               txt_zero_width=0, txt_homoglyph=0, txt_other_genes=0)
+               txt_zero_width=0, txt_homoglyph=0, txt_paraphrase=0, txt_other_genes=0)
     pos = 0
     for name, dim in zip(ctx.get("text_op_order", []), ctx.get("text_op_gene_dims", [])):
         block = txt[pos:pos + dim]
@@ -48,6 +48,8 @@ def classify_genotype(genotype, ctx: dict, text: str) -> dict:
             continue
         if name in ("synonym", "semantic_substitution"):       # word substitutions (MLM synonym / T-A semantic ladder)
             out["txt_synonym_words"] += k
+        elif name == "paraphrase":                             # T-B whole-question paraphrase (one gene)
+            out["txt_paraphrase"] += k
         elif name == "saliency":
             out["txt_typo_words"] += k
         elif name == "character_noise":

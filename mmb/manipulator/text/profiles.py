@@ -203,6 +203,10 @@ def build_operators_from_specs(
                     redis_url=redis_url,
                 )
             )
+        elif spec.name == "paraphrase":
+            from .operators.paraphrase import BANK, ParaphraseOperator
+            out.append(ParaphraseOperator(severity=spec.severity, ladder=tuple(spec.extras.get("ladder", (1, 2, 4, 8, 16))),
+                                          bank=spec.extras.get("bank", BANK)))
         elif spec.name == "fragmentation":
             out.append(
                 FragmentationOperator(
