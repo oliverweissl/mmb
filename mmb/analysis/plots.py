@@ -95,72 +95,133 @@ def _wilson(k: float, n: float, z: float = 1.959964) -> tuple[float, float]:
     return max(0.0, c - h), min(1.0, c + h)
 
 
-LABEL_OFFSETS = {"Zero": ((5, 3), "left"), "One": ((5, 3), "left"), "TwoA": ((5, 3), "left"),
-                 "TwoB": ((-4, -10), "right"), "Three": ((4, 5), "left"), "Final": ((5, -11), "left")}
 CALIB_MODS = (("text", "text-only"), ("image", "image-only"), ("both", "MMBA"), ("mimicry", "MIMICRY-style"),
               ("deepjanus", "DeepJanus-style"))
+# label placement (offset in points, ha, va) per step: panel (a) full view, panel (b) zoom on the lower cluster
+CALIB_LABEL = {"Zero": ((3.0, 84.0), "left", "top"), "One": ((57.0, 81.0), "left", "bottom")}     # data coordinates
+CALIB_ZOOM_LABEL = {"TwoA": ((6, 0), "left", "center"), "TwoB": ((0, -8), "center", "top"),
+                    "Three": ((4, -6), "left", "top"), "Final": ((-3, 7), "left", "bottom")}
+CALIB_ZOOM = (0.0, 45.0, 20.0, 55.0)        # x0, x1, y0, y1 (%) of panel (b)
+
+
+def _calib_marker(ax, r, s=22):
+    st = str(r.get("status", "adopted"))
+    x, y = r["text_cr"], r["image_cr"]
+    if st == "start":
+        ax.scatter(x, y, s=s * 1.6, marker="s", color="0.5", edgecolors="0.0", linewidths=0.7, zorder=4)
+    elif st == "rejected":
+        ax.scatter(x, y, s=s, marker="o", facecolors="white", edgecolors="0.0", linewidths=0.8, zorder=4)
+    elif bool(r["final"]):
+        ax.scatter(x, y, s=s * 1.3, marker="D", facecolors="0.0", edgecolors="0.0", linewidths=0.8, zorder=5)
+    else:
+        ax.scatter(x, y, s=s * 1.2, marker="o", color="0.0", zorder=5)
+
+
+def _calib_text(r, stacked: bool = False) -> str:
+    t = str(r["label"])
+    if stacked:
+        t = t.replace(" (", "\n(")
+    reason = r.get("reason")
+    if isinstance(reason, str) and reason and str(r.get("status")) == "rejected":
+        t += ("\n" if stacked else ": ") + reason
+    if not pd.isna(r.get("image_lpips_med")):
+        t += f"\nLPIPS {float(r['image_lpips_med']):.3f}"
+    return t
+
+
+def _calib_arrows(a, sub, box=None):
+    for i, j in zip(sub.index[:-1], sub.index[1:]):
+        p, q = (sub.at[i, "text_cr"], sub.at[i, "image_cr"]), (sub.at[j, "text_cr"], sub.at[j, "image_cr"])
+        if box is not None and not all(box[0] <= x <= box[1] and box[2] <= y <= box[3] for x, y in (p, q)):
+            continue
+        a.annotate("", xy=q, xytext=p, arrowprops=dict(arrowstyle="-|>", color="0.2", linewidth=0.8, shrinkA=4, shrinkB=4,
+                                                       mutation_scale=7), zorder=2)
 
 
 def plot_calib_trajectory(traj: pd.DataFrame, out: Path | str, final: pd.DataFrame | None = None, *,
-                          width_in: float = 5.4, height_in: float = 2.6) -> Path:
-    """Operator calibration, main-paper figure. Left: text-only vs image-only crossing share (%) per calibration step
-    (scripts/analysis/calib_trajectory.py), Wilson 95% CIs, the diagonal = balance; steps on held-out set 1 joined by
-    arrows from the uncalibrated MAIN operators to C*; the C* final check (sets 1+2) as a hollow diamond. Labels carry
-    the median LPIPS of image-only crossings. Right (if *final*, the pooled rows of calib_final.py summary.csv):
-    crossing share of every method at C* on the final-check inputs, with a reference line at full MMBA."""
-    plt.rcParams.update({"pdf.fonttype": 42, "ps.fonttype": 42, "font.size": 7, "axes.linewidth": 0.6})
-    two = final is not None and len(final)
-    fig, axs = plt.subplots(1, 2 if two else 1, figsize=(width_in if two else width_in * 0.55, height_in),
-                            gridspec_kw={"width_ratios": [1.1, 1]} if two else None)
-    ax = axs[0] if two else axs
+                          missing_note: str = "(on hold)", width_in: float = 5.4, height_in: float = 3.75) -> Path:
+    """Operator calibration, main-paper figure (scripts/analysis/calib_trajectory.py output), three panels.
+    (a) text-only vs image-only crossing share (%) per calibration step on the same held-out inputs; dashed diagonal =
+        balance. Grey square = the uncalibrated MAIN operators (start); hollow circles = settings the calibration moved
+        away from, labelled with the reason; filled circle = C*; filled diamond = C* final check (sets 1+2). Labels carry
+        the median LPIPS of the image-only crossings. The box marks panel (b).
+    (b) zoom on the lower cluster; Wilson 95% CIs on C* and the final check.
+    (c) if *final* (pooled rows of calib_final.py summary.csv): crossing share of every method at C* on the final-check
+        inputs with Wilson 95% CIs; dashed line = full MMBA; methods without runs show *missing_note*."""
+    plt.rcParams.update({"pdf.fonttype": 42, "ps.fonttype": 42, "font.size": 6.5, "axes.linewidth": 0.6})
+    three = final is not None
+    fig = plt.figure(figsize=(width_in, height_in if three else height_in * 0.66))
+    gs = fig.add_gridspec(2 if three else 1, 2, height_ratios=[2.0, 1.0] if three else None)
+    ax, zx = fig.add_subplot(gs[0, 0]), fig.add_subplot(gs[0, 1])
+    traj = traj.reset_index(drop=True)
+    chain = traj[~traj["final"].astype(bool)].reset_index(drop=True)
+    x0, x1, y0, y1 = CALIB_ZOOM
+    in_box = lambda r: x0 <= r["text_cr"] <= x1 and y0 <= r["image_cr"] <= y1
+    # (a) full view
     ax.plot([0, 100], [0, 100], color="0.55", linestyle="--", linewidth=0.7, zorder=0)
-    ax.text(80, 77, "balance: text = image", rotation=45, rotation_mode="anchor", ha="center", va="top", fontsize=5.5, color="0.4")
-    fin_mask = traj["final"].astype(bool).to_numpy()
-    chain = traj[~fin_mask].reset_index(drop=True)
-    fin = traj[fin_mask]
+    ax.text(70, 71.5, "balance", rotation=45, rotation_mode="anchor", ha="center", va="bottom", fontsize=5.5, color="0.4")
+    ax.add_patch(plt.Rectangle((x0, y0), x1 - x0, y1 - y0, fill=False, edgecolor="0.45", linewidth=0.5, linestyle=":", zorder=1))
+    ax.text(x1 - 1, y0 + 1, "(b)", ha="right", va="bottom", fontsize=5.5, color="0.35")
+    _calib_arrows(ax, chain)
     for _, r in traj.iterrows():
-        ax.errorbar(r["text_cr"], r["image_cr"], xerr=[[r["text_cr"] - r["text_lo"]], [r["text_hi"] - r["text_cr"]]],
-                    yerr=[[r["image_cr"] - r["image_lo"]], [r["image_hi"] - r["image_cr"]]], fmt="none",
-                    ecolor="0.72", elinewidth=0.5, capsize=1.2, zorder=1)
-    for a_, b_ in zip(chain.index[:-1], chain.index[1:]):
-        ax.annotate("", xy=(chain.at[b_, "text_cr"], chain.at[b_, "image_cr"]), xytext=(chain.at[a_, "text_cr"], chain.at[a_, "image_cr"]),
-                    arrowprops=dict(arrowstyle="-|>", color="0.15", linewidth=0.9, shrinkA=4, shrinkB=4, mutation_scale=7), zorder=2)
-    ax.scatter(chain["text_cr"], chain["image_cr"], s=18, color="0.0", zorder=3)
-    if len(chain) and chain.at[0, "step"] == "Zero":
-        ax.scatter(chain.at[0, "text_cr"], chain.at[0, "image_cr"], s=48, facecolors="none", edgecolors="0.0", linewidths=0.8, zorder=3)
-    if len(fin):
-        ax.scatter(fin["text_cr"], fin["image_cr"], s=30, facecolors="white", edgecolors="0.0", linewidths=1.0, marker="D", zorder=4)
-    for _, r in traj.iterrows():
-        lp = "" if pd.isna(r.get("image_lpips_med")) else f" ({r['image_lpips_med']:.3f})"
-        off, ha = LABEL_OFFSETS.get(str(r["step"]), ((5, 3), "left"))
-        ax.annotate(f"{r['label']}{lp}", (r["text_cr"], r["image_cr"]), xytext=off, textcoords="offset points", fontsize=5.8, ha=ha)
+        _calib_marker(ax, r)
+        if not in_box(r):
+            pos = CALIB_LABEL.get(str(r["step"]))
+            if pos is None:
+                ax.annotate(_calib_text(r, True), (r["text_cr"], r["image_cr"]), xytext=(6, 2), textcoords="offset points",
+                            fontsize=5.8, ha="left", va="bottom")
+            else:
+                ax.annotate(_calib_text(r, True), (r["text_cr"], r["image_cr"]), xytext=pos[0], textcoords="data",
+                            fontsize=5.8, ha=pos[1], va=pos[2], arrowprops=dict(arrowstyle="-", color="0.5", linewidth=0.4,
+                                                                                shrinkA=1, shrinkB=4))
     ax.set_xlim(0, 100); ax.set_ylim(0, 100); ax.set_aspect("equal", adjustable="box")
     ax.set_xlabel("text-only crossing share (%)"); ax.set_ylabel("image-only crossing share (%)")
-    ax.set_title("calibration steps (median image LPIPS)", fontsize=6.5)
-    ax.grid(True, color="0.9", linewidth=0.4)
-    if two:
-        bx = axs[1]
-        f = final.set_index("mod")
+    ax.set_title("(a) calibration steps", fontsize=6.5)
+    ax.grid(True, color="0.92", linewidth=0.4); ax.set_axisbelow(True)
+    # (b) zoom
+    zx.plot([0, 100], [0, 100], color="0.55", linestyle="--", linewidth=0.6, zorder=0)
+    _calib_arrows(zx, chain, CALIB_ZOOM)
+    for _, r in traj.iterrows():
+        if not in_box(r):
+            continue
+        if str(r.get("status")) == "adopted":
+            zx.errorbar(r["text_cr"], r["image_cr"], xerr=[[r["text_cr"] - r["text_lo"]], [r["text_hi"] - r["text_cr"]]],
+                        yerr=[[r["image_cr"] - r["image_lo"]], [r["image_hi"] - r["image_cr"]]], fmt="none",
+                        ecolor="0.7", elinewidth=0.45, capsize=1.0, zorder=1)
+        _calib_marker(zx, r)
+        off, ha, va = CALIB_ZOOM_LABEL.get(str(r["step"]), ((6, 0), "left", "center"))
+        zx.annotate(_calib_text(r), (r["text_cr"], r["image_cr"]), xytext=off, textcoords="offset points", fontsize=5.3,
+                    ha=ha, va=va, zorder=6, bbox=dict(boxstyle="square,pad=0.1", facecolor="white", edgecolor="none", alpha=0.8))
+    zx.set_xlim(x0, x1); zx.set_ylim(y0, y1); zx.set_aspect("equal", adjustable="box")
+    zx.set_xlabel("text-only crossing share (%)")
+    zx.set_title("(b) zoom", fontsize=6.5)
+    zx.grid(True, color="0.92", linewidth=0.4); zx.set_axisbelow(True)
+    if three:
+        bx = fig.add_subplot(gs[1, :])
+        f = final.set_index("mod") if len(final) else pd.DataFrame()
         rows = [(lab, f.loc[m] if m in f.index else None) for m, lab in CALIB_MODS]
         y = np.arange(len(rows))[::-1]
+        style = {"text-only": ("0.88", ""), "image-only": ("0.88", ""), "MMBA": ("0.1", ""),
+                 "MIMICRY-style": ("white", "////"), "DeepJanus-style": ("white", "....")}
         for yi, (lab, r) in zip(y, rows):
             if r is None:
-                bx.text(3, yi, "(running)", va="center", fontsize=6, color="0.4")
+                bx.text(3, yi, missing_note, va="center", fontsize=5.8, color="0.35")
                 continue
             n = float(r["n"]); cr = float(r["CR"]); lo, hi = _wilson(round(cr * n / 100), n)
-            mm = lab == "MMBA"
-            bx.barh(yi, cr, color="0.15" if mm else ("0.6" if lab in ("MIMICRY-style", "DeepJanus-style") else "0.85"),
-                    edgecolor="0.0", linewidth=0.5, height=0.62)
-            bx.errorbar(cr, yi, xerr=[[cr - 100 * lo], [100 * hi - cr]], fmt="none", ecolor="0.0", elinewidth=0.5, capsize=1.5)
-            bx.text(100 * hi + 2, yi, f"{cr:.0f}%", va="center", fontsize=6)
+            col, hatch = style[lab]
+            bx.barh(yi, cr, color=col, hatch=hatch, edgecolor="0.0", linewidth=0.6, height=0.6)
+            bx.errorbar(cr, yi, xerr=[[cr - 100 * lo], [100 * hi - cr]], fmt="none", ecolor="0.55" if lab == "MMBA" else "0.0",
+                        elinewidth=0.6, capsize=1.5, zorder=3)
+            bx.text(100 * hi + 1, yi, f"{cr:.0f}%", va="center", fontsize=5.8, zorder=5,
+                    bbox=dict(boxstyle="square,pad=0.1", facecolor="white", edgecolor="none"))
         if "both" in f.index:
-            bx.axvline(float(f.loc["both", "CR"]), color="0.15", linestyle=":", linewidth=0.8)
-        bx.set_yticks(y); bx.set_yticklabels([lab for lab, _ in rows]); bx.set_ylim(-0.6, len(rows) - 0.4)
-        bx.set_axisbelow(True)
+            bx.axvline(float(f.loc["both", "CR"]), color="0.0", linestyle=(0, (2, 1.5)), linewidth=0.8, zorder=4)
+        bx.set_yticks(y); bx.set_yticklabels([lab for lab, _ in rows], fontsize=6); bx.set_ylim(-0.6, len(rows) - 0.4)
         bx.set_xlim(0, 100); bx.set_xlabel("crossing share at C* (%)")
-        bx.set_title(f"C* final check, {int(float(f['n'].iloc[0]))} matched runs per method", fontsize=6.5)
-        bx.grid(True, axis="x", color="0.9", linewidth=0.4)
-    fig.tight_layout(pad=0.3)
+        nn = int(float(f["n"].iloc[0])) if len(f) else 0
+        bx.set_title(f"(c) crossing share of each method with the calibrated operators C* ({nn} matched runs each)", fontsize=6.5)
+        bx.grid(True, axis="x", color="0.9", linewidth=0.4); bx.set_axisbelow(True)
+    fig.tight_layout(pad=0.5, w_pad=1.0, h_pad=0.8)
     out = Path(out)
     out.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out)

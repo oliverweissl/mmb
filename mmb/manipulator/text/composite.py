@@ -40,6 +40,7 @@ from .types import TokenSequence, tokenize
 
 
 CANONICAL_ORDER: tuple[str, ...] = (
+    "semantic_substitution",
     "synonym",
     "fragmentation",
     "character_noise",

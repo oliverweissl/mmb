@@ -46,7 +46,7 @@ def classify_genotype(genotype, ctx: dict, text: str) -> dict:
         k = _nonzero(block)
         if not k:
             continue
-        if name == "synonym":
+        if name in ("synonym", "semantic_substitution"):       # word substitutions (MLM synonym / T-A semantic ladder)
             out["txt_synonym_words"] += k
         elif name == "saliency":
             out["txt_typo_words"] += k

@@ -1,0 +1,11 @@
+round: ta1
+# T-A text (2026-11-28): embedding-ranked word substitution only (no typos, homoglyphs, zero-width characters).
+# Sites: all non-protected, non-auxiliary words; candidates: ModernBERT in context, same tag/coarse PoS, dictionary
+# words; filters: NLI mutual entailment >= 0.8, CoLA acceptability >= 0.5; ranked by MiniLM sentence distance;
+# ladder: 1st, 2nd, 4th, 8th nearest. Text-only on held-out set 1.
+cells: calib
+image: {knn_metric: l2_live, region_block: 4, region_levels: [1, 2, 4, 8]}
+text:
+  operators:
+    - {name: semantic_substitution, severity: 1.0, ladder: [1, 2, 4, 8]}
+arms: [a6]

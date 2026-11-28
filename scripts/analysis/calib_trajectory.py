@@ -15,15 +15,18 @@ from pathlib import Path
 import pandas as pd
 from scipy.stats import binomtest
 
-# (step key, label, [(round, arm) for text-only], [(round, arm) for image-only], final)
+# (step key, label, [(round, arm) for text-only], [(round, arm) for image-only], final, status, reason)
+# status: start = the uncalibrated MAIN operators; rejected = a setting the calibration moved away from (reason why);
+# adopted = the calibrated setting C*
 STEPS = [
-    ("Zero", "uncalibrated", [("r0", "a6_text_only")], [("r0", "a7_image_only")], False),
-    ("One", "R1", [("r1", "a6_text_only")], [("r1", "a7_image_only")], False),
-    ("TwoA", "R2a", [("r2a", "a6_text_only")], [("r2a", "a7_image_only")], False),
-    ("TwoB", "R2b", [("r2a", "a6_text_only")], [("r2b", "a7_image_only")], False),   # T2 text ran once (r2a)
-    ("Three", "C*", [("r3t", "a6_text_only")], [("r2b", "a7_image_only")], False),
+    ("Zero", "uncalibrated (MAIN study)", [("r0", "a6_text_only")], [("r0", "a7_image_only")], False, "start",
+     "image edits hit dead codewords"),
+    ("One", "R1", [("r1", "a6_text_only")], [("r1", "a7_image_only")], False, "rejected", "text invalid"),
+    ("TwoA", "R2a", [("r2a", "a6_text_only")], [("r2a", "a7_image_only")], False, "rejected", "text too weak"),
+    ("TwoB", "R2b", [("r2a", "a6_text_only")], [("r2b", "a7_image_only")], False, "rejected", "text too weak"),  # T2 ran once (r2a)
+    ("Three", "C*", [("r3t", "a6_text_only")], [("r2b", "a7_image_only")], False, "adopted", ""),
     ("Final", "C* final check", [("r3t", "a6_text_only"), ("fc_new", "a6_text_only")],
-     [("r2b", "a7_image_only"), ("fc_new", "a7_image_only")], True),
+     [("r2b", "a7_image_only"), ("fc_new", "a7_image_only")], True, "adopted", ""),
 ]
 SET2 = ("fc_new", "fcb2")
 
@@ -79,7 +82,7 @@ def main() -> int:
     a = ap.parse_args()
     key = ["set", "task", "sut", "seed_idx"]
     rows = []
-    for k, label, tp, ip, final in STEPS:
+    for k, label, tp, ip, final, status, reason in STEPS:
         t, i = part(tp), part(ip)
         if t is None or i is None:
             print(f"step {k}: runs missing, skipped"); continue
@@ -90,7 +93,7 @@ def main() -> int:
         p = binomtest(n10, n10 + n01, 0.5).pvalue if n10 + n01 else 1.0
         tl, th = wilson(kt, n); il, ih = wilson(ki, n)
         med = lambda d, c: float(pd.to_numeric(d.loc[d["crossed"], c], errors="coerce").median()) if d["crossed"].any() else float("nan")
-        rows.append(dict(step=k, label=label, final=final, pairs=n, text_cr=100 * kt / n, text_lo=100 * tl, text_hi=100 * th,
+        rows.append(dict(step=k, label=label, final=final, status=status, reason=reason, pairs=n, text_cr=100 * kt / n, text_lo=100 * tl, text_hi=100 * th,
                          image_cr=100 * ki / n, image_lo=100 * il, image_hi=100 * ih, text_only=n10, image_only=n01, p_mcnemar=p,
                          image_lpips_med=med(i, "img_lpips"), text_vis_char_med=med(t, "vis_char_dist"),
                          rounds_text="+".join(r for r, _ in tp), rounds_image="+".join(r for r, _ in ip)))

@@ -184,6 +184,25 @@ def build_operators_from_specs(
                     redis_url=redis_url,
                 )
             )
+        elif spec.name == "semantic_substitution":
+            from .operators.semantic import ENCODER, NLI, SemanticSubstitutionOperator
+            out.append(
+                SemanticSubstitutionOperator(
+                    ladder=tuple(spec.extras.get("ladder", (1, 2, 4, 8))),
+                    all_words=bool(spec.extras.get("all_words", True)),
+                    nli_min=float(spec.extras.get("nli_min", 0.8)),
+                    cola_min=float(spec.extras.get("cola_min", 0.5)),
+                    cola_rel=float(spec.extras.get("cola_rel", 0.9)),
+                    encoder_name=spec.extras.get("encoder_name", ENCODER),
+                    nli_name=spec.extras.get("nli_name", NLI),
+                    severity=spec.severity,
+                    model_name=spec.extras.get("model_name", "answerdotai/ModernBERT-large"),
+                    topk_pre_filter=int(spec.extras.get("topk_pre_filter", 50)),
+                    device=spec.extras.get("device", device if device is not None else "cpu"),
+                    spacy_model=spec.extras.get("spacy_model", "en_core_web_sm"),
+                    redis_url=redis_url,
+                )
+            )
         elif spec.name == "fragmentation":
             out.append(
                 FragmentationOperator(
@@ -215,6 +234,6 @@ def build_operators_from_specs(
         else:
             raise ValueError(
                 f"unknown text operator {spec.name!r}; supported: "
-                f"synonym, fragmentation, character_noise, saliency"
+                f"synonym, semantic_substitution, fragmentation, character_noise, saliency"
             )
     return out
