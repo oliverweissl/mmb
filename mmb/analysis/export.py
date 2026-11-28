@@ -965,7 +965,8 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
            figures: bool = True, agree: list[Path] | None = None,
            transfer: list[Path] | None = None, human: Path | None = None,
            planned: Path | None = None, minimal: list[Path] | None = None,
-           omit_arms: frozenset = frozenset(), legacy: dict | None = None, calib: Path | None = None) -> Numbers:
+           omit_arms: frozenset = frozenset(), legacy: dict | None = None, calib: Path | None = None,
+           modswap: list[Path] | None = None) -> Numbers:
     from mmb.analysis import gallery, plots
 
     gen = Path(paper) / "generated"
@@ -1210,6 +1211,16 @@ def export(csv_paths: list[Path], paper: Path, *, ref: str = "a0_directed", grid
     if calib is not None and (Path(calib) / "summary.csv").exists():
         add_calib_numbers(num, Path(calib), sorted(Path("docs/figs/calib").glob("ladder_single_region_*.json")),
                           Path("results/diag_edits/codebook_dead.json"), figs if figures else None)
+    if modswap:       # modality attribution by swapping (scripts/modality_swap.py)
+        from mmb.analysis import modality_swap as msw
+        from mmb.analysis.stats import arm_label as _al
+        md = msw.load(modswap)
+        if len(md):
+            for view in ("min", "first"):
+                if (md["view"] == view).any():
+                    msw.add_numbers(num, md, camel, view)
+            if figures and (md["view"] == "min").any():
+                msw.plot(md, figs / "modality-swap.pdf", _al, view="min")
     if legacy:        # macros of omitted arms from the full export, kept until the text no longer cites them
         kept = []
         for name, (value, desc) in legacy.items():
@@ -1251,6 +1262,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--omit-arms", default=",".join(sorted(PAPER_OMIT_ARMS)),
                     help="arm prefixes kept in the data but omitted from the paper (default: %(default)s; '' = none)")
     ap.add_argument("--calib", type=Path, default=None, help="calib_final.py output dir (ECalib* macros)")
+    ap.add_argument("--modswap", type=Path, nargs="*", default=None, help="scripts/modality_swap.py CSVs (EModSwap*, modality-swap.pdf)")
     ap.add_argument("--legacy", action="store_true",
                     help="also keep the macros of omitted arms from a full export (verbatim, listed in legacy_macros.txt)")
     args = ap.parse_args(argv)
@@ -1266,7 +1278,7 @@ def main(argv: list[str] | None = None) -> int:
             (Path(tmp) / "main.tex").write_text("")
             full = export(args.csv, Path(tmp), figures=False, **kw)
             legacy = {r["macro"]: (r["value"], r["description"]) for r in full.rows}
-    num = export(args.csv, args.paper, figures=not args.no_figures, omit_arms=omit, legacy=legacy, calib=args.calib, **kw)
+    num = export(args.csv, args.paper, figures=not args.no_figures, omit_arms=omit, legacy=legacy, calib=args.calib, modswap=args.modswap, **kw)
     logger.info("wrote %d macros to %s", len(num.rows), args.paper / "generated")
     return 0
 
