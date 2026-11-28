@@ -872,6 +872,8 @@ def add_calib_numbers(num: "Numbers", calib_dir: Path, ladder_jsons: list[Path] 
                     f"calibration trajectory {r['label']}: discordant pairs (text only : image only)")
             if not pd.isna(r["image_lpips_med"]):
                 num.add(["ECalibTraj", st, "Lpips"], f"{float(r['image_lpips_med']):.3f}", f"calibration trajectory {r['label']}: median LPIPS of image-only crossings")
+            if "text_dist_med" in r and not pd.isna(r["text_dist_med"]):
+                num.add(["ECalibTraj", st, "TextDist"], f"{float(r['text_dist_med']):.3f}", f"calibration trajectory {r['label']}: median MiniLM sentence distance of text-only crossings")
             if not pd.isna(r["text_vis_char_med"]):
                 num.add(["ECalibTraj", st, "VisChar"], f"{100 * float(r['text_vis_char_med']):.1f}", f"calibration trajectory {r['label']}: median visible text change of text-only crossings (%)")
         if figs is not None:
