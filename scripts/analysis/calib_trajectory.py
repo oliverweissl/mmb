@@ -56,8 +56,9 @@ _cache: dict[str, pd.DataFrame] = {}
 
 
 def min_margin(run_dir: str) -> float:
-    """Closest approach of a run: min over all evaluations of g * sign(anchor g), g = log p(a) - log p(b) (nats).
-    < 0 = the run crossed; continuous, so the per-step distributions of text-only and image-only can overlap."""
+    """Closest approach of a run, relative to its anchor: min over all evaluations of g * sign(anchor g) / |anchor g|,
+    g = log p(a) - log p(b). 1 = the anchor's margin, 0 = the border, < 0 = the run crossed (user, 2026-11-28: normalised
+    so that models with different margin scales are comparable). Continuous, so the per-step distributions overlap."""
     import json
     import numpy as np
     p = Path(run_dir)
@@ -67,7 +68,7 @@ def min_margin(run_dir: str) -> float:
     except Exception:  # noqa: BLE001
         return float("nan")
     g = np.array([float(x[0]) - float(x[1]) for x in lp])
-    return float((g * np.sign(st["anchor_g"])).min()) if len(g) else float("nan")
+    return float((g * np.sign(st["anchor_g"])).min()) / abs(float(st["anchor_g"])) if len(g) and st["anchor_g"] else float("nan")
 
 
 def load(rnd: str) -> pd.DataFrame | None:
@@ -123,6 +124,8 @@ def main() -> int:
         t, i = part(tp), part(ip)
         if t is None or i is None:
             print(f"step {k}: runs missing, skipped"); continue
+        if len(t) != len(i):                 # a round still running: never plot a partial step
+            print(f"step {k}: incomplete ({len(t)} text vs {len(i)} image runs), skipped"); continue
         for mod, dd, src, prev in (("text", t, tp, prev_t), ("image", i, ip, prev_i)):
             for _, rr in dd.iterrows():
                 runs.append(dict(step=k, label=label, final=final, modality=mod, carried=(not final and prev == src),

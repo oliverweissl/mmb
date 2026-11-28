@@ -245,7 +245,7 @@ OKABE_BLUE, OKABE_ORANGE = "#0072B2", "#E69F00"      # colour-blind safe: text =
 
 
 def _asinh_ticks(ax, vmin: float, vmax: float) -> None:
-    cand = [-30, -10, -3, -1, 0, 1, 3, 10, 30]
+    cand = [-30, -10, -3, -1, -0.5, 0, 0.5, 1, 3, 10]
     t = [v for v in cand if vmin - 1e-9 <= v <= vmax + 1e-9]
     ax.set_yticks(np.arcsinh(t)); ax.set_yticklabels([str(v) for v in t])
 
@@ -255,15 +255,18 @@ def plot_calib_steps(traj: pd.DataFrame, runs: pd.DataFrame, out: Path | str, fi
     """Calibration, main-paper figure (scripts/analysis/calib_trajectory.py: trajectory.csv + trajectory_runs.csv).
     x = calibration step (R0 uncalibrated -> T-A text -> image ladder -> final check on 48 pairs).
     (a) crossing share per step, text-only (blue) and image-only (orange), Wilson 95% CIs.
-    (b) per step, the distribution over runs of the closest approach to the decision border (minimum signed margin,
-        nats, asinh scale; < 0 = crossed): text left, image right; a channel carried over unchanged from an earlier
+    (b) per step, the distribution over runs of the closest approach to the decision border (minimum signed margin
+        divided by the run's anchor margin, asinh scale; 1 = anchor, 0 = border, < 0 = crossed): text left, image right; a channel carried over unchanged from an earlier
         step is faded. The share below 0 is the crossing share of (a).
     (c) if *final*: crossing share of each method with the calibrated operators (baselines grey)."""
     import matplotlib.gridspec as gridspec
     plt.rcParams.update({"pdf.fonttype": 42, "ps.fonttype": 42, "font.size": 6.5, "axes.linewidth": 0.6})
+    if final is not None:
+        gs = gridspec.GridSpec(2, 2, width_ratios=[3.5, 1.35], height_ratios=[1.0, 2.1], wspace=0.35, hspace=0.32)
+    else:      # no final check yet: (a)/(b) only, full width
+        gs = gridspec.GridSpec(2, 1, height_ratios=[1.0, 2.1], hspace=0.32)
+        height_in = height_in * 0.95
     fig = plt.figure(figsize=(width_in, height_in))
-    gs = gridspec.GridSpec(2, 2, width_ratios=[3.5, 1.35] if final is not None else [1, 0.001],
-                           height_ratios=[1.0, 2.1], wspace=0.35, hspace=0.32)
     ax_cr = fig.add_subplot(gs[0, 0]); ax = fig.add_subplot(gs[1, 0], sharex=ax_cr)
     traj = traj.reset_index(drop=True)
     xs = np.arange(len(traj))
@@ -304,10 +307,12 @@ def plot_calib_steps(traj: pd.DataFrame, runs: pd.DataFrame, out: Path | str, fi
                        alpha=0.25 if faded else 0.8, linewidths=0, zorder=3)
             ax.plot([k + off[mod] - 0.08, k + off[mod] + 0.08], [np.median(tv)] * 2, color="0.0", linewidth=0.8, zorder=4)
     ax.axhline(0, color="0.0", linestyle="--", linewidth=0.7, zorder=2)
+    ax.axhline(np.arcsinh(1.0), color="0.6", linestyle=":", linewidth=0.6, zorder=1)
+    ax.text(-0.55, np.arcsinh(1.0) + 0.03, "anchor", ha="left", va="bottom", fontsize=5.3, color="0.45")
     if allv:
         v = np.concatenate(allv); _asinh_ticks(ax, float(v.min()), float(v.max()))
     ax.text(-0.55, -0.12, "crossed ↓", ha="left", va="top", fontsize=5.5, color="0.3")
-    ax.set_ylabel("min. signed margin (nats)")
+    ax.set_ylabel("closest approach\n(margin / anchor margin)")
     ax.set_xticks(xs); ax.set_xticklabels([str(l).replace("\\n", "\n") for l in traj["label"]], fontsize=5.8)
     ax.set_xlim(-0.6, len(traj) - 0.4)
     fin = np.where(traj["final"].astype(bool).to_numpy())[0]

@@ -877,8 +877,15 @@ def add_calib_numbers(num: "Numbers", calib_dir: Path, ladder_jsons: list[Path] 
             if not pd.isna(r["text_vis_char_med"]):
                 num.add(["ECalibTraj", st, "VisChar"], f"{100 * float(r['text_vis_char_med']):.1f}", f"calibration trajectory {r['label']}: median visible text change of text-only crossings (%)")
         if figs is not None:
-            from mmb.analysis.plots import plot_calib_trajectory
-            plot_calib_trajectory(tj, figs / "calib-trajectory.pdf", s[s["level"] == "pooled"])
+            runs_p = calib_dir / "trajectory_runs.csv"
+            has_final = tj["final"].astype(str).str.lower().isin(("true", "1")).any()
+            if runs_p.exists():      # steps on x, closest-approach distributions (user design 2026-11-28)
+                from mmb.analysis.plots import plot_calib_steps
+                plot_calib_steps(tj, pd.read_csv(runs_p), figs / "calib-trajectory.pdf",
+                                 s[s["level"] == "pooled"] if has_final else None)
+            else:
+                from mmb.analysis.plots import plot_calib_trajectory
+                plot_calib_trajectory(tj, figs / "calib-trajectory.pdf", s[s["level"] == "pooled"])
     fc = Path("configs/calib/fc_new.yaml")
     if fc.exists():           # the calibrated setting (same file the final check ran)
         cfg = yaml.safe_load(fc.read_text())
